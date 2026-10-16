@@ -1,0 +1,58 @@
+# Curated IS 10262 : 2019 values (the source PDF is digital, so these cross-check cleanly).
+
+table_1_x_factor:
+  source: {code: IS 10262, table: "1", chunk: "IS10262_2019:table:1", clauses: ["4.2"]}
+  title: Value of X (target strength margin)
+  verified_by: null
+  verified_on: null
+  bands: [[10, 15, 5.0], [20, 25, 5.5], [30, 60, 6.5], [65, 999, 8.0]]   # [from grade, to grade, X]
+
+table_2_assumed_sd:
+  source: {code: IS 10262, table: "2", chunk: "IS10262_2019:table:2", clauses: ["4.2.1.3"]}
+  title: Assumed standard deviation S (N/mm2), good site control
+  verified_by: null
+  verified_on: null
+  bands: [[10, 15, 3.5], [20, 25, 4.0], [30, 60, 5.0], [65, 80, 6.0]]
+  fair_control_increase: 1.0     # Table 2 note: values for good control; add 1 N/mm2 for fair control
+
+table_3_entrapped_air:
+  source: {code: IS 10262, table: "3", chunk: "IS10262_2019:table:3", clauses: ["5.2"]}
+  title: Approximate entrapped air (% of volume of concrete)
+  verified_by: null
+  verified_on: null
+  by_size_mm: {10: 1.5, 20: 1.0, 40: 0.8}
+
+table_4_water_content:
+  source: {code: IS 10262, table: "4", chunk: "IS10262_2019:table:4", clauses: ["5.3"]}
+  title: Water content per m3 for 50 mm slump, angular aggregate, SSD (kg)
+  verified_by: null
+  verified_on: null
+  by_size_mm: {10: 208, 20: 186, 40: 165}
+  slump_adjust_percent_per_25mm: 3          # 5.3
+  aggregate_shape_reduction_kg: {angular: 0, sub_angular: 10, gravel_with_crushed: 15, rounded_gravel: 20}
+
+table_5_coarse_aggregate_volume:
+  source: {code: IS 10262, table: "5", chunk: "IS10262_2019:table:5", clauses: ["5.5"]}
+  title: Volume of coarse aggregate per unit volume of total aggregate at w/c 0.50
+  verified_by: null
+  verified_on: null
+  zones: [zone_IV, zone_III, zone_II, zone_I]
+  by_size_mm:
+    10: [0.54, 0.52, 0.50, 0.48]
+    20: [0.66, 0.64, 0.62, 0.60]
+    40: [0.73, 0.72, 0.71, 0.69]
+  wc_correction_per_0_05: 0.01              # 5.5.1: +0.01 for every 0.05 decrease in w/c (and vice versa)
+  pumpable_reduction_max: 0.10              # 5.5.2: reduce CA content up to 10 % for pumping / congested steel
+
+fig_1_wc_vs_strength:
+  source: {code: IS 10262, figure: "1", clauses: ["5.1"]}
+  title: Relationship between free w/c ratio and 28-day compressive strength (curves 1/2/3 for OPC 33/43/53)
+  # Figure values cannot be extracted from the PDF text. Digitize the curves from your licensed copy
+  # (target strength N/mm2 -> free w/c) and set verified_by. Until then the mix-design calculator
+  # requires `w_c_ratio` as an input (from trial data / your digitized curve).
+  verified_by: null
+  verified_on: null
+  curves:
+    curve_1_opc33: []      # e.g. [[20, 0.55], [30, 0.45], ...]
+    curve_2_opc43: []
+    curve_3_opc53: []

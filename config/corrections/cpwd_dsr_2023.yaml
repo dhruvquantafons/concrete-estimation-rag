@@ -1,0 +1,7 @@
+# Human corrections for OCR'd CPWD DSR 2023 rows (from data/processed/review_sor_items.csv /
+# review_basic_rates.csv). Key = item_key from the CSV. Any of rate / unit / description may be given.
+# Applied on the next `crag ingest --doc CPWD_DSR_2023_V1 --doc CPWD_DSR_2023_V2` (OCR is cached, fast).
+items:
+  # Inferred, NOT yet checked in print: English OCR read 313.30, the Hindi page reads 10313.30, and the
+  # 5.33.2.x series (M25..M50) steps by exactly 150.95 -> 10313.30. Confirm against DSR p.105 (pdf p.234).
+  "CPWD-DSR-2023:5.33.2.4": {rate: 10313.30, checked_by: "auto-inferred (confirm)"}

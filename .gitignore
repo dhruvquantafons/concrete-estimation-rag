@@ -218,3 +218,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- concrete-estimation-rag ---
+# Source documents are licensed (BIS standards carry purchaser watermarks) - never commit them
+data/**
+!data/README.md
+.DS_Store
+# Local stores / caches / outputs
+storage/
+outputs/
+eval/reports/

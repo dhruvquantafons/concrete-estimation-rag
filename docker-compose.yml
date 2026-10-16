@@ -1,0 +1,33 @@
+# Optional server deployment. Default local mode needs none of this (embedded Qdrant + SQLite).
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    ports: ["6333:6333"]
+    volumes: ["qdrant_data:/qdrant/storage"]
+    environment:
+      QDRANT__SERVICE__API_KEY: ${CRAG_QDRANT_API_KEY:-change-me}
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: crag
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      POSTGRES_DB: crag
+    ports: ["5432:5432"]
+    volumes: ["pg_data:/var/lib/postgresql/data"]
+  api:
+    build: .
+    depends_on: [qdrant, postgres]
+    ports: ["8000:8000"]
+    env_file: .env
+    environment:
+      CRAG_QDRANT_URL: http://qdrant:6333
+      CRAG_DOCSTORE_URL: postgresql+psycopg://crag:${POSTGRES_PASSWORD:-change-me}@postgres:5432/crag
+    volumes:
+      - ./data:/app/data:ro
+      - ./config:/app/config
+      - ./outputs:/app/outputs
+      - hf_cache:/root/.cache/huggingface
+volumes:
+  qdrant_data: {}
+  pg_data: {}
+  hf_cache: {}

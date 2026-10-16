@@ -1,0 +1,6 @@
+{"id": "g01", "query": "What is the nominal cover for severe exposure as per IS 456?", "expect": ["45"]}
+{"id": "g02", "query": "What is the maximum free water-cement ratio for reinforced concrete in very severe exposure?", "expect": ["0.45"]}
+{"id": "g03", "query": "How is target mean strength calculated in IS 10262:2019?", "expect": ["1.65"]}
+{"id": "g04", "query": "Up to what size of opening is no deduction made in measuring concrete under IS 1200 Part 2?", "expect": ["0.1"]}
+{"id": "g05", "query": "What is the minimum reinforcement in slabs with HYSD bars?", "expect": ["0.12"]}
+{"id": "g06", "query": "What is the CPWD DSR 2023 rate for M25 design mix concrete above plinth level up to floor V?", "expect": ["9860"]}

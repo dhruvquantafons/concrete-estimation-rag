@@ -1,0 +1,9 @@
+# Location cost indices applied to CPWD DSR (Delhi) rates:  rate_at_location = DSR rate x index / 100.
+# CPWD notifies cost indices for different places (e.g. via CPWD OMs / Plinth Area Rates).
+# ONLY Delhi is filled in. Add the indices notified for your project locations (and their date/OM ref).
+base: 100
+sor: CPWD-DSR-2023
+indices:
+  delhi: {index: 100, ref: "DSR 2023 base (Delhi)"}
+  # mumbai: {index: ???, ref: "CPWD OM no. ... dated ..."}
+  # bengaluru: {index: ???, ref: "..."}

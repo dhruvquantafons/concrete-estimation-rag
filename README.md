@@ -68,14 +68,33 @@ cp .env.example .env
 crag ingest                # OCR (cached) + parse + chunk + docstore + review CSVs   (~10 min first time)
 crag index                 # embeddings + hybrid index                                (~4 min on Apple M4)
 crag search "nominal cover for severe exposure"
-crag apikey create my-app --scopes retrieve,generate,calc,estimate
-crag serve                 # http://127.0.0.1:8000/docs
+crag apikey create my-name --scopes retrieve,generate,calc,estimate,admin
+crag serve                 # web UI: http://127.0.0.1:8000/ui   ·   API docs: /docs
 pytest -q                  # unit + integration tests
 crag evaluate              # writes eval/reports/report_<ts>.md
 ```
 
 > The embedded Qdrant store allows **one process at a time**. Stop `crag serve` before running
 > `crag ingest/index` from another terminal, or run a Qdrant server (`make up`, `CRAG_QDRANT_URL`).
+
+### Web UI (`http://127.0.0.1:8000/ui`)
+
+Served by the same server, with nothing extra to install. Sign in with an API key. Each screen appears only
+if your key has the scope it needs.
+
+| Screen | What it does | Scope |
+|---|---|---|
+| Dashboard | corpus stats, review-queue size, code-table status, recent estimates | any |
+| Search & Ask | hybrid search with citations; **View page** opens the original scanned page; Ask = cited answer | retrieve / generate |
+| Mix design | IS 10262 form → kg/m³ (SSD and field), compliance checks, step-by-step working with clause refs | calc |
+| RCC design | beam / one-way slab / column / footing forms → bars, checks, working | calc |
+| Estimate / BOQ | editable element table → IS 1200 quantities → DSR-priced BOQ, cement statement, cost heads, Excel/PDF/print, saved estimates | estimate |
+| DSR rates | browse/search 2,955 items by keyword or code prefix, OCR readings, source page | estimate |
+| Review queue | flagged DSR rows next to the scanned page: click an OCR reading or type the value, then **Save** (or **Not an item — remove**). Writes `config/corrections/cpwd_dsr_2023.yaml` and applies it immediately | admin |
+| Code tables | values used by the calculators, OCR cross-check result, **Compare with page**, sign-off button | calc (sign-off: admin) |
+
+Corrections made in the UI update the database and the search results straight away. The embeddings are
+refreshed on the next `crag index`.
 
 ### API overview (`X-API-Key` header)
 
@@ -140,19 +159,33 @@ priority order.
 - [ ] Optional, for a server deployment: install/start Docker Desktop, then run `make up` (Qdrant server +
       Postgres + API) and set `CRAG_QDRANT_URL` / `CRAG_DOCSTORE_URL`.
 
-### 2. Choose the LLM (you said "decide later")
-Nothing else depends on this. Retrieval, calculators and estimates all work today with
-`CRAG_LLM_PROVIDER=fake`, which gives offline extractive answers.
-- [ ] **Claude API:** `pip install -e ".[anthropic]"`, set `CRAG_LLM_PROVIDER=anthropic`, and authenticate
-      with `ANTHROPIC_API_KEY` or `ant auth login`. The default model is `claude-opus-5-5`. Server-side
-      refusal fallback is enabled. Document excerpts are sent to the API.
-- [ ] **Local model:** run Ollama or vLLM, then set `CRAG_LLM_PROVIDER=openai_compat`,
-      `CRAG_LLM_BASE_URL=http://localhost:11434/v1` and `CRAG_LLM_MODEL=<a tool-calling model>`. Fully offline.
-- [ ] Test it: `curl -X POST localhost:8000/v1/generate -H "X-API-Key: $KEY" -d '{"query":"nominal cover for severe exposure"}' -H 'Content-Type: application/json'`,
-      then run `crag evaluate` (the generation section only runs once a real LLM is set).
+### 2. LLM: local Qwen2.5-7B-Instruct via Ollama (configured)
+`.env` is set to `CRAG_LLM_PROVIDER=openai_compat`, `CRAG_LLM_BASE_URL=http://localhost:11434/v1`,
+`CRAG_LLM_MODEL=hf.co/bartowski/Qwen2.5-7B-Instruct-GGUF:Q4_K_M`. The model comes from Hugging Face; Qwen's
+official Q4 file is sharded, which Ollama can't pull, so this uses the single-file conversion of the same
+weights. Ollama must be running (it starts with the app).
+
+Measured on this Mac (6 golden questions, cited **Ask** answers):
+
+| Model | Correct key fact | Cites sources | Avg time |
+|---|---|---|---|
+| **Qwen2.5-7B-Instruct Q4** | **6/6** | 6/6 | ~10 s (first answer ~25 s) |
+| llama3 8B (already installed) | 5/6 (gave the 0.4 m² formwork rule for concrete openings) | 6/6 | ~10 s |
+
+- [ ] **Use Qwen 7B for Ask (cited answers): it is reliable there.**
+- [ ] **Don't rely on `/v1/agent` (multi-step tool use) with a 7B model.** In tests it skipped a requested DSR
+      rate and once cited the wrong clause (26.2.1.1 instead of 26.2.5.1), although the numbers were right. For
+      design and costing, use the calculator and estimate screens directly; they are deterministic and don't need
+      the LLM. If you want the agent, try a 14B model (`ollama pull hf.co/bartowski/Qwen2.5-14B-Instruct-GGUF:Q4_K_M`,
+      ~9 GB) and compare it with `crag evaluate`.
+- [ ] To switch models, change `CRAG_LLM_MODEL` in `.env` and restart `crag serve`.
 
 ### 3. Clear the review queue (most important for estimate accuracy)
-After `crag ingest`, open these files in `data/processed/`:
+**Easiest:** open **Review queue** in the web UI (`/ui`, needs an `admin` key). Each flagged row is shown
+next to its scanned page; type or click the correct value and press Enter. Use **Not an item — remove**
+for OCR junk rows such as table headers. Filter by sub-head 4 and 5 (concrete, RCC) first.
+
+Alternatively, work from the CSV files in `data/processed/`:
 - [ ] `review_sor_items.csv` (~540 rows): DSR items whose rate readings disagreed or whose code decode was
       uncertain. Check each one against the printed DSR page (the `pdf_page` column), then add the fix to
       `config/corrections/cpwd_dsr_2023.yaml`:
@@ -163,7 +196,8 @@ After `crag ingest`, open these files in `data/processed/`:
 - [ ] Re-run `crag ingest --doc CPWD_DSR_2023_V1 --doc CPWD_DSR_2023_V2 && crag index`. OCR is cached, so this is fast.
 
 ### 4. Sign off the curated code tables
-- [ ] Run `crag verify-tables`. For each table in `config/code_tables/is456_2000.yaml` and
+- [ ] In the UI, open **Code tables**, click **Compare with page** for each table, and if the values match
+      your licensed copy, click **sign off**. Or run `crag verify-tables`, and for each table in `config/code_tables/is456_2000.yaml` and
       `is10262_2019.yaml`, compare the values with your licensed copy, then fill in `verified_by` and
       `verified_on`. Mismatches listed by the command are usually OCR errors in the source scan, but check them.
 - [ ] **Digitize IS 10262 Fig. 1** (free w/c vs 28-day strength, curves 1/2/3) into
@@ -204,7 +238,7 @@ Add each file under `data/` and register it in `config/sources.yaml` (copy an ex
       to the excerpts.
 
 ### 8. Decisions I need from you
-1. Which LLM: Claude API or local (and which local model)?
+1. ~~Which LLM~~: decided, local Qwen2.5-7B (see step 2). Decide whether the agent workflow is needed (it needs a 14B+ model).
 2. Which State PWD SORs, and which years?
 3. Default contingency % (currently 3%), and whether estimates should add any extra overhead on top of DSR
    rates (DSR item rates already include CP&OH 15% and GST 18%).

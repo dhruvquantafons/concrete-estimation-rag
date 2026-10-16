@@ -1,0 +1,119 @@
+# Source registry: one entry per document in data/.
+# Paths are relative to the project root. Add new documents here, then run `crag ingest`.
+#
+#   doc_type : is_code | is_amendment | sor
+#   ocr      : auto (score the text layer per page; re-OCR garbled/empty pages)
+#              force (OCR every page - use for poor scans)  | never
+#   amends   : for amendment slips, the doc_id they modify
+#   is_current: false => excluded from retrieval by default (superseded editions)
+
+defaults:
+  ocr: auto
+  is_current: true
+
+documents:
+  # ---------------- IS 456 : Plain and reinforced concrete ----------------
+  - doc_id: IS456_2000
+    path: data/IS 456/is.456.2000.pdf
+    doc_type: is_code
+    code_no: IS 456
+    title: Plain and Reinforced Concrete - Code of Practice (Fourth Revision)
+    revision_year: 2000
+    amendments_bundled: [1, 2, 3]         # amendment slips 1-3 are bound inside this PDF (pp. 11-20)
+    ocr: force                            # embedded text layer is a poor legacy OCR
+
+  # ---------------- IS 10262 : Mix proportioning ----------------
+  - doc_id: IS10262_2019
+    path: data/IS 10262/IS10262_2019.pdf
+    doc_type: is_code
+    code_no: IS 10262
+    title: Concrete Mix Proportioning - Guidelines (Second Revision)
+    revision_year: 2019
+
+  # ---------------- IS 1200 : Method of measurement ----------------
+  - doc_id: IS1200_P1_2026
+    path: data/IS 1200/1200_1_2026.pdf
+    doc_type: is_code
+    code_no: IS 1200
+    part: "1"
+    title: Method of Measurement of Building and Civil Engineering Works - Part 1 Earthwork (Fifth Revision)
+    revision_year: 2026
+  - doc_id: IS1200_P2_2025
+    path: data/IS 1200/1200_2_2025.pdf
+    doc_type: is_code
+    code_no: IS 1200
+    part: "2"
+    title: Method of Measurement of Building and Civil Engineering Works - Part 2 Concrete Works (Fourth Revision)
+    revision_year: 2025
+  - doc_id: IS1200_P5_2025
+    path: data/IS 1200/1200_5_2025.pdf
+    doc_type: is_code
+    code_no: IS 1200
+    part: "5"
+    title: Method of Measurement of Building and Civil Engineering Works - Part 5 Formwork (Fifth Revision)
+    revision_year: 2025
+  - doc_id: IS1200_P8_1993
+    path: data/IS 1200/1200_8_1993_reff2022.pdf
+    doc_type: is_code
+    code_no: IS 1200
+    part: "8"
+    title: Method of Measurement of Building and Civil Engineering Works - Part 8 Steelwork and Ironwork (Fourth Revision), reaffirmed 2022
+    revision_year: 1993
+    amendments_bundled: [1]
+  - doc_id: IS1200_P22_2025
+    path: data/IS 1200/1200_22_2025.pdf
+    doc_type: is_code
+    code_no: IS 1200
+    part: "22"
+    title: Method of Measurement of Building and Civil Engineering Works - Part 22 Materials (First Revision)
+    revision_year: 2025
+
+  # ---------------- IS 2386 : Methods of test for aggregates ----------------
+  - {doc_id: IS2386_P1_1963, path: data/IS 2386/is.2386.1.1963.pdf, doc_type: is_code, code_no: IS 2386, part: "1", revision_year: 1963, title: Methods of Test for Aggregates for Concrete - Part 1 Particle Size and Shape, ocr: force}
+  - {doc_id: IS2386_P2_1963, path: data/IS 2386/is.2386.2.1963.pdf, doc_type: is_code, code_no: IS 2386, part: "2", revision_year: 1963, title: Methods of Test for Aggregates for Concrete - Part 2 Estimation of Deleterious Materials and Organic Impurities, ocr: force}
+  - {doc_id: IS2386_P3_1963, path: data/IS 2386/is.2386.3.1963.pdf, doc_type: is_code, code_no: IS 2386, part: "3", revision_year: 1963, title: Methods of Test for Aggregates for Concrete - Part 3 Specific Gravity Density Voids Absorption and Bulking, ocr: force}
+  - {doc_id: IS2386_P4_1963, path: data/IS 2386/is.2386.4.1963.pdf, doc_type: is_code, code_no: IS 2386, part: "4", revision_year: 1963, title: Methods of Test for Aggregates for Concrete - Part 4 Mechanical Properties, ocr: force}
+  - {doc_id: IS2386_P5_1963, path: data/IS 2386/is.2386.5.1963.pdf, doc_type: is_code, code_no: IS 2386, part: "5", revision_year: 1963, title: Methods of Test for Aggregates for Concrete - Part 5 Soundness, ocr: force}
+  - {doc_id: IS2386_P6_1963, path: data/IS 2386/is.2386.6.1963.pdf, doc_type: is_code, code_no: IS 2386, part: "6", revision_year: 1963, title: Methods of Test for Aggregates for Concrete - Part 6 Measuring Mortar Making Properties of Fine Aggregate, ocr: force}
+  - {doc_id: IS2386_P7_1963, path: data/IS 2386/is.2386.7.1963.pdf, doc_type: is_code, code_no: IS 2386, part: "7", revision_year: 1963, title: Methods of Test for Aggregates for Concrete - Part 7 Alkali Aggregate Reactivity, ocr: force}
+  - {doc_id: IS2386_P8_1963, path: data/IS 2386/is.2386.8.1963.pdf, doc_type: is_code, code_no: IS 2386, part: "8", revision_year: 1963, title: Methods of Test for Aggregates for Concrete - Part 8 Petrographic Examination, ocr: force}
+  - doc_id: IS2386_P3_AMD1_2018
+    path: data/IS 2386/zIS2386_Part3Amd.1_2018.pdf
+    doc_type: is_amendment
+    code_no: IS 2386
+    part: "3"
+    amends: IS2386_P3_1963
+    amendment_no: 1
+    revision_year: 2018
+    title: Amendment No. 1 (October 2018) to IS 2386 (Part 3)
+  - doc_id: IS2386_P7_AMD3_2015
+    path: data/IS 2386/zIS2386:Part7Amd.3:2015.pdf
+    doc_type: is_amendment
+    code_no: IS 2386
+    part: "7"
+    amends: IS2386_P7_1963
+    amendment_no: 3
+    revision_year: 2015
+    title: Amendment No. 3 (September 2015) to IS 2386 (Part 7)
+
+  # ---------------- CPWD Delhi Schedule of Rates ----------------
+  - doc_id: CPWD_DSR_2023_V1
+    path: data/CPWD SOR/DSR_Vol_1_Civil_comp.pdf
+    doc_type: sor
+    code_no: CPWD DSR
+    title: CPWD Delhi Schedule of Rates 2023 (Civil) Vol. 1 - w.e.f. 16.10.2023
+    revision_year: 2023
+    sor_name: CPWD-DSR
+    region: Delhi
+    cost_index_base: 100        # DSR rates are Delhi rates; other locations apply a cost index
+    ocr: force
+  - doc_id: CPWD_DSR_2023_V2
+    path: data/CPWD SOR/DSR_Vol_2_Civil_comp.pdf
+    doc_type: sor
+    code_no: CPWD DSR
+    title: CPWD Delhi Schedule of Rates 2023 (Civil) Vol. 2 - w.e.f. 16.10.2023
+    revision_year: 2023
+    sor_name: CPWD-DSR
+    region: Delhi
+    cost_index_base: 100
+    ocr: force

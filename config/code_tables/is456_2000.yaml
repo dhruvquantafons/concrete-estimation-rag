@@ -1,0 +1,106 @@
+# Curated IS 456 : 2000 values used by the deterministic calculators.
+#
+# WHY CURATED: the IS 456 PDF in data/ is a legacy scan; its OCR text is good enough for retrieval
+# but not for arithmetic (e.g. Table 5 'Extreme' plain-concrete cement content OCRs as 480 instead of 280).
+# These values are entered from the standard and automatically cross-checked against the OCR text
+# with `crag verify-tables`. A table is only marked `verified` after a human compares it with the
+# licensed copy and fills in `verified_by` / `verified_on`.
+#
+# source.chunk = docstore chunk used for the automatic cross-check.
+
+table_5_durability:
+  source: {code: IS 456, table: "5", chunk: "IS456_2000:table:5", clauses: ["6.1.2", "8.2.4.1", "9.1.2"]}
+  title: Minimum cement content, maximum w/c ratio and minimum grade for different exposures (20 mm aggregate)
+  verified_by: null
+  verified_on: null
+  columns: [exposure, pcc_min_cement_kg_m3, pcc_max_wc, pcc_min_grade, rcc_min_cement_kg_m3, rcc_max_wc, rcc_min_grade]
+  rows:
+    - [mild,        220, 0.60, null, 300, 0.55, M20]
+    - [moderate,    240, 0.60, M15,  300, 0.50, M25]
+    - [severe,      250, 0.50, M20,  320, 0.45, M30]
+    - [very_severe, 260, 0.45, M20,  340, 0.45, M35]
+    - [extreme,     280, 0.40, M25,  360, 0.40, M40]
+  notes:
+    - Cement content is irrespective of cement grade and inclusive of additions (fly ash/GGBS) per 5.2.
+    - Max cement content (8.2.4.2) - cement content not including fly ash and GGBS in excess of 450 kg/m3 should not be used unless special consideration.
+  adjustments_table_6:   # IS 456 Table 6: adjustment to minimum cement content for aggregate size other than 20 mm
+    10: +40
+    20: 0
+    40: -30
+
+table_16_nominal_cover:
+  source: {code: IS 456, table: "16", chunk: "IS456_2000:table:16", clauses: ["26.4.2"]}
+  title: Nominal cover to meet durability requirements (mm)
+  verified_by: null
+  verified_on: null
+  columns: [exposure, nominal_cover_mm]
+  rows:
+    - [mild, 20]
+    - [moderate, 30]
+    - [severe, 45]
+    - [very_severe, 50]
+    - [extreme, 75]
+  notes:
+    - "Note 1: for main reinforcement up to 12 mm bar in mild exposure the nominal cover may be reduced by 5 mm."
+    - "Note 3: for severe and very severe exposure a reduction of 5 mm may be made where concrete grade is M35 and above."
+  member_minimums:            # 26.4.2.1 / 26.4.2.2
+    column_longitudinal_mm: 40      # not less than 40 mm nor less than bar diameter
+    column_small_mm: 25             # columns with min dimension <= 200 mm and bars <= 12 mm
+    footing_mm: 50
+
+table_19_tau_c:
+  source: {code: IS 456, table: "19", chunk: "IS456_2000:table:19", clauses: ["40.2.1", "40.4"]}
+  title: Design shear strength of concrete tau_c (N/mm2) vs 100 As/bd
+  verified_by: null
+  verified_on: null
+  pt: [0.15, 0.25, 0.50, 0.75, 1.00, 1.25, 1.50, 1.75, 2.00, 2.25, 2.50, 2.75, 3.00]
+  grades:
+    M15: [0.28, 0.35, 0.46, 0.54, 0.60, 0.64, 0.68, 0.71, 0.71, 0.71, 0.71, 0.71, 0.71]
+    M20: [0.28, 0.36, 0.48, 0.56, 0.62, 0.67, 0.72, 0.75, 0.79, 0.81, 0.82, 0.82, 0.82]
+    M25: [0.29, 0.36, 0.49, 0.57, 0.64, 0.70, 0.74, 0.78, 0.82, 0.85, 0.88, 0.90, 0.92]
+    M30: [0.29, 0.37, 0.50, 0.59, 0.66, 0.71, 0.76, 0.80, 0.84, 0.88, 0.91, 0.94, 0.96]
+    M35: [0.29, 0.37, 0.50, 0.59, 0.67, 0.73, 0.78, 0.82, 0.86, 0.90, 0.93, 0.96, 0.99]
+    M40: [0.30, 0.38, 0.51, 0.60, 0.68, 0.74, 0.79, 0.84, 0.88, 0.92, 0.95, 0.98, 1.01]
+
+table_20_tau_c_max:
+  source: {code: IS 456, table: "20", chunk: "IS456_2000:table:20", clauses: ["40.2.3"]}
+  title: Maximum shear stress tau_c,max (N/mm2)
+  verified_by: null
+  verified_on: null
+  grades: {M15: 2.5, M20: 2.8, M25: 3.1, M30: 3.5, M35: 3.7, M40: 4.0}
+
+bond_stress_26_2_1_1:
+  source: {code: IS 456, clause: "26.2.1.1", chunk: "IS456_2000:cl:26.2.1.1"}
+  title: Design bond stress tau_bd for plain bars in tension (N/mm2); +60% for deformed bars (IS 1786), +25% in compression
+  verified_by: null
+  verified_on: null
+  grades: {M20: 1.2, M25: 1.4, M30: 1.5, M35: 1.7, M40: 1.9}
+  deformed_bar_increase: 0.60
+  compression_increase: 0.25
+
+flexure_38_1:
+  source: {code: IS 456, clause: "38.1", chunk: "IS456_2000:cl:38.1"}
+  title: Limiting depth of neutral axis xu,max/d
+  verified_by: null
+  verified_on: null
+  xu_max_by_fy: {250: 0.53, 415: 0.48, 500: 0.46}
+
+detailing_limits:
+  source: {code: IS 456, clauses: ["26.5.1.1", "26.5.1.5", "26.5.2.1", "26.5.3.1", "23.2.1", "25.4", "39.3", "36.4.2"]}
+  title: Reinforcement and geometry limits used by the RCC calculators
+  verified_by: null
+  verified_on: null
+  beam_min_tension_steel: "As/(b d) >= 0.85/fy  (26.5.1.1 a)"
+  beam_max_tension_steel_fraction_bD: 0.04            # 26.5.1.1 b
+  stirrup_max_spacing: {fraction_of_d: 0.75, max_mm: 300}   # 26.5.1.5
+  min_shear_reinf: "Asv/(b sv) >= 0.4/(0.87 fy)"     # 26.5.1.6
+  slab_min_steel_fraction: {mild_steel: 0.0015, hysd: 0.0012}   # 26.5.2.1
+  slab_max_bar_dia_fraction_of_D: 0.125              # 26.5.2.2
+  slab_max_spacing_main: {times_d: 3, max_mm: 300}   # 26.3.3 b 1
+  slab_max_spacing_dist: {times_d: 5, max_mm: 450}   # 26.3.3 b 2
+  column_long_steel_fraction: {min: 0.008, max: 0.04, max_absolute: 0.06}   # 26.5.3.1 (0.04 recommended where bars lapped)
+  column_min_bars: {rectangular: 4, circular: 6}
+  span_depth_basic: {cantilever: 7, simply_supported: 20, continuous: 26}    # 23.2.1
+  min_eccentricity: "e_min = l/500 + D/30, >= 20 mm"   # 25.4
+  short_column_axial: "Pu = 0.4 fck Ac + 0.67 fy Asc (when e_min <= 0.05 D)"  # 39.3
+  load_factor_dl_ll: 1.5                              # Table 18

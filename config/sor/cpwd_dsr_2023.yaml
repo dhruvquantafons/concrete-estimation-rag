@@ -1,0 +1,44 @@
+# Structure of CPWD Delhi Schedule of Rates 2023 (from the Contents pages of Vol. 1/2).
+# Used to map OCR'd page footers ("SUB HEAD : 4.0 CONCRETE WORK") to the correct sub-head number,
+# because the number itself is often mis-read while the title is not.
+sor_name: CPWD-DSR
+sor_year: 2023
+effective_from: "2023-10-16"
+corrections_upto: "2023-11-10"
+notes:
+  - Rates are based on Delhi market rates of April 2023 and labour wages w.e.f. 01.04.2023.
+  - Cost index for DSR 2023 is 107 with reference to CPWD Delhi Plinth Area Rates 2021 (base 100 on 01.04.2021).
+  - GST @18% on works contract is incorporated in all item rates.
+  - Basic rates (labour/materials/hire) are exclusive of GST and contractor's profit & overheads.
+  - DSR 2023 shall be read along with CPWD Specifications 2019 Vol. I & II.
+basic_rate_sections:
+  "01": hire_charges        # 0.1 HIRE CHARGES OF PLANTS & MACHINERY
+  "02": labour              # 0.2 LABOUR
+  "03": materials           # 0.3 MATERIALS
+sub_heads:
+  1: Carriage of Materials
+  2: Earth Work
+  3: Mortar
+  4: Concrete Work
+  5: Reinforced Cement Concrete
+  6: Masonry Work
+  7: Stone Work
+  8: Cladding Work
+  9: Wood and PVC Work
+  10: Steel Work
+  11: Flooring
+  12: Roofing
+  13: Finishing
+  14: Repairs to Building
+  15: Dismantling and Demolishing
+  16: Road Work
+  17: Sanitary Installations
+  18: Water Supply
+  19: Drainage
+  20: Pile Work
+  21: Aluminium Work
+  22: Water Proofing
+  23: Rain Water Harvesting and Tubewells
+  24: Conservation of Heritage Buildings
+  25: Structural Glazing Aluminium Composite Panel
+  26: New Technologies and Materials

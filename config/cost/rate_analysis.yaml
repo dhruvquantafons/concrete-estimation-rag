@@ -1,0 +1,23 @@
+# Rate-analysis settings (CPWD DAR-style build-up). The CPWD Delhi Analysis of Rates (DAR) 2023 is NOT
+# in the corpus yet, so these percentages are the usual CPWD conventions and MUST be checked against
+# DAR 2023 before use (set verified_by). DSR *item* rates already include all of these.
+verified_by: null
+water_charges_percent: 1.0          # on (material + labour + T&P)
+contractor_profit_overheads_percent: 15.0
+gst_percent: 18.0                   # GST on works contract (DSR 2023 preface: incorporated in all items)
+
+# Optional user templates: coefficients per unit of item, priced from DSR basic rates (01/02/03 codes).
+# Coefficients must come from DAR 2023 or your own analysis. Templates with status 'example' are refused
+# by the API unless allow_example=true.
+templates:
+  example_rcc_design_mix_m25_per_m3:
+    status: example
+    unit: m3
+    description: "EXAMPLE ONLY - replace coefficients with DAR 2023 analysis for item 5.33.x"
+    materials:            # basic-rate code -> quantity per unit of item (in the basic rate's unit)
+      # "<cement code>": 0.36       # tonne
+    labour:               # labour code -> man-days per unit
+      # "0114": 1.0                 # Beldar
+    hire:                 # hire-charge code -> days per unit
+      # "0002": 0.07                # concrete mixer
+    sundries_lump: 0.0

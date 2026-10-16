@@ -1,0 +1,50 @@
+{"id": "q01", "query": "minimum cement content and maximum water cement ratio for severe exposure reinforced concrete", "targets": [{"code_no": "IS 456", "table_no": "5"}]}
+{"id": "q02", "query": "nominal cover to meet durability requirements for very severe exposure", "targets": [{"code_no": "IS 456", "table_no": "16"}, {"code_no": "IS 456", "clause_no": "26.4.2"}]}
+{"id": "q03", "query": "environmental exposure conditions classification mild moderate severe", "targets": [{"code_no": "IS 456", "table_no": "3"}, {"code_no": "IS 456", "clause_no": "8.2.2.1"}]}
+{"id": "q04", "query": "design shear strength of concrete tau c for percentage of tension steel", "targets": [{"code_no": "IS 456", "table_no": "19"}]}
+{"id": "q05", "query": "maximum shear stress in concrete with shear reinforcement", "targets": [{"code_no": "IS 456", "table_no": "20"}]}
+{"id": "q06", "query": "development length of bars design bond stress", "targets": [{"code_no": "IS 456", "clause_no": "26.2.1"}]}
+{"id": "q07", "query": "lap splice length in flexural tension and direct tension", "targets": [{"code_no": "IS 456", "clause_no": "26.2.5"}]}
+{"id": "q08", "query": "minimum and maximum tension reinforcement in beams", "targets": [{"code_no": "IS 456", "clause_no": "26.5.1.1"}]}
+{"id": "q09", "query": "maximum spacing of shear reinforcement stirrups", "targets": [{"code_no": "IS 456", "clause_no": "26.5.1.5"}]}
+{"id": "q10", "query": "minimum reinforcement in slabs high strength deformed bars 0.12 percent", "targets": [{"code_no": "IS 456", "clause_no": "26.5.2.1"}]}
+{"id": "q11", "query": "longitudinal reinforcement in columns minimum 0.8 percent maximum 6 percent", "targets": [{"code_no": "IS 456", "clause_no": "26.5.3.1"}]}
+{"id": "q12", "query": "transverse reinforcement ties pitch and diameter in columns", "targets": [{"code_no": "IS 456", "clause_no": "26.5.3.2"}]}
+{"id": "q13", "query": "span to effective depth ratio for deflection control cantilever simply supported continuous", "targets": [{"code_no": "IS 456", "clause_no": "23.2.1"}]}
+{"id": "q14", "query": "effective span of simply supported beam or slab", "targets": [{"code_no": "IS 456", "clause_no": "22.2"}]}
+{"id": "q15", "query": "minimum eccentricity for columns", "targets": [{"code_no": "IS 456", "clause_no": "25.4"}]}
+{"id": "q16", "query": "short axially loaded members in compression design load formula", "targets": [{"code_no": "IS 456", "clause_no": "39.3"}]}
+{"id": "q17", "query": "partial safety factors for loads limit state of collapse", "targets": [{"code_no": "IS 456", "table_no": "18"}, {"code_no": "IS 456", "clause_no": "36.4"}]}
+{"id": "q18", "query": "stripping time of formwork for soffits of slabs and beams", "targets": [{"code_no": "IS 456", "clause_no": "11.3"}]}
+{"id": "q19", "query": "curing period for concrete using ordinary portland cement", "targets": [{"code_no": "IS 456", "clause_no": "13.5"}]}
+{"id": "q20", "query": "acceptance criteria for compressive strength of concrete", "targets": [{"code_no": "IS 456", "clause_no": "16"}, {"code_no": "IS 456", "table_no": "11"}]}
+{"id": "q21", "query": "frequency of sampling of concrete number of samples by quantity", "targets": [{"code_no": "IS 456", "clause_no": "15.2"}]}
+{"id": "q22", "query": "self compacting concrete amendment", "targets": [{"code_no": "IS 456", "chunk_type": "amendment"}]}
+{"id": "q23", "query": "punching shear in footings two way action", "targets": [{"code_no": "IS 456", "clause_no": "31.6"}, {"code_no": "IS 456", "clause_no": "34.2.4"}]}
+{"id": "q24", "query": "bending moment coefficients for two way slabs restrained panels", "targets": [{"code_no": "IS 456", "table_no": "26"}]}
+{"id": "q25", "query": "target mean strength for mix proportioning standard deviation", "targets": [{"code_no": "IS 10262", "clause_no": "4.2"}]}
+{"id": "q26", "query": "assumed standard deviation for M25 concrete", "targets": [{"code_no": "IS 10262", "table_no": "2"}]}
+{"id": "q27", "query": "water content per cubic metre for 20 mm aggregate", "targets": [{"code_no": "IS 10262", "table_no": "4"}, {"code_no": "IS 10262", "clause_no": "5.3"}]}
+{"id": "q28", "query": "volume of coarse aggregate per unit volume of total aggregate zone II", "targets": [{"code_no": "IS 10262", "table_no": "5"}]}
+{"id": "q29", "query": "entrapped air content for nominal maximum size of aggregate", "targets": [{"code_no": "IS 10262", "table_no": "3"}]}
+{"id": "q30", "query": "adjustment of coarse aggregate proportion for water cement ratio and pumpable concrete", "targets": [{"code_no": "IS 10262", "clause_no": "5.5"}]}
+{"id": "q31", "query": "mix proportioning example M40 with superplasticizer", "targets": [{"code_no": "IS 10262", "annex": "A"}]}
+{"id": "q32", "query": "trial mixes and adjustment of water content", "targets": [{"code_no": "IS 10262", "clause_no": "5.8"}]}
+{"id": "q33", "query": "no deduction for openings up to 0.1 m2 in concrete measurement", "targets": [{"code_no": "IS 1200", "part": "2", "clause_no": "5.1.8"}]}
+{"id": "q34", "query": "how are beams measured face to face of columns depth below slab", "targets": [{"code_no": "IS 1200", "part": "2", "clause_no": "5.2.2.3"}]}
+{"id": "q35", "query": "formwork measured as area of surface in contact with concrete", "targets": [{"code_no": "IS 1200", "part": "5", "clause_no": "6.1"}]}
+{"id": "q36", "query": "measurement of reinforcement bars in running metres mass", "targets": [{"code_no": "IS 1200", "part": "8", "clause_no": "11.1"}]}
+{"id": "q37", "query": "dimensions measured to nearest 0.01 m thickness of slab 0.005 m", "targets": [{"code_no": "IS 1200", "part": "2", "clause_no": "3.5.1"}]}
+{"id": "q38", "query": "sieve analysis of aggregates method of test", "targets": [{"code_no": "IS 2386", "part": "1"}]}
+{"id": "q39", "query": "specific gravity and water absorption of coarse aggregate test", "targets": [{"code_no": "IS 2386", "part": "3"}]}
+{"id": "q40", "query": "aggregate crushing value and impact value determination", "targets": [{"code_no": "IS 2386", "part": "4"}]}
+{"id": "q41", "query": "flakiness index and elongation index of aggregate", "targets": [{"code_no": "IS 2386", "part": "1"}]}
+{"id": "q42", "query": "rate for design mix concrete M30 up to plinth level", "targets": [{"code_no": "CPWD DSR", "item_code": "5.33.1.2"}]}
+{"id": "q43", "query": "centering and shuttering for columns pillars piers rate", "targets": [{"code_no": "CPWD DSR", "item_code": "5.9.6"}]}
+{"id": "q44", "query": "steel reinforcement TMT Fe 500D bars rate per kg", "targets": [{"code_no": "CPWD DSR", "item_code": "5.22.6"}, {"code_no": "CPWD DSR", "item_code": "5.22A.6"}]}
+{"id": "q45", "query": "plain cement concrete 1:4:8 with 40 mm aggregate up to plinth", "targets": [{"code_no": "CPWD DSR", "item_code": "4.1.8"}]}
+{"id": "q46", "query": "labour rate of mason first class per day", "targets": [{"code_no": "CPWD DSR", "item_code": "BR:0123"}]}
+{"id": "q47", "query": "basic rate of OPC 43 grade cement per tonne", "targets": [{"code_no": "CPWD DSR", "item_code": "BR:0367"}]}
+{"id": "q48", "query": "centering shuttering for suspended floors roofs landings", "targets": [{"code_no": "CPWD DSR", "item_code": "5.9.3"}]}
+{"id": "q49", "query": "what does clause 26.4.2 of IS 456 say", "targets": [{"code_no": "IS 456", "clause_no": "26.4.2"}]}
+{"id": "q50", "query": "DSR item 5.33.2.1", "targets": [{"code_no": "CPWD DSR", "item_code": "5.33.2.1"}]}

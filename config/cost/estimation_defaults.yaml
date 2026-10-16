@@ -1,0 +1,32 @@
+# Assumptions used by the BOQ engine when the user does not supply them. Every value here is reported
+# in the estimate's "assumptions" section. Replace with project-specific values / BBS where available.
+
+# Reinforcement density (kg of steel per m3 of concrete) used only when no BBS / steel_kg is given.
+# These are thumb rules for preliminary estimates, NOT code values.
+steel_kg_per_m3:
+  footing: 80
+  column: 180
+  beam: 150
+  slab: 90
+  wall: 100
+  lintel: 120
+  chajja: 80
+  staircase_waist: 110
+  pcc_bed: 0
+
+# DSR basic-rate codes used for the material cost split (CPWD DSR 2023 basic rates, 03 MATERIALS)
+material_codes:
+  cement_opc43: {code: "0367", unit: t}
+  coarse_sand: {code: "0982", unit: m3}
+  aggregate_20mm: {code: "0295", unit: m3}
+  aggregate_10mm: {code: "0297", unit: m3}
+  steel_tmt_fe500d: {code: "1005", unit: quintal}
+  binding_wire: {code: "7335", unit: kg}
+
+# conversions for the material split (loose bulk densities) - assumptions
+bulk_density_kg_m3:
+  fine_aggregate: 1600
+  coarse_aggregate: 1450
+binding_wire_kg_per_tonne_steel: 10
+
+contingency_percent: 3.0
