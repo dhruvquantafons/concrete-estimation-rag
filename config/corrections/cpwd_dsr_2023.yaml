@@ -5,3 +5,52 @@ items:
   # Inferred, NOT yet checked in print: English OCR read 313.30, the Hindi page reads 10313.30, and the
   # 5.33.2.x series (M25..M50) steps by exactly 150.95 -> 10313.30. Confirm against DSR p.105 (pdf p.234).
   "CPWD-DSR-2023:5.33.2.4": {rate: 10313.30, checked_by: "auto-inferred (confirm)"}
+  "CPWD-DSR-2023:1.2": {rate: 0.5, unit: km, checked_by: admin, checked_on: '2026-10-16'}
+  "CPWD-DSR-2023:1": {exclude: true, checked_by: admin, checked_on: '2026-10-16'}
+  "CPWD-DSR-2023:BR:0027": {rate: 33500.0, unit: day, checked_by: admin, checked_on: '2026-10-16'}
+  "CPWD-DSR-2023:BR:0039": {rate: 1350.0, unit: day, checked_by: admin, checked_on: '2026-10-16'}
+  "CPWD-DSR-2023:BR:0083": {rate: 1550.0, unit: day, checked_by: admin, checked_on: '2026-10-16'}
+  "CPWD-DSR-2023:BR:0165": {rate: 973.0, unit: day, checked_by: admin, checked_on: '2026-10-16'}
+  "CPWD-DSR-2023:BR:0029": {rate: 40.0, unit: m3_km, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0244": {rate: 650.0, unit: m2, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0302": {rate: 44.0, unit: m, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0305": {rate: 420.0, unit: score, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0309": {rate: 33530.0, unit: t, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0371": {rate: 143.0, unit: kg, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0426": {rate: 104.0, unit: each, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0571": {rate: 101.0, unit: each, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0665": {rate: 36.0, unit: each, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0704": {rate: 290.0, unit: 10_nos, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0753": {rate: 140.0, unit: m2, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0754": {rate: 145.0, unit: m2, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0755": {rate: 285.0, unit: m2, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0757": {rate: 75.0, unit: m2, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0826": {rate: 170.0, unit: l, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0834": {rate: 178.0, unit: l, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0837": {rate: 80.0, unit: l, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0850": {rate: 190.0, unit: kg, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0994": {rate: 145.0, unit: m2, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:1000": {rate: 60.0, unit: l, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
+    against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:1008": {rate: 5450.0, unit: quintal, checked_by: codex-review, checked_on: '2026-10-16',
+  note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:148622000": {exclude: true, checked_by: codex-review, checked_on: '2026-10-16'}
