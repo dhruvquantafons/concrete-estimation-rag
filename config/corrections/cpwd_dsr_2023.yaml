@@ -54,3 +54,4 @@ items:
   "CPWD-DSR-2023:BR:1008": {rate: 5450.0, unit: quintal, checked_by: codex-review, checked_on: '2026-10-16',
   note: Checked against CPWD DSR 2023 source scan}
   "CPWD-DSR-2023:BR:148622000": {exclude: true, checked_by: codex-review, checked_on: '2026-10-16'}
+  "CPWD-DSR-2023:BR:1221": {rate: 6100.0, unit: quintal, checked_by: admin, checked_on: '2026-10-19'}
