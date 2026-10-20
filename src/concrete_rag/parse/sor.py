@@ -455,6 +455,7 @@ def parse_sor(doc: SourceDoc, pages: list[PageText], alt_read: bool = True) -> S
     sor_name, year = doc.sor_name or "CPWD-DSR", doc.revision_year
     items: list[SorItem] = []
     basic: list[BasicRate] = []
+    basic_seen: dict[str, int] = {}
     coeffs: list[dict] = []
     by_code: dict[str, SorItem] = {}
     group_desc: dict[str, str] = {}
@@ -466,7 +467,12 @@ def parse_sor(doc: SourceDoc, pages: list[PageText], alt_read: bool = True) -> S
             reasons.append(f"rate readings disagree {readings}")
         desc = re.sub(r"\s+", " ", " ".join(r.desc)).strip(" -—:;")
         unit_raw = " ".join(r.unit_tokens).strip() or None
-        unit = normalize_unit(unit_raw) or next((u for u in map(normalize_unit, r.unit_tokens) if u), None)
+        unit = normalize_unit(unit_raw)
+        # word-by-word fallback strips OCR junk ("© cum", "sqm sqm"), but never drops a leading count ("10 Nos"
+        # is not "each") or picks one word out of a compound unit ("per cm depth per cm width per metre length")
+        if unit is None and r.unit_tokens and not re.fullmatch(r"\d+", r.unit_tokens[0]) \
+                and len(re.findall(r"per", unit_raw, re.I)) < 2:
+            unit = next((u for u in map(normalize_unit, r.unit_tokens) if u), None)
         if r.section == "basic":
             code = re.sub(r"[^\d]", "", r.raw_code.replace("O", "0").replace("o", "0").replace("I", "1")
                           .replace("l", "1").replace("|", "1"))
@@ -474,10 +480,18 @@ def parse_sor(doc: SourceDoc, pages: list[PageText], alt_read: bool = True) -> S
                 reasons.append("no rate")
             if unit_raw and not unit:
                 reasons.append(f"unknown unit '{unit_raw}'")
-            key = f"{sor_name}-{year}:BR:{code}"
-            corr = corrections.get(key, {})
-            if corr.get("exclude"):
+            base = f"{sor_name}-{year}:BR:{code}"
+            # OCR can give several rows the same code: the n-th is keyed "<code>#n" here and in the docstore, and a
+            # correction for it uses that key. A plain-key correction is for the first row, except "exclude",
+            # which removes every row with that code (junk rows usually repeat).
+            n = basic_seen[base] = basic_seen.get(base, 0) + 1
+            key = base if n == 1 else f"{base}#{n}"
+            corr = corrections.get(key) or (corrections.get(base, {}) if n == 1 else {})
+            if corrections.get(base, {}).get("exclude") or corr.get("exclude"):
                 continue
+            if corr.get("code"):
+                code = str(corr["code"])
+                key = f"{sor_name}-{year}:BR:{code}"
             basic.append(BasicRate(
                 key=key, sor_name=sor_name, sor_year=year, category=r.category or "unknown", code=code,
                 description=corr.get("description", desc), unit=corr.get("unit", unit), unit_raw=unit_raw,

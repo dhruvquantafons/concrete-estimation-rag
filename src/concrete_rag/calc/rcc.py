@@ -58,6 +58,26 @@ def tau_c_max(fck: int) -> tuple[float, ct.Ref]:
     return t[g], ct.ref("table_20_tau_c_max", t[g], g)
 
 
+def span_depth_allowed(support: str, span_m: float, fy: float, ast_req: float, ast_prov: float, b: float, d: float,
+                       asc_prov: float = 0.0) -> tuple[float, str]:
+    """cl. 23.2.1: allowable L/d = basic x (10/span if span > 10 m) x MF_tension (Fig. 4) x MF_compression (Fig. 5).
+    Fig. 4 / Fig. 5 are read with the usual closed-form fits of the curves (as used with SP 16):
+      MF_t = 1 / (0.225 + 0.003 22 fs - 0.625 log10(1/pt)) <= 2.0,  fs = 0.58 fy Ast,req/Ast,prov
+      MF_c = 1 + pc / (3 + pc) <= 1.5"""
+    basic = ct.tables()["detailing_limits"]["span_depth_basic"][support]
+    long_span = 10 / span_m if span_m > 10 and support != "cantilever" else 1.0
+    fs = 0.58 * fy * ast_req / ast_prov
+    pt = max(100 * ast_prov / (b * d), 0.1)
+    mf_t = min(2.0, max(0.3, 1 / (0.225 + 0.00322 * fs - 0.625 * math.log10(1 / pt))))
+    pc = 100 * asc_prov / (b * d)
+    mf_c = min(1.5, 1 + pc / (3 + pc))
+    allowed = basic * long_span * mf_t * mf_c
+    note = (f"basic {basic}" + (f" x 10/{span_m:g}" if long_span != 1 else "") + f" x MF_t {mf_t:.2f} "
+            f"(fs {fs:.0f}, pt {pt:.2f} %)" + (f" x MF_c {mf_c:.2f} (pc {pc:.2f} %)" if pc else "")
+            + f" = {allowed:.1f}")
+    return allowed, note
+
+
 # ------------------------------------------------------------------ beams
 class BeamInput(BaseModel):
     b_mm: float = Field(..., gt=0)
@@ -127,7 +147,9 @@ def design_beam(inp: BeamInput) -> CalcResult:
         res.warnings.append(f"Ast raised to minimum 0.85 bd/fy = {ast_min:.0f} mm2 (cl. 26.5.1.1 a)")
         ast = ast_min
     res.check("Ast >= 0.85 bd/fy", ast >= ast_min, f"{ast:.0f} >= {ast_min:.0f} mm2", [lim])
-    res.check("Ast <= 0.04 bD", ast + asc <= ast_max, f"{ast + asc:.0f} <= {ast_max:.0f} mm2", [lim])
+    res.check("Ast <= 0.04 bD", ast <= ast_max, f"{ast:.0f} <= {ast_max:.0f} mm2", [lim])
+    if asc:
+        res.check("Asc <= 0.04 bD", asc <= ast_max, f"{asc:.0f} <= {ast_max:.0f} mm2", [_R("cl. 26.5.1.2")])
     n = math.ceil(ast / bar_area(inp.main_bar_dia_mm))
     ast_prov = n * bar_area(inp.main_bar_dia_mm)
     res.step("tension bars provided", f"{n} x {inp.main_bar_dia_mm:g} mm (Ast = {ast_prov:.0f} mm2)")
@@ -156,13 +178,13 @@ def design_beam(inp: BeamInput) -> CalcResult:
     sv = math.floor(sv / 5) * 5
     res.check("stirrup spacing <= min(0.75 d, 300)", sv <= sv_max, f"{sv} <= {sv_max:.0f} mm", [lim])
 
-    # --- deflection (basic span/depth only)
+    # --- deflection (cl. 23.2.1 span/depth with Fig. 4 / Fig. 5 modification factors)
     if inp.span_m:
-        basic = ct.tables()["detailing_limits"]["span_depth_basic"][inp.support]
         ratio = inp.span_m * 1000 / d
-        res.check("span/d <= basic value (modification factors not applied)", ratio <= basic * 2,
-                  f"L/d = {ratio:.1f}; basic {basic} (x modification factor from Fig. 4 - verify)", [_R("cl. 23.2.1")])
-        res.warnings.append("Deflection check uses basic span/depth only; apply Fig. 4/5 modification factors.")
+        allowed, note = span_depth_allowed(inp.support, inp.span_m, fy, ast, ast_prov, b, d, asc)
+        res.check("span/d <= allowable (cl. 23.2.1)", ratio <= allowed, f"L/d = {ratio:.1f} <= {note}",
+                  [_R("cl. 23.2.1 / Fig. 4 / Fig. 5")])
+        res.warnings.append("Fig. 4/5 factors use curve fits; read the figures for a borderline result.")
 
     res.outputs = {"d_mm": d, "Ast_required_mm2": r2(ast, 0), "Asc_required_mm2": r2(asc, 0),
                    "tension_bars": f"{n}-{inp.main_bar_dia_mm:g}mm", "Ast_provided_mm2": r2(ast_prov, 0),
@@ -211,6 +233,7 @@ def design_slab_one_way(inp: SlabInput) -> CalcResult:
     ast_min = lim["slab_min_steel_fraction"]["hysd" if fy > 250 else "mild_steel"] * 1000 * D
     res.step("Ast required", r2(ast, 0), "mm2/m")
     ast = max(ast, ast_min)
+    ast_req = ast
     sp_main = min(1000 * bar_area(inp.bar_dia_mm) / ast, 3 * d, 300)
     sp_main = math.floor(sp_main / 5) * 5
     dist = ast_min
@@ -222,8 +245,10 @@ def design_slab_one_way(inp: SlabInput) -> CalcResult:
     tv = Vu * 1e3 / (1000 * d)
     res.check("one-way shear tau_v <= k tau_c", tv <= k * tc, f"{tv:.3f} <= {k:.2f} x {tc:.3f}", [tcref, _R("cl. 40.2.1.1")])
     ratio = L * 1000 / d
-    res.check("L/d <= basic x MF (MF assumed <= 2)", ratio <= basic * 2,
-              f"L/d = {ratio:.1f}, basic {basic}; compute MF from Fig. 4 for final check", [_R("cl. 23.2.1")])
+    ast_prov = 1000 * bar_area(inp.bar_dia_mm) / sp_main
+    allowed, note = span_depth_allowed(inp.support, L, fy, ast_req, ast_prov, 1000, d)
+    res.check("span/d <= allowable (cl. 23.2.1)", ratio <= allowed, f"L/d = {ratio:.1f} <= {note}",
+              [_R("cl. 23.2.1 / Fig. 4")])
     res.outputs = {"D_mm": D, "d_mm": d, "Mu_kNm_per_m": Mu, "Ast_main_mm2_per_m": r2(ast, 0),
                    "main_bars": f"{inp.bar_dia_mm:g}mm @ {sp_main} mm c/c",
                    "distribution_bars": f"{inp.dist_bar_dia_mm:g}mm @ {sp_dist} mm c/c",
@@ -294,10 +319,13 @@ def design_footing_square(inp: FootingInput) -> CalcResult:
     res.step("plan size B x B (10 % for self weight)", f"{B:.2f} m x {B:.2f} m", None, "sqrt(1.1 P / SBC)")
     qu = 1.5 * inp.service_load_kN / (B * B)
     res.step("factored net upward pressure qu", r2(qu, 2), "kN/m2")
-    a = max(inp.column_b_mm, inp.column_D_mm) / 1000
-    cant = (B - a) / 2
+    cb, cD = sorted((inp.column_b_mm / 1000, inp.column_D_mm / 1000))
+    cant = (B - cb) / 2           # longer cantilever (from the shorter column side) governs a square footing
     Mu = qu * B * cant ** 2 / 2
-    res.step("Mu at column face (cl. 34.2.3.2)", r2(Mu, 2), "kNm", refs=[_R("cl. 34.2.3.2")])
+    res.step("Mu at column face (cl. 34.2.3.2)", r2(Mu, 2), "kNm", f"qu B c2/2, c = (B - {cb:g})/2 = {cant:.3f} m",
+             refs=[_R("cl. 34.2.3.2")])
+    ks = min(1.0, 0.5 + cb / cD)   # cl. 31.6.3.1, beta_c = short/long side of column
+    tp_allow = ks * 0.25 * math.sqrt(fck)
     d = 200.0
     for _ in range(200):
         mlim, _, _ = mu_lim(fck, fy, B * 1000, d)
@@ -307,10 +335,10 @@ def design_footing_square(inp: FootingInput) -> CalcResult:
         ast = ast_singly(min(Mu * 1e6, mlim * 0.999), fck, fy, B * 1000, d)
         tc1, _ = tau_c(fck, 100 * ast / (B * 1000 * d))
         # punching shear at d/2 from face (cl. 31.6.3.1)
-        p = a + d / 1000
-        Vp = qu * (B * B - p * p)
-        tp = Vp * 1e3 / (4 * p * 1000 * d)
-        ok = Mu * 1e6 <= mlim and Vu1 * 1e3 / (B * 1000 * d) <= tc1 and tp <= 0.25 * math.sqrt(fck)
+        p1, p2 = cb + d / 1000, cD + d / 1000
+        Vp = qu * (B * B - p1 * p2)
+        tp = Vp * 1e3 / (2 * (p1 + p2) * 1000 * d)
+        ok = Mu * 1e6 <= mlim and Vu1 * 1e3 / (B * 1000 * d) <= tc1 and tp <= tp_allow
         if ok:
             break
         d += 25
@@ -319,8 +347,10 @@ def design_footing_square(inp: FootingInput) -> CalcResult:
     ast = max(ast, 0.0012 * B * 1000 * (d + inp.clear_cover_mm + inp.bar_dia_mm))
     n = math.ceil(ast / bar_area(inp.bar_dia_mm))
     sp = math.floor((B * 1000 - 2 * inp.clear_cover_mm) / max(n - 1, 1) / 5) * 5
-    res.check("punching shear <= 0.25 sqrt(fck)", tp <= 0.25 * math.sqrt(fck), f"{tp:.3f} <= {0.25 * math.sqrt(fck):.3f}",
+    res.check("punching shear <= ks 0.25 sqrt(fck)", tp <= tp_allow, f"{tp:.3f} <= {ks:.2f} x {0.25 * math.sqrt(fck):.3f}",
               [_R("cl. 31.6.3.1")])
+    res.check("one-way shear at d from face <= tau_c", Vu1 * 1e3 / (B * 1000 * d) <= tc1,
+              f"{Vu1 * 1e3 / (B * 1000 * d):.3f} <= {tc1:.3f}", [_R("cl. 34.2.4.1 a")])
     res.outputs = {"B_m": B, "D_mm": d + inp.clear_cover_mm + inp.bar_dia_mm, "d_mm": d,
                    "bars_each_way": f"{n}-{inp.bar_dia_mm:g}mm @ {sp} mm c/c", "Ast_each_way_mm2": r2(ast, 0)}
     return res.finalize()

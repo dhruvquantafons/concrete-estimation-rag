@@ -2,56 +2,767 @@
 # review_basic_rates.csv). Key = item_key from the CSV. Any of rate / unit / description may be given.
 # Applied on the next `crag ingest --doc CPWD_DSR_2023_V1 --doc CPWD_DSR_2023_V2` (OCR is cached, fast).
 items:
-  # Inferred, NOT yet checked in print: English OCR read 313.30, the Hindi page reads 10313.30, and the
-  # 5.33.2.x series (M25..M50) steps by exactly 150.95 -> 10313.30. Confirm against DSR p.105 (pdf p.234).
-  "CPWD-DSR-2023:5.33.2.4": {rate: 10313.30, checked_by: "auto-inferred (confirm)"}
+  "CPWD-DSR-2023:5.33.2.4": {rate: 10313.3, checked_by: claude-vision, checked_on: '2026-10-20', note: confirmed in print DSR p.112}
   "CPWD-DSR-2023:1.2": {rate: 0.5, unit: km, checked_by: admin, checked_on: '2026-10-16'}
   "CPWD-DSR-2023:1": {exclude: true, checked_by: admin, checked_on: '2026-10-16'}
   "CPWD-DSR-2023:BR:0027": {rate: 33500.0, unit: day, checked_by: admin, checked_on: '2026-10-16'}
   "CPWD-DSR-2023:BR:0039": {rate: 1350.0, unit: day, checked_by: admin, checked_on: '2026-10-16'}
   "CPWD-DSR-2023:BR:0083": {rate: 1550.0, unit: day, checked_by: admin, checked_on: '2026-10-16'}
   "CPWD-DSR-2023:BR:0165": {rate: 973.0, unit: day, checked_by: admin, checked_on: '2026-10-16'}
-  "CPWD-DSR-2023:BR:0029": {rate: 40.0, unit: m3_km, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:0244": {rate: 650.0, unit: m2, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:0302": {rate: 44.0, unit: m, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:0305": {rate: 420.0, unit: score, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:0309": {rate: 33530.0, unit: t, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:0371": {rate: 143.0, unit: kg, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:0426": {rate: 104.0, unit: each, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:0571": {rate: 101.0, unit: each, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:0665": {rate: 36.0, unit: each, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:0704": {rate: 290.0, unit: 10_nos, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:0753": {rate: 140.0, unit: m2, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:0754": {rate: 145.0, unit: m2, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:0755": {rate: 285.0, unit: m2, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:0757": {rate: 75.0, unit: m2, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:0826": {rate: 170.0, unit: l, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:0834": {rate: 178.0, unit: l, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:0837": {rate: 80.0, unit: l, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:0850": {rate: 190.0, unit: kg, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:0994": {rate: 145.0, unit: m2, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:1000": {rate: 60.0, unit: l, checked_by: codex-review, checked_on: '2026-10-16', note: Checked
-    against CPWD DSR 2023 source scan}
-  "CPWD-DSR-2023:BR:1008": {rate: 5450.0, unit: quintal, checked_by: codex-review, checked_on: '2026-10-16',
-  note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0029": {rate: 40.0, unit: m3_km, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0244": {rate: 650.0, unit: m2, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0302": {rate: 44.0, unit: m, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0305": {rate: 420.0, unit: score, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0309": {rate: 33530.0, unit: t, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0371": {rate: 143.0, unit: kg, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0426": {rate: 104.0, unit: each, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0571": {rate: 101.0, unit: each, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0665": {rate: 36.0, unit: each, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0704": {rate: 290.0, unit: 10_nos, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0753": {rate: 140.0, unit: m2, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0754": {rate: 145.0, unit: m2, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0755": {rate: 285.0, unit: m2, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0757": {rate: 75.0, unit: m2, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0826": {rate: 170.0, unit: l, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0834": {rate: 178.0, unit: l, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0837": {rate: 80.0, unit: l, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0850": {rate: 190.0, unit: kg, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:0994": {rate: 145.0, unit: m2, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:1000": {rate: 60.0, unit: l, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
+  "CPWD-DSR-2023:BR:1008": {rate: 5450.0, unit: quintal, checked_by: codex-review, checked_on: '2026-10-16', note: Checked against CPWD DSR 2023 source scan}
   "CPWD-DSR-2023:BR:148622000": {exclude: true, checked_by: codex-review, checked_on: '2026-10-16'}
   "CPWD-DSR-2023:BR:1221": {rate: 6100.0, unit: quintal, checked_by: admin, checked_on: '2026-10-19'}
+  "CPWD-DSR-2023:1.2.1": {rate: 227.18, unit: m3, description: 'Lime, moorum, building rubbish', checked_by: claude-vision, checked_on: '2026-10-20', note: Carriage col 4 (first 50 m); every additional 50 m lead (col 5) = 49.47}
+  "CPWD-DSR-2023:1.2.2": {rate: 283.98, unit: m3, description: Earth, checked_by: claude-vision, checked_on: '2026-10-20', note: Carriage col 4 (first 50 m); every additional 50 m lead (col 5) = 61.83}
+  "CPWD-DSR-2023:1.2.3": {rate: 246.94, unit: m3, description: Manure or sludge, checked_by: claude-vision, checked_on: '2026-10-20', note: Carriage col 4 (first 50 m); every additional 50 m lead (col 5) = 53.77}
+  "CPWD-DSR-2023:1.2.16.1": {rate: 415.04, unit: 100m, description: S.W. pipe 100 mm dia, checked_by: claude-vision, checked_on: '2026-10-20', note: Carriage col 4 (first 50 m); every additional 50 m lead (col 5) = 60.90}
+  "CPWD-DSR-2023:1.2.16.2": {rate: 682.23, unit: 100m, description: S.W. pipe 150 mm dia, checked_by: claude-vision, checked_on: '2026-10-20', note: Carriage col 4 (first 50 m); every additional 50 m lead (col 5) = 100.11}
+  "CPWD-DSR-2023:1.4.1": {rate: 251.15, unit: t, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1.4.3": {rate: 263.15, unit: t, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1.43": {rate: 753.25, unit: m2, code: '11.43', checked_by: claude-vision, checked_on: '2026-10-20', note: 'code is 11.43 (Flooring), OCR dropped a digit'}
+  "CPWD-DSR-2023:1.44": {rate: 954.15, unit: m2, code: '11.44', checked_by: claude-vision, checked_on: '2026-10-20', note: 'code is 11.44 (Flooring), OCR dropped a digit'}
+  "CPWD-DSR-2023:2.1.4": {rate: 129.85, unit: m2, code: 2.1.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:2.5": {rate: 14.25, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:2.10.1.1": {rate: 215.6, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:2.18.1.3": {rate: 549.75, unit: m, code: 2.10.1.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:2.17.4.1": {rate: 151.5, unit: m2, code: 2.17.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:2.17.7.2": {rate: 184.0, unit: m2, code: 2.17.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:2.27": {rate: 2123.75, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:2.28.1": {rate: 34.15, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:2.30.1": {rate: 82.45, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:2.30.2": {rate: 194.25, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:2.32": {rate: 8.95, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:2.33.1": {rate: 532.35, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:2.33.4": {rate: 22075.2, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:3.18": {rate: 940.55, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1.2.16": {exclude: true, checked_by: admin, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1#p180": {exclude: true, checked_by: admin, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:2.24.1": {unit: m_depth, description: 'In or under water and/or liquid mud, including pumping out water as required - extra 20% per metre depth over the item rate', checked_by: claude-vision, checked_on: '2026-10-20', note: 'NOT a rupee rate: extra 20% over the rate of the item executed, per metre depth (see DSR note to 2.24: depth from sub-soil water level to centre of gravity of the work, to 0.10 m)'}
+  "CPWD-DSR-2023:2.24.2": {unit: m_depth, description: 'In or under foul position, including pumping out water as required - extra 25% per metre depth over the item rate', checked_by: claude-vision, checked_on: '2026-10-20', note: 'NOT a rupee rate: extra 25% over the rate of the item executed, per metre depth (see DSR note to 2.24: depth from sub-soil water level to centre of gravity of the work, to 0.10 m)'}
+  "CPWD-DSR-2023:2H": {rate: 17.6, unit: m2, code: '2.31', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:4.1.1.11": {rate: 6189.65, unit: m3, code: 4.1.11, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:4.1.1.12A": {rate: 5130.65, unit: m3, code: 4.1.12A, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:4.2.2": {rate: 10357.55, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20', note: Hindi-page reading 10357.55 is correct; English OCR dropped the leading 10}
+  "CPWD-DSR-2023:4.2.2A": {rate: 10144.5, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20', note: OCR dropped digits; printed 10144.50}
+  "CPWD-DSR-2023:4.5.1": {rate: 10105.1, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20', note: OCR dropped the leading 10; printed 10105.10}
+  "CPWD-DSR-2023:4.8.1": {rate: 14624.2, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:4.9": {rate: 929.8, unit: each, description: 'Precasting and placing in position 125 mm dia Bollards 600 mm high of required shape including providing M.S. Pipe Sleeve 50 mm dia 300 mm long in the Bollard and M.S. Pipes 40 mm dia and 450 mm long with 150x150x6 mm M.S. plate welded at bottom and embedded 150 mm in cement concrete 1:3:6 (1 Cement : 3 coarse sand (zone-III) derived from natural sources : 6 graded stone aggregate 20 mm nominal size derived from natural sources), including necessary excavation of size 250x250x450 mm deep for the same in bitumen/concrete pavement at specified spacing.', checked_by: claude-vision, checked_on: '2026-10-20', note: 'OCR had merged 4.9 and 4.9A (RCA variant, each 900.15) into this row; 4.9A is missing from the data'}
+  "CPWD-DSR-2023:4.9B": {rate: 878.9, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:4.15": {rate: 1098.8, unit: m3_m_depth, checked_by: claude-vision, checked_on: '2026-10-20', note: 'Unit is cum per metre depth: qty = cum under sub-soil water x depth to its centre of gravity (DSR note to 4.15)'}
+  "CPWD-DSR-2023:4.17A": {rate: 702.3, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:4.17B": {rate: 666.9, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:4.20.41.3": {rate: 9005.85, unit: m3, code: 4.20A.1.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:5.4": {rate: 8650.85, unit: m3, code: 5.4A, description: 'Providing and laying reinforced cement concrete in kerbs, steps and the like at or near ground level excluding the cost of centering, shuttering, finishing and reinforcement with 1:1.5:3 (1 cement : 1.5 coarse sand incuding manufactured sand derived from Recycled Concrete Aggregate (RCA) upto 20% : 3 graded stone aggregate 20 mm nominal size including Recycled Concrete Aggregate (RCA) upto 20%).', checked_by: claude-vision, checked_on: '2026-10-20', note: 'OCR merged 5.4 (cum 8821.65, p.105) and 5.4A into this row; kept as 5.4A. Item 5.4 is missing from the data'}
+  "CPWD-DSR-2023:5.5": {rate: 12205.85, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:5.8": {rate: 11454.35, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20', note: was 19454.35 (OCR misread); printed 11454.35}
+  "CPWD-DSR-2023:5.9.9": {rate: 2154.35, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:5.9.12": {rate: 263.65, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:5.9.14": {unit: m2, checked_by: claude-vision, checked_on: '2026-10-20', note: 'NOT a rupee rate: 20% extra over the respective centering & shuttering item'}
+  "CPWD-DSR-2023:5.10.3": {rate: 184.5, unit: each_set, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:5.12A": {rate: 10416.75, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:5.13": {rate: 14325.95, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:5.14": {rate: 18234.95, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:5.15": {rate: 13899.2, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:5.18.3": {rate: 1539.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:5.19A": {rate: 15918.6, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:5.25": {rate: 811.85, unit: kg, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:5.28": {rate: 655.75, unit: cm_depth_100m, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'per cm depth per 100m'}
+  "CPWD-DSR-2023:5.31": {rate: 1098.8, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20', note: 'Unit printed ''cum''; DSR note: qty = cum of RCC under sub-soil water x depth to its centre of gravity'}
+  "CPWD-DSR-2023:5.32": {rate: 467.55, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:5.33.2.2": {rate: 10011.35, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:5.35": {rate: 733.5, unit: quintal, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:5.36": {rate: 33018.75, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:5.36A": {rate: 32847.95, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:5.38": {rate: 355.65, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:5.46.2": {rate: 6699.85, unit: m, checked_by: claude-vision, checked_on: '2026-10-20', note: was 6599.85 (OCR misread); printed 6699.85}
+  "CPWD-DSR-2023:5.48.3": {rate: 664.85, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:5.49": {rate: 20460.45, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20', note: rate printed on the next page (DSR p.116); was 460.45}
+  "CPWD-DSR-2023:4B": {rate: 146.15, unit: m2, code: '4.13', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:420A11": {rate: 7936.1, unit: m3, code: 4.20A.1.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:420A12": {rate: 8779.4, unit: m3, code: 4.20A.1.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:420A21": {rate: 8291.75, unit: m3, code: 4.20A.2.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:420A22": {rate: 9135.05, unit: m3, code: 4.20A.2.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:420A23": {rate: 9361.5, unit: m3, code: 4.20A.2.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:420A24": {rate: 9587.95, unit: m3, code: 4.20A.2.4, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:533A21": {rate: 9689.6, unit: m3, code: 5.33A.2.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:3.10": {rate: 3850.75, unit: m3, description: 'Cement mortar 1:5 (1 cement : 5 coarse sand).', checked_by: claude-vision, checked_on: '2026-10-20', note: 'OCR merged 3.10 and 3.11 (Cement mortar 1:6 coarse sand, cum 3541.40) into this row; 3.11 is missing from the data'}
+  "CPWD-DSR-2023:6.5": {rate: 169.45, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:6.8": {rate: 865.65, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:6.9": {rate: 15077.95, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:6.10": {rate: 19066.1, unit: m3, description: 'Brick work in gauged arches in superstructure above plinth level and upto floor five level in cement mortar 1:3 (1 cement : 3 coarse sand) including centering and shuttering complete, for span up to 6 meters with common burnt clay F.P.S. (non modular) bricks of class designation 7.5.', checked_by: claude-vision, checked_on: '2026-10-20', note: 'OCR merged 6.10 and 6.11 (extra centering for arches > 6 m span, sqm 608.15) into this row; 6.11 is missing'}
+  "CPWD-DSR-2023:6.14": {rate: 15.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:6.16.2": {rate: 10831.05, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:6.18": {rate: 12883.05, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:6.22": {rate: 885.45, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:6.23": {rate: 711.5, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:6.24": {rate: 1098.8, unit: m3_m_depth, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'cum per metre depth' (see DSR note to 6.24)}
+  "CPWD-DSR-2023:7A": {rate: 7311.25, unit: m3, code: 7.1.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:7": {rate: 8198.55, unit: m3, code: 7.7.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:7.8.1": {rate: 8812.05, unit: m3, code: 7.6.1, description: 'Coursed rubble masonry (first sort) with hard stone in foundation and plinth with cement mortar 1:6 (1 cement : 6 coarse sand)', checked_by: claude-vision, checked_on: '2026-10-20', note: was mis-coded 7.8.1; printed 7.6.1 (DSR p.123)}
+  "CPWD-DSR-2023:7.8.1#p256": {rate: 10741.6, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:7.8.2": {rate: 10128.1, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:7.33.2": {rate: 14994.15, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:7:38.11": {rate: 3094.55, unit: m2, code: 7.38.1.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:7.38.12": {rate: 2766.45, unit: m2, code: 7.38.1.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:8.1.1.1": {rate: 5742.55, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:8.6": {rate: 506.7, unit: m2, description: Mirror polishing on marble work/Granite work/stone work where ever required to give high gloss finish complete., checked_by: claude-vision, checked_on: '2026-10-20', note: 'OCR merged 8.6 with 8.7/8.7.1 (Gunmetal cramps, kg 723.45); 8.7.1 is missing'}
+  "CPWD-DSR-2023:8.7": {rate: 3135.0, unit: m2, code: '8.17', checked_by: claude-vision, checked_on: '2026-10-20', note: was mis-coded 8.7; printed 8.17 (DSR p.130)}
+  "CPWD-DSR-2023:8.20.2": {rate: 3040.1, unit: m2, description: White sand stone - 30 mm thick gang saw cut stone, checked_by: claude-vision, checked_on: '2026-10-20', note: 'OCR merged 8.20.2 with 8.21 (structural steel frame for dry cladding, kg 269.95); 8.21 is missing'}
+  "CPWD-DSR-2023:8.32": {rate: 5015.05, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20', note: rate printed on DSR p.133}
+  "CPWD-DSR-2023:9.1": {rate: 142949.7, unit: m3, code: 9.1.1, description: Second class teak wood, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.4.1": {rate: 14294.95, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.5.1.1": {rate: 4111.95, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.13": {rate: 73.95, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.27.1.11": {rate: 4375.0, unit: m2, code: 9.27.1.1.3, description: Kiln seasoned selected class of sheesham wood, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.34.2": {rate: 2803.0, unit: m2, code: 9.31.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.43": {rate: 725.85, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.50": {rate: 1641.15, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.57.1": {rate: 55.75, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.58.3": {rate: 75.35, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.61.3": {rate: 357.8, unit: m, description: Overall width 65 mm, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.79.2": {rate: 356.75, unit: each, checked_by: claude-vision, checked_on: '2026-10-20', note: was 386.75 (OCR misread); printed 356.75}
+  "CPWD-DSR-2023:9.80": {rate: 74.25, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.92.3": {rate: 176.4, unit: each, description: 75 mm, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.9.8": {rate: 100.8, unit: each, code: '9.98', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.1.14.1": {rate: 52.5, unit: each, code: 9.114.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.1.15": {rate: 414.2, unit: one_set, code: '9.115', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.A1.1": {rate: 8298.85, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.447.A1.2": {rate: 8799.25, unit: m2, code: 9.147.A1.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.A1.3": {rate: 9628.6, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.421": {rate: 7860.35, unit: m2, code: 9.147.A2.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.42.2": {rate: 8579.55, unit: m2, code: 9.147.A2.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.431": {rate: 9933.4, unit: m2, code: 9.147.A3.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.832": {rate: 9968.7, unit: m2, code: 9.147.A3.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.441": {rate: 10993.55, unit: m2, code: 9.147.A4.1, checked_by: claude-vision, checked_on: '2026-10-20', note: was 1093.55 (OCR dropped a digit); printed 10993.55}
+  "CPWD-DSR-2023:9.147.A42": {rate: 10874.2, unit: m2, code: 9.147.A4.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.447.A43": {rate: 12372.25, unit: m2, code: 9.147.A4.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.451": {rate: 8748.35, unit: m2, code: 9.147.A5.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.452": {rate: 8543.6, unit: m2, code: 9.147.A5.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.453": {rate: 9888.35, unit: m2, code: 9.147.A5.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.811": {rate: 8106.3, unit: m2, code: 9.147.B1.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.812": {rate: 7732.85, unit: m2, code: 9.147.B1.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.821": {rate: 7345.35, unit: m2, code: 9.147.B2.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.822": {rate: 7196.7, unit: m2, code: 9.147.B2.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.831": {rate: 10078.95, unit: m2, code: 9.147.B3.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.832#p330": {rate: 9894.8, unit: m2, code: 9.147.B3.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.841": {rate: 8287.05, unit: m2, code: 9.147.B4.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.842": {rate: 7943.95, unit: m2, code: 9.147.B4.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.611": {rate: 8247.25, unit: m2, code: 9.147.C1.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.C1.2": {rate: 8054.75, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.C1.3": {rate: 7080.05, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.C1.4": {rate: 6032.85, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.621": {rate: 9155.2, unit: m2, code: 9.147.C2.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.622": {rate: 8765.4, unit: m2, code: 9.147.C2.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.623": {rate: 7827.75, unit: m2, code: 9.147.C2.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.C2.4": {rate: 6528.8, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.011": {rate: 13201.2, unit: m2, code: 9.147.D1.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.447.012": {rate: 12254.9, unit: m2, code: 9.147.D1.2, checked_by: claude-vision, checked_on: '2026-10-20', note: was 1254.90 (OCR dropped a digit)}
+  "CPWD-DSR-2023:9.147.D1.3": {rate: 11919.85, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.E11": {rate: 14449.25, unit: m2, code: 9.147.E1.1, checked_by: claude-vision, checked_on: '2026-10-20', note: was 1449.25 (OCR dropped a digit)}
+  "CPWD-DSR-2023:9.147.E1.2": {rate: 13387.15, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.E1.3": {rate: 14587.05, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.E2.1": {rate: 13078.7, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.E2.2": {rate: 12472.95, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.E2.3": {rate: 13477.1, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.E3.1": {rate: 11715.95, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.E32": {rate: 11466.8, unit: m2, code: 9.147.E3.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.447.E33": {rate: 12496.3, unit: m2, code: 9.147.E3.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.14.74.1": {rate: 9870.15, unit: m2, code: 9.147.E4.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.E51": {rate: 10474.05, unit: m2, code: 9.147.E5.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.E52": {rate: 10051.2, unit: m2, code: 9.147.E5.2, checked_by: claude-vision, checked_on: '2026-10-20', note: was 1051.20 (OCR dropped a digit)}
+  "CPWD-DSR-2023:9.147.E53": {rate: 10200.75, unit: m2, code: 9.147.E5.3, checked_by: claude-vision, checked_on: '2026-10-20', note: was 200.75 (OCR dropped digits)}
+  "CPWD-DSR-2023:9.447.E61": {rate: 22785.35, unit: m2, code: 9.147.E6.1, checked_by: claude-vision, checked_on: '2026-10-20', note: was 2785.35 (OCR dropped a digit)}
+  "CPWD-DSR-2023:9.147.E7.1": {rate: 20576.3, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.E8.1": {rate: 19047.6, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.F1.1": {rate: 12454.4, unit: m2, code: 9.147.F1.2, description: Using R4 series with frame (64 mm & above) x (55 mm & above) & sash (64 mm & above) x (100 mm & above). (Height above 2.5 metre)., checked_by: claude-vision, checked_on: '2026-10-20', note: OCR merged F1.1 (sqm 12496.05) and F1.2 into this row; kept as F1.2. 9.147.F1.1 is missing}
+  "CPWD-DSR-2023:9.147F21": {rate: 11903.75, unit: m2, code: 9.147.F2.1, checked_by: claude-vision, checked_on: '2026-10-20', note: was 1903.75 (OCR dropped a digit)}
+  "CPWD-DSR-2023:9447F22": {rate: 11818.95, unit: m2, code: 9.147.F2.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.F3.1": {rate: 19994.4, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20', note: was 1994.40 (OCR dropped a digit)}
+  "CPWD-DSR-2023:9.16.1": {rate: 2202.9, unit: m, code: '9.161', checked_by: claude-vision, checked_on: '2026-10-20', note: rate printed on DSR p.166; was 22021.90}
+  "CPWD-DSR-2023:9.16.4": {rate: 43677.65, unit: m2, code: '9.164', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.17.1#p344": {rate: 272.0, unit: each, code: '9.171', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.17.2#p344": {rate: 885.1, unit: one_set, code: '9.172', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:10.10": {rate: 82.45, unit: kg, code: 10.10.1, description: 'Fixing standard steel glazed doors, windows and ventilators in walls ... Fixing with 15x3 mm lugs 10 cm long embedded in cement concrete block 15x10x10 cm of C.C. 1:3:6', checked_by: claude-vision, checked_on: '2026-10-20', note: 'rate printed on DSR p.171 as 10.10.1; 10.10.2 (dash fastener, kg 40.80) may be missing'}
+  "CPWD-DSR-2023:10.22": {rate: 3.7, unit: cm, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'cm' (per cm of welding)}
+  "CPWD-DSR-2023:10.28": {rate: 772.4, unit: kg, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.1A": {rate: 1006.95, unit: m2, code: 11.1.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.31": {rate: 614.2, unit: m2, code: 11.3.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:14": {rate: 978.45, unit: m2, code: '11.4', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:15": {rate: 1056.15, unit: m2, code: '11.5', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.64": {rate: 8595.15, unit: m3, code: '11.7', description: 'Cement concrete pavement with 1:2:4 (1 cement : 2 coarse sand : 4 graded stone aggregate 20 mm nominal size), including finishing complete.', checked_by: claude-vision, checked_on: '2026-10-20', note: 'OCR merged 11.6.1 (18 mm cement plaster skirting, sqm 662.05) and 11.7 into this row; kept as 11.7. 11.6.1 is missing'}
+  "CPWD-DSR-2023:18": {rate: 83.85, unit: m2, code: '11.8', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.91": {rate: 1065.75, unit: m2, code: 11.9.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.7.0.1": {rate: 1072.1, unit: m2, code: 11.10.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.10.3": {rate: 1085.45, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.11B": {rate: 1027.1, unit: m2, code: 11.10.6, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:14.112": {rate: 1164.25, unit: m2, code: 11.11.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:41.113": {rate: 1129.45, unit: m2, code: 11.11.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.11.4": {rate: 1109.85, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:41.11.5": {rate: 1102.7, unit: m2, code: 11.11.5, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:14.116": {rate: 1048.25, unit: m2, code: 11.11.6, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.13.1": {rate: 91.75, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.14": {rate: 97.65, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:14.47": {rate: 124.05, unit: m2, code: '11.17', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.23.1": {rate: 3737.45, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:125": {rate: 851.8, unit: m2, code: '11.25', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.26": {rate: 1948.25, unit: m2, code: 11.26.1, description: 'Kota stone slab flooring over 20 mm (average) thick base laid over and jointed with grey cement slurry mixed with pigment to match the shade of the slab, including rubbing and polishing complete with base of cement mortar 1:4 (1 cement : 4 coarse sand): 25 mm thick', checked_by: claude-vision, checked_on: '2026-10-20', note: rate is for sub-item 11.26.1 (25 mm thick)}
+  "CPWD-DSR-2023:127": {rate: 2354.7, unit: m2, code: '11.27', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.30.1": {rate: 1647.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.31#p368": {rate: 191.4, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.34": {rate: 12020.45, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.41.1": {rate: 1524.3, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.41.2": {rate: 1553.45, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.41.4.11": {rate: 1453.65, unit: m2, code: 11.41A.1.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1141A12": {rate: 1534.85, unit: m2, code: 11.41A.1.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.41.41.3": {rate: 1577.15, unit: m2, code: 11.41A.1.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1141A1.4": {rate: 1870.25, unit: m2, code: 11.41A.1.4, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.41.41.5": {rate: 1801.7, unit: m2, code: 11.41A.1.5, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.41.42.1": {rate: 1798.8, unit: m2, code: 11.41A.2.2, description: Size of Tile 600 x 1200 mm, checked_by: claude-vision, checked_on: '2026-10-20', note: 'OCR merged 11.41A.2.1 (600x600, sqm 1502.75) and 2.2 into this row; kept as 2.2. 11.41A.2.1 is missing'}
+  "CPWD-DSR-2023:11.41.42.3": {rate: 2056.9, unit: m2, code: 11.41A.2.4, description: Size of Tile 800 x 1200 mm, checked_by: claude-vision, checked_on: '2026-10-20', note: 'OCR merged 11.41A.2.3 (800x800, sqm 1728.80) and 2.4 (rate on DSR p.181) into this row; kept as 2.4. 11.41A.2.3 is missing'}
+  "CPWD-DSR-2023:11.45": {rate: 1708.1, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.46.6A": {rate: 216.2, unit: m, code: 11.46A, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:41.494": {rate: 3623.95, unit: m2, code: 11.49A, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.50": {rate: 13.3, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.54": {rate: 5977.35, unit: m2, code: 11.54.2, description: Providing and fixing removable raised/false access flooring ... 450 mm Finished Floor Height (FFH), checked_by: claude-vision, checked_on: '2026-10-20', note: 'rate printed on DSR p.184 for 11.54.2 (450 mm FFH); 11.54.1 (300 mm FFH, sqm 5623.95) is missing'}
+  "CPWD-DSR-2023:12.1A": {rate: 1457.15, unit: m2, code: 12.1.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:12.8": {rate: 536.4, unit: m2, description: 'Providing reinforced by organic fibres and/or inorganic synthetic fibres cement 6 mm thick corrugated sheets (as per IS: 14871) roofing up to any pitch and fixing with polymer coated J or L hooks, bolts and nuts 8 mm dia. G.I. plain and bitumen washers or with self drilling fastener and EPDM washers etc. complete (excluding the cost of purlins, rafters and trusses), including cutting sheets to size and shape wherever required.', checked_by: claude-vision, checked_on: '2026-10-20', note: 'was 92.95 (that is 12.9''s rate, metre); printed 536.40 sqm'}
+  "CPWD-DSR-2023:12.10": {rate: 256.7, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:21": {rate: 195.6, unit: m, code: '12.11', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:12.37.1": {rate: 164.2, unit: each, description: Stone ware spout, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:12.45.4": {rate: 1744.15, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20', note: was 84.55 (OCR picked a wrong number); printed 1744.15}
+  "CPWD-DSR-2023:12.65.7": {rate: 1221.15, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:13.5.1": {rate: 411.75, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:13.18": {rate: 79.95, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:13.29.2": {rate: 10.0, unit: cm_per_m, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'cm per metre'}
+  "CPWD-DSR-2023:13.50.2": {rate: 74.65, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20', note: was 7.85 (OCR misread); printed 74.65}
+  "CPWD-DSR-2023:13.71": {rate: 6.15, unit: letter_cm_height, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'per letter per cm height'}
+  "CPWD-DSR-2023:13.75": {rate: 133.55, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:13.87.1": {rate: 22.85, unit: m2, description: Old work (two or more coats), checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:13.93.1": {rate: 57.25, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:13.9.91": {rate: 102.8, unit: m2, code: 13.99.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:13.10.5": {rate: 3.85, unit: letter_cm_height, code: '13.105', checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'per letter per cm height'}
+  "CPWD-DSR-2023:14.17": {rate: 72.45, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:14.22.1": {rate: 123.7, unit: wheel, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:14.22.2": {rate: 304.55, unit: wheel, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:14.23": {rate: 231.05, unit: kl, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'kilo litre'}
+  "CPWD-DSR-2023:14.32.1": {rate: 851.85, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:14.72": {rate: 338.25, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:14.75A": {rate: 0.5, unit: l, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'litre' (per litre of tank capacity)}
+  "CPWD-DSR-2023:14.83": {rate: 3.45, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:14.87": {rate: 532.05, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:14.93": {rate: 1308.4, unit: each_job, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'each job' (one job = 8 hours duty)}
+  "CPWD-DSR-2023:14.94": {rate: 1416.5, unit: each_job, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'each job' (one job = 8 hours duty)}
+  "CPWD-DSR-2023:15.3": {rate: 3551.25, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:15.5": {rate: 1147.2, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:15.16": {rate: 3.4, unit: m_per_m_height, code: 15.16.2, description: 'Extra for dismantling trusses, rafters, purlins etc. of wood work for every additional height of one metre or part thereof beyond 5 metres: Of sectional area below 40 square centimetres', checked_by: claude-vision, checked_on: '2026-10-20', note: 'Unit printed ''metre per metre height''. 15.16.1 (sectional area 40 sq cm and above, cum per metre height, 857.00) may be missing'}
+  "CPWD-DSR-2023:15.25": {rate: 266.45, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:15.33": {rate: 20.95, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:15.39.2": {rate: 77.75, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20', note: was 71.15 (OCR misread); printed 77.75}
+  "CPWD-DSR-2023:15.42.2": {rate: 78.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:16.9": {rate: 33.3, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:16.18.1": {rate: 22.1, unit: m, description: With G.I. barbed wire, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:16.21": {rate: 10.55, unit: letter_cm_height, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'per cm height per letter'}
+  "CPWD-DSR-2023:16.22": {rate: 252.9, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:16.27": {rate: 175.1, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:16.33.1": {rate: 281.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:16.38.3": {rate: 351.8, unit: m2, description: 'With Refinery Modified Bitumen CRMB 55 conforming to IRC: SP:53', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:16.40": {rate: 88.55, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:16.44": {rate: 55.5, unit: l, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:16.68": {rate: 972.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:16.81": {rate: 3439.5, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:16.82": {rate: 39.35, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:16.88": {rate: 2159.85, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:16.90": {rate: 2017.6, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:17.1.2": {rate: 11390.95, unit: each, checked_by: claude-vision, checked_on: '2026-10-20', note: was 41390.95 (OCR misread); printed 11390.95}
+  "CPWD-DSR-2023:17.6.3": {rate: 17702.2, unit: each, checked_by: claude-vision, checked_on: '2026-10-20', note: was 1702.20 (OCR dropped a digit)}
+  "CPWD-DSR-2023:17.6.4": {rate: 21203.2, unit: each, checked_by: claude-vision, checked_on: '2026-10-20', note: was 2203.20 (OCR misread)}
+  "CPWD-DSR-2023:17.7A": {rate: 3960.55, unit: each, checked_by: claude-vision, checked_on: '2026-10-20', note: rate for 17.7A(a) White Vitreous China Wash basin 550x400 mm with 15 mm CP brass single hole basin mixer (DSR p.245)}
+  "CPWD-DSR-2023:47.78": {rate: 1550.6, unit: each, code: 17.7B, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:17.8": {rate: 1683.35, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:17.9.1": {rate: 3892.75, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:17.10.1": {rate: 6945.6, unit: each, code: 17.10.1.1, description: 'Kitchen sink with drain board: 510x1040 mm bowl depth 250 mm', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:17.12.1": {rate: 1579.65, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:17:16": {rate: 170.7, unit: each, code: '17.16', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:17.16A": {rate: 349.15, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:17.39.1.2": {rate: 570.05, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:17.46.4.1": {rate: 954.15, unit: each, code: 17.46.1.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:17.48.11": {rate: 811.9, unit: each, code: 17.48.1.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:17.49.1.7": {rate: 883.0, unit: each, code: 17.49.1.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:17.49.1.12": {rate: 989.7, unit: each, code: 17.49.1.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:17.54.11.2": {rate: 465.9, unit: each, code: 17.54A.1.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:47.57A": {rate: 432.05, unit: each, code: 17.57A.1.1, description: 'Providing and fixing shielded coupling for Hubless centrifugally cast iron pipe: 100 mm dia, SS 304 grade coupling with EPDM rubber gasket', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:17.57.21": {rate: 389.05, unit: each, code: 17.57A.2.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:17.59.1": {rate: 90.3, unit: each, code: 17.59.2, description: 75 mm, checked_by: claude-vision, checked_on: '2026-10-20', note: 'OCR merged 17.59.1 (100 mm, each 139.70) and 17.59.2 into this row; kept as 17.59.2. 17.59.1 is missing'}
+  "CPWD-DSR-2023:47.62": {rate: 1020.6, unit: each, code: '17.62', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:17.63": {rate: 673.7, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:17.78": {rate: 14999.15, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.1A": {rate: 286.75, unit: m, code: 18.1.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:186A6": {rate: 913.0, unit: each, code: 18.6A.6, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.13.1": {rate: 911.9, unit: each, description: 25 to 40 mm nominal bore, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:16.14#p130": {rate: 812.3, unit: each, code: '18.14', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.23": {rate: 361.65, unit: quintal, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.30.6": {rate: 596.65, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.38.1": {rate: 19.4, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.41.10": {rate: 444.6, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:16.43": {rate: 960.3, unit: m, code: '18.43', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.4.4#p142": {rate: 546.0, unit: m, code: '18.44', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.4.5#p142": {rate: 1321.65, unit: each, code: '18.45', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.4.8": {rate: 11.0, unit: l, code: '18.48', checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'per litre' (of tank capacity)}
+  "CPWD-DSR-2023:18.4.8A": {rate: 11.0, unit: l, code: 18.48A, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'per litre' (of tank capacity)}
+  "CPWD-DSR-2023:18.53.3A": {rate: 74.8, unit: each, code: 18.53A, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.67.1": {rate: 13764.35, unit: quintal, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:2": {exclude: true, checked_by: claude-vision, checked_on: '2026-10-20', note: 'page-footer text "SUB HEAD : 18.0" read as an item (DSR p.265)'}
+  "CPWD-DSR-2023:18.68.1": {rate: 20009.7, unit: quintal, checked_by: claude-vision, checked_on: '2026-10-20', note: was 2009.70 (OCR dropped a digit)}
+  "CPWD-DSR-2023:18.68.8A": {rate: 30394.95, unit: quintal, code: 18.68A.1, description: 'Providing and laying Class K-12 Ductile Iron double chamber restrained joint (bolt less) specials such as tees, bends, collars, tapers and caps etc. conforming to IS : 9523 including testing of joints all complete: Up to 600 mm nominal dia', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.68.12": {rate: 39073.05, unit: quintal, code: 18.68A.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.70.1": {rate: 119.45, unit: joint, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.70.2": {rate: 192.85, unit: joint, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.70.3": {rate: 280.85, unit: joint, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.70.4": {rate: 340.35, unit: joint, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.70.5": {rate: 435.45, unit: joint, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.70.6": {rate: 495.0, unit: joint, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.70.7": {rate: 696.8, unit: joint, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.70.8": {rate: 820.35, unit: joint, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.70.9": {rate: 871.45, unit: joint, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.70.10": {rate: 1207.9, unit: joint, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.70.11": {rate: 1572.7, unit: joint, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.70.12": {rate: 1693.65, unit: joint, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.70.13": {rate: 1844.4, unit: joint, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.70.14": {rate: 2314.65, unit: joint, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.70.15": {rate: 2604.4, unit: joint, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.71.10": {rate: 27459.4, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.7.2.2": {rate: 1789.6, unit: m, code: 18.72.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.7.2.11": {rate: 11566.35, unit: m, code: 18.72.11, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.7.2.17": {rate: 2478.1, unit: m, code: 18.72.17, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.7.2.27": {rate: 18891.2, unit: m, code: 18.72.27, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1872A1": {rate: 1870.75, unit: m, code: 18.72A.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.72.3": {rate: 3260.55, unit: m, code: 18.72A.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1872A5": {rate: 5452.95, unit: m, code: 18.72A.5, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.72.4.8": {rate: 9861.2, unit: m, code: 18.72A.8, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1872A11": {rate: 19217.15, unit: m, code: 18.72A.11, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.72.41.2": {rate: 21627.85, unit: m, code: 18.72A.12, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1872A13": {rate: 23932.65, unit: m, code: 18.72A.13, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.73.10": {rate: 19925.3, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.73.11": {rate: 22830.8, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.2.0.2": {rate: 2415.15, unit: 100m, code: 18.80.2, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed '100 metre'}
+  "CPWD-DSR-2023:18.8.0.3": {rate: 3006.4, unit: 100m, code: 18.80.3, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed '100 metre'}
+  "CPWD-DSR-2023:2#p148": {exclude: true, checked_by: claude-vision, checked_on: '2026-10-20', note: 'page-footer text "SUB HEAD : 18.0" read as an item'}
+  "CPWD-DSR-2023:18.8.3.5": {rate: 487.75, unit: each_cut, code: 18.83.5, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.8.3.8": {rate: 847.95, unit: each_cut, code: 18.83.8, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.8.3.10": {rate: 1089.1, unit: each_cut, code: 18.83.10, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.8.3.12": {rate: 1445.95, unit: each_cut, code: 18.83.12, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.8.6.41": {rate: 704.05, unit: m, code: 18.85A.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1885A6": {rate: 2699.1, unit: m, code: 18.85A.6, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1886A2": {rate: 1227.25, unit: m, code: 18.86A.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1887A1": {rate: 341.45, unit: each, code: 18.87A.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1887A2": {rate: 426.8, unit: each, code: 18.87A.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1887A4": {rate: 625.95, unit: each, code: 18.87A.4, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1887A6": {rate: 1017.2, unit: each, code: 18.87A.6, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.86.1#p158": {rate: 139.4, unit: each, code: 18.88.1, description: For 22.22 mm x 15.88 mm outer dia pipe, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.86.2#p158": {rate: 186.35, unit: each, code: 18.88.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.88A.3#p160": {rate: 1330.15, unit: each, code: 18.88A.9, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.89.12": {rate: 711.3, unit: each, code: 18.89A.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.89.13": {rate: 825.15, unit: each, code: 18.89A.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1889A6": {rate: 1515.1, unit: each, code: 18.89A.6, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1890A1": {rate: 483.7, unit: each, code: 18.90A.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1890A3": {rate: 910.5, unit: each, code: 18.90A.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.92.1": {rate: 197.75, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.92.1#p164": {rate: 796.7, unit: each, code: 18.92A.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1892A5": {rate: 1991.7, unit: each, code: 18.92A.5, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1892A6": {rate: 2390.05, unit: each, code: 18.92A.6, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.93.1": {rate: 268.85, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.93.3": {rate: 362.75, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1893A2": {rate: 1131.0, unit: each, code: 18.93A.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.93.4.3": {rate: 1138.1, unit: each, code: 18.93A.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.93A.4": {rate: 1429.75, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.93.4.12": {rate: 2468.25, unit: each, code: 18.93A.12, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.94.1": {rate: 291.65, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.94.4": {rate: 448.15, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.96.4.4": {rate: 1159.45, unit: each, code: 18.95A.4, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.95A.3#p168": {rate: 2141.05, unit: each, code: 18.95A.9, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.96.10": {rate: 3670.4, unit: each, code: 18.95A.11, description: For 54 mm outer dia x 2" nominal dia threaded, checked_by: claude-vision, checked_on: '2026-10-20', note: 'OCR merged 18.95A.10 (54 mm x 1-1/2", each 3058.65) and 18.95A.11 into this row; kept as 18.95A.11'}
+  "CPWD-DSR-2023:18.95.1#p168": {rate: 264.6, unit: each, code: 18.96.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.95.2#p168": {rate: 291.65, unit: each, code: 18.96.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.95.3#p168": {rate: 337.15, unit: each, code: 18.96.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.95.4#p168": {rate: 394.05, unit: each, code: 18.96.4, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.95.5#p168": {rate: 412.55, unit: each, code: 18.96.5, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.95.6#p168": {rate: 505.05, unit: each, code: 18.96.6, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.95.7#p168": {rate: 640.2, unit: each, code: 18.96.7, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.95.8#p168": {rate: 768.25, unit: each, code: 18.96.8, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.95.9#p168": {rate: 953.15, unit: each, code: 18.96.9, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1897A2": {rate: 761.1, unit: each, code: 18.97A.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1897A3": {rate: 803.8, unit: each, code: 18.97A.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.97.44": {rate: 1052.75, unit: each, code: 18.97A.4, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:1897A7": {rate: 3016.0, unit: each, code: 18.97A.7, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.9.8.7": {rate: 1756.95, unit: each, code: 18.98.7, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.9.9.2": {rate: 305.85, unit: each, code: 18.99.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.9.9.3": {rate: 341.45, unit: each, code: 18.99.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.10.0.5": {rate: 448.15, unit: each, code: 18.100.5, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.10.0.9": {rate: 1088.3, unit: each, code: 18.100.9, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18101A5": {rate: 2489.6, unit: each, code: 18.101A.5, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.100A2": {rate: 1251.95, unit: each, code: 18.100A.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.100A3": {rate: 1664.5, unit: each, code: 18.100A.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.100A4": {rate: 2290.45, unit: each, code: 18.100A.4, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.100A5": {rate: 4196.8, unit: each, code: 18.100A.5, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.100A6": {rate: 4772.95, unit: each, code: 18.100A.6, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.101A1": {rate: 505.05, unit: each, code: 18.101A.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.101A2": {rate: 654.4, unit: each, code: 18.101A.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.101A3": {rate: 818.0, unit: each, code: 18.101A.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.101A4": {rate: 1145.25, unit: each, code: 18.101A.4, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.101A6": {rate: 2738.55, unit: each, code: 18.101A.6, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.102A1": {rate: 654.4, unit: each, code: 18.102A.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.102A2": {rate: 1764.1, unit: each, code: 18.102A.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.102A3": {rate: 2425.6, unit: each, code: 18.102A.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:30000": {exclude: true, checked_by: claude-vision, checked_on: '2026-10-20', note: 'page-footer text "SUB HEAD : 18.0" read as an item'}
+  "CPWD-DSR-2023:182": {rate: 964.75, unit: m, code: 19.2.1, description: 'Providing and laying cement concrete 1:5:10 (1 cement : 5 coarse sand : 10 graded stone aggregate 40 mm nominal size) all-round S.W. pipes including bed concrete as per standard design: 100 mm diameter S.W. pipe', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.2.2": {rate: 1375.45, unit: m, code: 19.2.3, description: 200 mm diameter S.W. pipe, checked_by: claude-vision, checked_on: '2026-10-20', note: 'OCR merged 19.2.2 (150 mm, metre 1179.85) and 19.2.3 into this row; kept as 19.2.3. 19.2.2 is missing'}
+  "CPWD-DSR-2023:19.3.5": {rate: 1173.35, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.4.1.2": {rate: 2685.2, unit: each, description: 'With Sewer bricks conforming to IS : 4885', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.4.2.1": {rate: 2734.2, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.4.2.2": {rate: 2711.7, unit: each, description: 'With sewer bricks conforming to IS : 4885', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.5.2": {rate: 98.45, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.5.4": {rate: 111.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.5.5": {rate: 117.25, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.5.7": {rate: 147.65, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.6.1": {rate: 507.05, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.6.2": {rate: 556.45, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.6.3": {rate: 899.8, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.6.4": {rate: 994.3, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.6.13": {rate: 7102.15, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.7.1.1": {rate: 12770.55, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.7.1.2": {rate: 12711.8, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.7.2.1": {rate: 26405.5, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.7.3.1": {rate: 32857.85, unit: each, checked_by: claude-vision, checked_on: '2026-10-20', note: printed 32857.85 (OCR read 32867.85)}
+  "CPWD-DSR-2023:19.8.1.1": {rate: 8825.4, unit: m, checked_by: claude-vision, checked_on: '2026-10-20', note: was 5205.40 (OCR misread); printed 8825.40}
+  "CPWD-DSR-2023:19.9.1": {rate: 12725.0, unit: each, code: 19.9.1.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.9.1.2": {rate: 12600.4, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.10.1": {rate: 7591.8, unit: m, checked_by: claude-vision, checked_on: '2026-10-20', note: 'was 7448.45 (that is 19.10.2''s rate, sewer bricks); printed 7591.80. 19.10.2 may be missing'}
+  "CPWD-DSR-2023:19.12.1": {rate: 9861.45, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.13.1.1": {rate: 52969.1, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.14.1": {rate: 22771.85, unit: m, checked_by: claude-vision, checked_on: '2026-10-20', note: was 2071.85 (OCR misread); printed 22771.85}
+  "CPWD-DSR-2023:19.14.2": {rate: 22288.1, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.15": {rate: 496.5, unit: each, code: 19.15.2, description: 'Providing M.S. foot rests including fixing in manholes with 20x20x10 cm cement concrete blocks 1:3:6 as per standard design: With 20 mm diameter round bar', checked_by: claude-vision, checked_on: '2026-10-20', note: '19.15.1 (20x20 mm square bar, each 544.70) may be missing'}
+  "CPWD-DSR-2023:19.16": {rate: 553.7, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:49.17": {rate: 621.95, unit: each, code: 19.17.2, description: Replacement of M.S. foot rests in manholes ... With 20 mm diameter round bar, checked_by: claude-vision, checked_on: '2026-10-20', note: '19.17.1 (square bar, each 670.20) may be missing'}
+  "CPWD-DSR-2023:19.18": {rate: 1358.0, unit: each, code: 19.18.1, description: 'Supplying and fixing C.I. cover without frame for manholes: 455x610 mm rectangular C.I. cover (light duty) the weight of the cover to be not less than 23 kg', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.19.1.1": {rate: 1437.65, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.20": {rate: 787.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20', note: was 7.90 (OCR misread); printed 787.00}
+  "CPWD-DSR-2023:19.22": {rate: 16577.8, unit: each, code: 19.22.2, description: 'Providing sand cast iron drop connection externally for 60 cm drop ...: 150 mm dia sand cast iron drop connection', checked_by: claude-vision, checked_on: '2026-10-20', note: '19.22.1 (100 mm, each 12172.05) may be missing'}
+  "CPWD-DSR-2023:19.22.3": {rate: 4126.9, unit: m, code: 19.23.2, description: 'Extra for depths beyond 60 cm of sand cast iron drop connection: For 150 mm dia', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.22.5": {rate: 2229.2, unit: m, code: 19.25.4, description: 'Extra for depth of manholes dismantled: Circular manhole 122 cm diameter and beyond 1.68 m depth (up to 2.29 m depth)', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.22.6.2": {rate: 4168.05, unit: each, code: 19.26.2, description: 'Raising manhole cover and frame slab to required level: Rectangular manhole 120x90 cm with circular cover 500 mm dia of grade MD-10', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.22.7.1": {rate: 5957.9, unit: each, code: 19.27.1, description: Constructing brick masonry road gully chamber 50x45x60 cm ... With common burnt clay F.P.S. (non modular) bricks of class designation 7.5, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.22.8.1": {rate: 6889.8, unit: each, code: 19.28.1, description: Constructing brick masonry road gully chamber 45x45x77.5 cm ... With common burnt clay F.P.S. (non modular) bricks of class designation 7.5, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.23.1": {rate: 11520.55, unit: each, code: 19.29.1, description: Constructing brick masonry road gully chamber 110x50x77.5 cm ... With common burnt clay F.P.S. (non modular) bricks of class designation 7.5, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.30.1.1": {rate: 6937.9, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.30.2.1": {rate: 8150.5, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.30.3.1": {rate: 9594.35, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:19.31": {rate: 6117.0, unit: m, code: 19.31.1.1, description: 'Extra for depth beyond 45 cm of brick masonry chamber: For 455x610 mm size, with common burnt clay F.P.S. (non modular) bricks of class designation 7.5', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:20.1.7": {rate: 16671.05, unit: m, checked_by: claude-vision, checked_on: '2026-10-20', note: was 16871.05 (OCR misread); printed 16671.05}
+  "CPWD-DSR-2023:20.1.8": {rate: 23577.75, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:20.2.1.2": {rate: 7758.75, unit: m, code: 20.2A.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:20.5.6": {rate: 14946.4, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:20.6.1.1": {rate: 54771.5, unit: test, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:20.6.1.2": {rate: 19632.4, unit: test, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:20.6.2.1": {rate: 61173.35, unit: test, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:20.6.2.2": {rate: 32436.1, unit: test, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:20.6.3.1": {rate: 70420.5, unit: test, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:20.6.3.2": {rate: 40545.15, unit: test, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:20.7.1.1": {rate: 19632.4, unit: test, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:20.7.2": {rate: 32436.1, unit: test, code: 20.7.1.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:20.7.2.4": {rate: 40545.15, unit: test, code: 20.7.2.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:20.8.1": {rate: 19632.4, unit: test, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:20.8.2": {rate: 32862.9, unit: test, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:20.9": {rate: 1153.2, unit: test, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:21.1.1.11": {rate: 539.85, unit: kg, code: 21.1.1.3, description: Polyester powder coated aluminium (minimum thickness of polyester powder coating 50 micron), checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:21.7.1": {rate: 680.55, unit: kg, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:21.11.1": {rate: 344.3, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:21.11.5": {rate: 1478.15, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:21.12.1": {rate: 575.75, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:21.13": {rate: 528.85, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:21.16.3": {rate: 638.35, unit: kg, code: '21.17', description: 'Providing and fixing anodised aluminium grill (anodised transparent or dyed to required shade according to IS: 1868 with minimum anodic coating of grade AC 15) of approved design/pattern ... (Only weight of grill to be measured for payment).', checked_by: claude-vision, checked_on: '2026-10-20', note: OCR merged 21.16.3 (each 112.15) with 21.17; kept as 21.17. 21.16.3 is missing}
+  "CPWD-DSR-2023:21.18": {rate: 5325.9, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20', note: was 8325.90 (OCR misread); printed 5325.90}
+  "CPWD-DSR-2023:2A": {rate: 1515.6, unit: m2, code: 22.1.1, checked_by: claude-vision, checked_on: '2026-10-20', note: rate for 22.1.1 (using rough kota stone)}
+  "CPWD-DSR-2023:22.4": {rate: 2024.7, unit: m2, code: 22.2.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:23": {rate: 769.6, unit: m2, code: '22.3', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:22.4#p216": {rate: 327.65, unit: m, code: 22.4.1, description: 'Providing and placing in position suitable PVC water stops conforming to IS:12200 for construction/ expansion joints between two RCC members ...: Serrated with central bulb (225 mm wide, 8-11 mm thick)', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:25": {rate: 617.05, unit: m2, code: '22.5', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:22.6": {rate: 688.9, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:22.7": {rate: 1684.6, unit: m2, code: 22.7.1, checked_by: claude-vision, checked_on: '2026-10-20', note: 'rate for 22.7.1 (average thickness 120 mm, minimum 65 mm at khurra)'}
+  "CPWD-DSR-2023:22.8.1": {rate: 515.05, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:29": {rate: 806.45, unit: m2, code: '22.9', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:22.10": {rate: 910.85, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:22.12": {rate: 59.45, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:22.22": {rate: 388.0, unit: kg, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:22.25.2": {rate: 23.05, unit: each_hole, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'each hole'}
+  "CPWD-DSR-2023:23.4.11.1": {rate: 707.75, unit: m, code: 23.1.1.1, description: 300 mm dia, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:23.13.3": {rate: 321.15, unit: each, description: 200 mm dia, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:23.14.2": {rate: 2019.05, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:23.15.2": {rate: 322.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:24.1": {rate: 72.45, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:24.3": {rate: 211.05, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20', note: 'was 77.90 (that is 24.4''s rate); printed 211.05. 24.4 (antifungal wash, sqm 77.90) may be missing'}
+  "CPWD-DSR-2023:25.1": {rate: 414.3, unit: kg, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:25.3": {rate: 3718.7, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:25.8": {rate: 9502.35, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20', note: rate printed on next page (DSR p.318)}
+  "CPWD-DSR-2023:26.1": {rate: 6145.85, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.2": {rate: 6033.55, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.3": {rate: 6283.85, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.4": {rate: 6935.75, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.5": {rate: 4555.75, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.6": {rate: 325.95, unit: dm3, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'cudm' (cubic decimetre)}
+  "CPWD-DSR-2023:26.6A": {rate: 6012.1, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.6B": {rate: 4830.1, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.6C": {rate: 4039.1, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:266E1": {rate: 5127.6, unit: m2, code: 26.6E.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:266E2": {rate: 5824.1, unit: m2, code: 26.6E.2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.7": {rate: 1004.55, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20', note: rate printed on DSR p.322}
+  "CPWD-DSR-2023:26.9": {rate: 450.95, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.10": {rate: 5350.55, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.12": {rate: 249.9, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.13": {rate: 276.5, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.14": {rate: 401.7, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.18.2": {rate: 411.1, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.30.1": {rate: 141.2, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.33.1": {rate: 569.15, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.35.3": {rate: 553.4, unit: kg, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.37": {rate: 382.4, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.41": {rate: 285.9, unit: kg, checked_by: claude-vision, checked_on: '2026-10-20', note: rate printed on DSR p.330}
+  "CPWD-DSR-2023:26.42.1A": {rate: 2901.8, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.44": {rate: 298.75, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.46": {rate: 4347.15, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.47": {rate: 4701.6, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.49.5": {rate: 2518.2, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.54": {rate: 287.4, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20', note: rate printed on DSR p.335}
+  "CPWD-DSR-2023:26.55": {rate: 254.75, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.56": {rate: 371.25, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.58": {rate: 49.3, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.60": {rate: 136.45, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.63": {rate: 27.1, unit: kg, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.67": {rate: 3935.35, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.73.2.3": {rate: 27.65, unit: m, description: 150 mm thick hollow core slab, checked_by: claude-vision, checked_on: '2026-10-20', note: extra for using M-50 instead of M-40}
+  "CPWD-DSR-2023:26.74.1": {rate: 20928.7, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.76.1": {rate: 540.85, unit: t, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'MT'}
+  "CPWD-DSR-2023:26.78.3": {rate: 51.65, unit: each, code: 26.79.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.81": {rate: 29.25, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.82": {rate: 2293.3, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20', note: rate printed on DSR p.340}
+  "CPWD-DSR-2023:26.91": {rate: 3437.15, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.94": {rate: 269.4, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.95.1": {rate: 3189.1, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.95.2": {rate: 1713.55, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1160": {rate: 130.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1161": {rate: 205.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1179": {rate: 1005.0, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20', note: Crushed stone 2.36 mm to 12.5 mm size}
+  "CPWD-DSR-2023:BR:1186": {rate: 1100.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1187": {rate: 880.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1188": {rate: 850.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1189": {rate: 776.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1190": {rate: 791.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1191": {rate: 480.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1192": {rate: 431.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1194": {rate: 500.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1196": {rate: 300.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1197": {rate: 260.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1198": {rate: 260.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1199": {rate: 600.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1200": {rate: 650.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1214": {rate: 2.0, unit: cm, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1215": {rate: 2.5, unit: cm, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1231": {rate: 150.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed '10 cudm' (OCR read '40 cudm')}
+  "CPWD-DSR-2023:BR:1238": {rate: 150.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1350": {rate: 35.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1352": {rate: 525.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1354": {rate: 1540.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1363": {rate: 100.0, unit: pair, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'pair'}
+  "CPWD-DSR-2023:BR:1617": {rate: 1200.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1653": {rate: 540.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1716": {rate: 60.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1896": {rate: 358.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1964": {rate: 40.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:2452": {rate: 90.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:2466": {rate: 366.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:2500": {rate: 115.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:2505": {rate: 409.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:2626": {rate: 258.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:2628": {rate: 127.0, unit: cartridge, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:2903": {rate: 1600.0, unit: m3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:3057": {rate: 534.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:3062": {rate: 1046.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:3617": {rate: 226.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:3733": {rate: 325.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:3881": {rate: 805.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:3883": {rate: 1105.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20', note: was 7105.00 (OCR misread); printed 1105.00}
+  "CPWD-DSR-2023:BR:3905": {rate: 800.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:3925": {rate: 2150.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:3941": {rate: 715.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:3960": {rate: 1240.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:4001": {rate: 280.0, unit: kg, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:5001": {rate: 350.0, unit: l, checked_by: claude-vision, checked_on: '2026-10-20', note: was 360.00 (OCR misread); printed 350.00}
+  "CPWD-DSR-2023:BR:5755": {rate: 3350.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:5763": {rate: 2045.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:6001": {rate: 1450.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7018": {rate: 95.0, unit: roll, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7022": {rate: 165.0, unit: l, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'litre'}
+  "CPWD-DSR-2023:BR:7043": {rate: 57.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7101": {rate: 2350.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7136": {rate: 1250.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1848": {exclude: true, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7157": {rate: 750.0, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7197": {rate: 89.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7231": {rate: 105.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7246": {rate: 38500.0, unit: test, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7247": {rate: 43000.0, unit: test, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7248": {rate: 49500.0, unit: test, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7249": {rate: 13800.0, unit: test, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7250": {rate: 22800.0, unit: test, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7251": {rate: 28500.0, unit: test, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7252": {rate: 13800.0, unit: test, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7253": {rate: 23100.0, unit: test, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7267": {rate: 111.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7306": {rate: 198.0, unit: kg, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7364": {rate: 540.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7412": {rate: 129.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7420": {rate: 5130.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7427": {rate: 215.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20', note: was 245.00 (OCR misread); printed 215.00}
+  "CPWD-DSR-2023:BR:7429": {rate: 170.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7480": {rate: 534.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7495": {rate: 79.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20', note: was 73.00 (OCR misread); printed 79.00}
+  "CPWD-DSR-2023:BR:7504": {rate: 117.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20', note: was 147.00 (OCR misread); printed 117.00}
+  "CPWD-DSR-2023:BR:7589": {rate: 20900.0, unit: quintal, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7590": {rate: 27000.0, unit: quintal, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7593": {rate: 2197.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7597": {rate: 5576.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7598": {rate: 6629.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7600": {rate: 10220.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20', note: was 220.00 (OCR dropped digits); printed 10220.00}
+  "CPWD-DSR-2023:BR:7602": {rate: 14463.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7603": {rate: 15908.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7605": {rate: 23995.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7625": {rate: 504.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7659": {rate: 6475.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7661": {rate: 11700.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7685": {rate: 19500.0, unit: quintal, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7696": {rate: 15400.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20', note: was 15406.00 (OCR misread); printed 15400.00}
+  "CPWD-DSR-2023:BR:7703": {rate: 4900.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7710": {rate: 9210.0, unit: quintal, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7711": {rate: 9750.0, unit: quintal, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7719": {rate: 11275.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7725": {rate: 1925.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7735": {rate: 13100.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7736": {rate: 5500.0, unit: 1000_nos, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7760": {rate: 150.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7767": {rate: 300.0, unit: l, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'litre'}
+  "CPWD-DSR-2023:BR:7770": {rate: 60.0, unit: l, checked_by: claude-vision, checked_on: '2026-10-20', note: 'Turpentine oil; was 150.00 (that is 7771 Liquid Ammonia 5%, merged by OCR); printed 60.00. 7771 may be missing'}
+  "CPWD-DSR-2023:BR:7776": {rate: 300.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7901": {rate: 5000.0, unit: 1000_nos, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7902": {rate: 5500.0, unit: 1000_nos, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7903": {rate: 5300.0, unit: 1000_nos, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7914": {rate: 200.0, unit: kg, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7931": {rate: 310.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20', note: was 340.00 (OCR misread); printed 310.00}
+  "CPWD-DSR-2023:BR:7999": {rate: 1313.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8007": {rate: 530.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8027": {rate: 275.5, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8028": {rate: 2018.75, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8029": {rate: 2018.75, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8030": {rate: 2018.75, unit: 10_dm3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8032": {rate: 13300.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8033": {rate: 33050.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8045": {rate: 1090.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8118": {rate: 1455.0, unit: each_set, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'each set'}
+  "CPWD-DSR-2023:BR:8145": {rate: 2810.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8171": {rate: 460.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8216": {rate: 350.0, unit: 10_nos, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed '10 Nos'; was 360.00 (OCR misread)}
+  "CPWD-DSR-2023:BR:8217": {rate: 225.0, unit: 10_nos, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed '10 Nos'}
+  "CPWD-DSR-2023:BR:8223": {rate: 200.0, unit: 10_nos, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed '10 Nos'}
+  "CPWD-DSR-2023:BR:8225": {rate: 110.0, unit: 10_nos, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed '10 Nos'}
+  "CPWD-DSR-2023:BR:8228": {rate: 1750.0, unit: 10_sets, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed '10 Sets'}
+  "CPWD-DSR-2023:BR:8304": {rate: 190.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8309": {rate: 198.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20', note: was 1938.00 (OCR misread); printed 198.00}
+  "CPWD-DSR-2023:BR:8508": {rate: 100.0, unit: l, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8564": {rate: 905.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8568": {rate: 120.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8572": {rate: 90.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8598": {rate: 882.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8600": {rate: 812.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8601": {rate: 910.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8623": {rate: 920.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8633": {rate: 386.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8640": {rate: 200.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8646": {rate: 125.0, unit: cartridge, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8668": {rate: 588.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8673": {rate: 259.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8688": {rate: 77.5, unit: kg, checked_by: claude-vision, checked_on: '2026-10-20', note: was 71.50 (OCR misread); printed 77.50}
+  "CPWD-DSR-2023:BR:8691": {rate: 720.0, unit: bundle, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8705": {rate: 183.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8707": {rate: 350.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20', note: was 360.00 (OCR misread); printed 350.00}
+  "CPWD-DSR-2023:BR:8709": {rate: 2150.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8737": {rate: 445.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8741": {rate: 23650.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8744": {rate: 5720.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8760": {rate: 23900.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8773": {rate: 22.0, unit: m, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8778": {rate: 1925.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8806": {rate: 65.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8832": {rate: 255.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20', note: was 265.00 (OCR misread); printed 255.00}
+  "CPWD-DSR-2023:BR:8846": {rate: 235.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8869": {rate: 285.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8876": {rate: 700.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8892": {rate: 355.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8915": {rate: 913.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8923": {rate: 530.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8940": {rate: 241.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8966": {rate: 414.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8973": {rate: 977.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8974": {rate: 1092.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8988": {rate: 131.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8989": {rate: 198.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8990": {rate: 256.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:8996": {rate: 160.0, unit: kg, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:9999": {rate: 2.27, unit: job, checked_by: claude-vision, checked_on: '2026-10-20', note: 'Unit printed ''L.S.''. DSR note: carriage codes are taken as 0.00 for materials with rates F.O.R. at site'}
+  "CPWD-DSR-2023:BR:2207": {rate: 296.87, unit: 1000_nos, checked_by: claude-vision, checked_on: '2026-10-20', note: was 206.87 (OCR misread); printed 296.87}
+  "CPWD-DSR-2023:BR:2287": {rate: 1562.47, unit: 100m, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed '100 metre'}
+  "CPWD-DSR-2023:BR:2290": {rate: 1931.24, unit: 100m, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed '100 metre'}
+  "CPWD-DSR-2023:BR:2299": {rate: 4506.23, unit: 100m, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed '100 metre'}
+  "CPWD-DSR-2023:BR:2303": {rate: 6759.34, unit: 100m, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed '100 metre'}
+  "CPWD-DSR-2023:BR:7682": {rate: 13600.0, unit: quintal, checked_by: admin, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:7684": {rate: 14500.0, unit: quintal, checked_by: admin, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:BR:1643": {rate: 470.0, unit: each, code: '1543', checked_by: claude-vision, checked_on: '2026-10-20', note: OCR read code 1643; printed 1543 (DSR basic rates p.48). Real 1643 is GI union 25 mm on p.50}
+  "CPWD-DSR-2023:BR:7682#2": {rate: 6575.0, unit: m, code: '7692', checked_by: claude-vision, checked_on: '2026-10-20', note: 'OCR read code 7682; printed 7692 (DI pipe class K-9 flanges and welding 400 mm, DSR basic rates p.51)'}
+  "CPWD-DSR-2023:BR:7684#2": {rate: 10500.0, unit: m, code: '7694', checked_by: claude-vision, checked_on: '2026-10-20', note: 'OCR read code 7684; printed 7694 (DI pipe class K-9 flanges and welding 500 mm, DSR basic rates p.51)'}
+  "CPWD-DSR-2023:BR:1254": {rate: 550.0, unit: 750_ml, checked_by: claude-vision, checked_on: '2026-10-20', note: 'Unit printed ''750 ml'' (per can), DSR basic rates p.18'}
+  "CPWD-DSR-2023:BR:1986": {rate: 5450.0, unit: 1000_nos, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed '1000 Nos'; OCR read '74000 Nos' (was stored as 'each')}
+  "CPWD-DSR-2023:BR:7026": {rate: 162.0, unit: roll, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'each roll'}
+  "CPWD-DSR-2023:BR:2228": {rate: 1767.09, unit: 100m, note: 'OCR merged 2226 (S.W. pipes 200 mm, 824.64), 2228 (250 mm, 1413.67) and 2229 into one row; kept as 2229 (300 mm). 2226 and 2228 are missing. DSR basic rates p.78', description: S.W. pipes 300 mm dia, code: '2229', checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:7.22": {rate: 303.5, unit: m_cm_girth, checked_by: claude-vision, checked_on: '2026-10-20', note: 'Unit printed ''per metre per cm girth (60cm deep)'', DSR p.125'}
+  "CPWD-DSR-2023:15.15": {rate: 1.65, unit: m_per_m_span, code: 15.15.2, description: 'Extra for dismantling trusses, rafters, purlins etc. of wood work for every additional span of one metre or part thereof beyond 10 metres: Of sectional area below 40 square centimetres', checked_by: claude-vision, checked_on: '2026-10-20', note: 'OCR merged 15.15.1 (sectional area 40 sq cm and above, cum per metre span, 589.55) and 15.15.2 into this row; kept as 15.15.2. 15.15.1 is missing. DSR p.221'}
+  "CPWD-DSR-2023:16.46.1": {rate: 8.65, unit: cm_depth_cm_width_m, checked_by: claude-vision, checked_on: '2026-10-20', note: 'Unit printed ''per cm depth per cm width per metre length'', DSR p.232'}
+  "CPWD-DSR-2023:16.45": {rate: 5.3, unit: cm_depth_cm_width_m, checked_by: claude-vision, checked_on: '2026-10-20', note: 'Unit printed ''per cm depth per cm width per metre length'', DSR p.232'}
+  "CPWD-DSR-2023:11.24": {rate: 719.9, unit: m, checked_by: claude-vision, checked_on: '2026-10-20', note: confirmed in print (DSR p.178); not an outlier - nosing is priced per metre}
+  "CPWD-DSR-2023:2.19": {rate: 1692.45, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20', note: confirmed in print (DSR p.89); planking left permanently is costlier than timbering}
+  "CPWD-DSR-2023:18.95.2": {rate: 305.85, unit: each, checked_by: claude-vision, checked_on: '2026-10-20', note: confirmed in print (DSR p.277)}
+  "CPWD-DSR-2023:19.6.12": {rate: 6276.6, unit: m, checked_by: claude-vision, checked_on: '2026-10-20', note: 'confirmed in print (DSR p.285), 1100 mm RCC pipe'}
+  "CPWD-DSR-2023:18.8.3.6": {rate: 606.85, unit: each_cut, code: 18.83.6, checked_by: claude-vision, checked_on: '2026-10-20', note: code was decoded as 18.8.3.6; printed 18.83.6 (DSR p.156)}
+  "CPWD-DSR-2023:18.8.3.7": {rate: 728.85, unit: each_cut, code: 18.83.7, checked_by: claude-vision, checked_on: '2026-10-20', note: code was decoded as 18.8.3.7; printed 18.83.7 (DSR p.156)}
+  "CPWD-DSR-2023:18.8.3.9": {rate: 969.55, unit: each_cut, code: 18.83.9, checked_by: claude-vision, checked_on: '2026-10-20', note: code was decoded as 18.8.3.9; printed 18.83.9 (DSR p.156)}
+  "CPWD-DSR-2023:18.8.3.11": {rate: 1210.7, unit: each_cut, code: 18.83.11, checked_by: claude-vision, checked_on: '2026-10-20', note: code was decoded as 18.8.3.11; printed 18.83.11 (DSR p.156)}
+  "CPWD-DSR-2023:18.8.0.4": {rate: 3593.85, unit: 100m, code: 18.80.4, checked_by: claude-vision, checked_on: '2026-10-20', note: code was decoded as 18.8.0.4; printed 18.80.4 (DSR p.152)}
+  "CPWD-DSR-2023:18.93.4.13": {rate: 2496.75, unit: each, code: 18.93A.13, checked_by: claude-vision, checked_on: '2026-10-20', note: code was decoded as 18.93.4.13; printed 18.93A.13 (DSR p.277)}
+  "CPWD-DSR-2023:11.1.1.1": {rate: 1110.75, unit: m2, code: 11.11.1, checked_by: claude-vision, checked_on: '2026-10-20', note: code was decoded as 11.1.1.1; printed 11.11.1 (DSR p.362)}

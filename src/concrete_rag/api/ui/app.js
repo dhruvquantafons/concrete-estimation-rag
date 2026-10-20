@@ -11,6 +11,16 @@ const S = {
   location: lsGet("crag_location") || "delhi",
 };
 
+// Stored unit codes (normalize/units.py) -> the spelling printed in the DSR, used everywhere units are shown.
+const UNIT_LABELS = {
+  m3: "cum", m2: "sqm", m: "metre", kg: "kg", t: "tonne", quintal: "quintal", l: "litre", ml: "ml", "750_ml": "750 ml", kl: "kilolitre",
+  each: "each", each_set: "each set", one_set: "one set", pair: "pair", "10_nos": "10 Nos", "100_nos": "100 Nos", "1000_nos": "1000 Nos", set: "set", "10_sets": "10 sets", "1000_l": "1000 litre", bag: "bag (50 kg)",
+  cm: "cm", cm_per_m: "cm per metre", letter_cm_height: "per letter per cm height", wheel: "per wheel", bundle: "bundle", roll: "roll", cartridge: "cartridge", dm3: "cudm", "10_dm3": "10 cudm", each_hole: "each hole", test: "per test", joint: "joint", each_cut: "each cut", m_per_m_height: "metre per metre height", m3_per_m_span: "cum per metre span", m_per_m_span: "metre per metre span", m_cm_girth: "per metre per cm girth (60 cm deep)", each_job: "each job", day: "day", hour: "hour", month: "month", km: "km", job: "job (L.S.)", point: "point", score: "score",
+  "10m2": "10 sqm", "100m2": "100 sqm", sqm_per_coat: "sqm per coat", "100m": "100 m", m3_km: "cum per km",
+  m_depth: "metre depth", m3_m_depth: "cum per metre depth", cm_depth_100m: "per cm depth per 100 m", cm_depth_cm_width_m: "per cm depth per cm width per metre length",
+};
+const unitLabel = (u) => (u ? UNIT_LABELS[u] || u : "");
+
 function lsGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
 function lsSet(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch { /* private mode */ } }
 
@@ -468,7 +478,7 @@ function resultCard(c, idx) {
       via.includes("exact") ? h("span", { class: "badge info" }, "exact match") : null,
       via.includes("xref") ? h("span", { class: "badge" }, "cross-reference") : null,
       via.includes("amendment") ? h("span", { class: "badge info" }, "amendment") : null,
-      m.rate != null ? h("span", { class: "badge ok" }, `${inr(m.rate)} / ${m.unit || ""}`) : null,
+      m.rate != null ? h("span", { class: "badge ok" }, `${inr(m.rate)} / ${unitLabel(m.unit)}`) : null,
       h("span", { class: "spacer" }),
       h("button", { class: "ghost small", onclick: () => showSourcePage(c.citation.doc_id, c.citation.page_start, c.citation.ref) }, "View page ↗")),
     body,
@@ -666,7 +676,7 @@ function renderEstimate(est) {
         h("tbody", {}, est.boq.map((l) => h("tr", { class: l.rate_confirmed ? "" : "flag" },
           h("td", {}, l.sl), h("td", { class: "mono" }, l.item_code),
           h("td", {}, h("div", { class: "clamp", title: l.description }, l.description), h("small", {}, l.citation, " · from ", l.derived_from.join(", "))),
-          h("td", {}, l.unit), h("td", { class: "num" }, num(l.quantity)), h("td", { class: "num" }, inr(l.rate)), h("td", { class: "num" }, inr(l.amount)),
+          h("td", {}, unitLabel(l.unit)), h("td", { class: "num" }, num(l.quantity)), h("td", { class: "num" }, inr(l.rate)), h("td", { class: "num" }, inr(l.amount)),
           h("td", {}, l.rate_confirmed ? h("span", { class: "badge ok" }, "✓") : h("span", { class: "badge warn" }, "verify"))))),
         h("tfoot", {},
           h("tr", {}, h("td", { colspan: 6 }, "Sub-total"), h("td", { class: "num" }, inr(s.subtotal)), h("td")),
@@ -688,7 +698,7 @@ function renderEstimate(est) {
           h("p", { class: "muted" }, ch.basis)) : h("div", { class: "muted" }, ch ? ch.error : "not computed"),
         est.cement_statement && est.cement_statement.length ? h("div", {}, h("h3", { style: { marginTop: "14px" } }, "Cement consumption (DSR coefficients)"),
           h("table", { class: "t" }, h("tbody", {}, est.cement_statement.map((c) => h("tr", {}, h("td", { class: "mono" }, c.item_code),
-            h("td", { class: "num" }, `${num(c.quantity)} ${c.unit} × ${c.coefficient_qtl_per_unit} qtl`), h("td", { class: "num" }, h("b", {}, `${num(c.cement_qtl)} qtl`))))),
+            h("td", { class: "num" }, `${num(c.quantity)} ${unitLabel(c.unit)} ×${c.coefficient_qtl_per_unit} qtl`), h("td", { class: "num" }, h("b", {}, `${num(c.cement_qtl)} qtl`))))),
             h("tfoot", {}, h("tr", {}, h("td", { colspan: 2 }, "Total cement"), h("td", { class: "num" }, `${num(est.cement_statement.reduce((a, c) => a + c.cement_qtl, 0))} qtl`))))) : null)),
     h("details", { class: "card" }, h("summary", {}, h("b", {}, "Assumptions & references")),
       h("ul", {}, est.assumptions.map((a) => h("li", {}, a))),
@@ -698,7 +708,7 @@ function renderEstimate(est) {
 // ---------- DSR rates browser
 async function pageRates(main) {
   const q = h("input", { type: "search", placeholder: "keywords (e.g. centering columns) or item code (e.g. 5.33)", value: "5.33" });
-  const unit = h("select", {}, ["", "m3", "m2", "m", "kg", "each", "quintal", "t"].map((u) => h("option", { value: u }, u || "Any unit")));
+  const unit = h("select", {}, ["", "m3", "m2", "m", "kg", "each", "quintal", "t"].map((u) => h("option", { value: u }, unitLabel(u) || "Any unit")));
   const loc = h("input", { value: S.location, style: { width: "120px" } });
   const out = h("div", { style: { marginTop: "16px" } });
   const go = async () => {
@@ -709,7 +719,7 @@ async function pageRates(main) {
       out.replaceChildren(h("div", { class: "tbl-wrap" }, h("table", { class: "t" },
         h("thead", {}, h("tr", {}, h("th", {}, "Item"), h("th", {}, "Description"), h("th", {}, "Unit"), h("th", { class: "num" }, "DSR rate"), h("th", {}, "Check"))),
         h("tbody", {}, list.map((it) => h("tr", { class: "click" + (it.needs_review ? " flag" : ""), onclick: () => rateDetail(it, loc.value) },
-          h("td", { class: "mono" }, it.code), h("td", {}, h("div", { class: "clamp" }, it.full_description)), h("td", {}, it.unit || it.unit_raw),
+          h("td", { class: "mono" }, it.code), h("td", {}, h("div", { class: "clamp" }, it.full_description)), h("td", {}, unitLabel(it.unit) || it.unit_raw),
           h("td", { class: "num" }, inr(it.rate)), h("td", {}, it.needs_review ? h("span", { class: "badge warn" }, "verify") : h("span", { class: "badge ok" }, "✓"))))))),
         h("p", { class: "muted" }, `${list.length} items. Click a row for details, OCR readings and the source page.`));
     } catch (e) { out.replaceChildren(errorBox(e)); }
@@ -728,7 +738,7 @@ async function rateDetail(it, location_) {
     h("p", { style: { margin: 0 } }, it.full_description),
     h("dl", { class: "kv" },
       h("dt", {}, "Sub-head"), h("dd", {}, it.sub_head || "—"),
-      h("dt", {}, "Unit"), h("dd", {}, `${it.unit || "—"} (printed: ${it.unit_raw || "—"})`),
+      h("dt", {}, "Unit"), h("dd", {}, `${unitLabel(it.unit) || "—"} (OCR read: ${it.unit_raw || "—"})`),
       h("dt", {}, "DSR rate (Delhi)"), h("dd", {}, h("b", {}, inr(it.rate))),
       h("dt", {}, `Rate at ${location_}`), h("dd", {}, priced.error ? h("span", { class: "badge warn" }, priced.error) : `${inr(priced.rate)} (cost index ${priced.cost_index})`),
       h("dt", {}, "OCR readings"), h("dd", { class: "mono" }, (it.rate_readings || []).map((r) => r || "—").join("  /  "), ` · ${it.rate_votes}/3 agree`),
@@ -788,9 +798,9 @@ async function pageReview(main) {
     st.sel = i; drawList();
     const r = st.rows[i];
     const rate = h("input", { type: "number", step: "0.01", value: r.rate ?? "" });
-    const unit = h("select", {}, h("option", { value: "" }, `unchanged (${r.unit || r.unit_raw || "none"})`),
-      ["m3", "m2", "m", "kg", "t", "quintal", "l", "each", "day", "hour", "month", "km", "bag", "job", "point"].map((u) => h("option", { value: u }, u)));
-    const code = h("input", { value: r.code, disabled: st.tab !== "sor" });
+    const unit = h("select", {}, h("option", { value: "" }, `unchanged (${r.unit ? unitLabel(r.unit) : r.unit_raw || "none"})`),
+      Object.keys(UNIT_LABELS).map((u) => h("option", { value: u }, unitLabel(u))));
+    const code = h("input", { value: r.code });
     const note = h("input", { placeholder: "optional note" });
     const view = h("div", { class: "page-view" }, loading("Loading scanned page…"));
     const save = async (exclude = false) => {
@@ -798,7 +808,7 @@ async function pageReview(main) {
       if (exclude && !confirm(`Remove row ${r.code} as "not an item"? It is recorded in the corrections file and can be undone there.`)) return;
       try {
         await api("/v1/admin/corrections", { method: "POST", body: { kind: st.tab, key: st.tab === "sor" ? r.item_key : r.db_key, checked_by: S.checker.trim(), exclude,
-          rate: rate.value === "" ? null : Number(rate.value), unit: unit.value || null, code: st.tab === "sor" && code.value !== r.code ? code.value : null, note: note.value || null } });
+          rate: rate.value === "" ? null : Number(rate.value), unit: unit.value || null, code: code.value.trim() !== r.code ? code.value.trim() : null, note: note.value || null } });
         toast(exclude ? `Removed ${r.code} (recorded in config/corrections).` : `Saved ${r.code} - written to config/corrections and applied.`);
         st.rows.splice(i, 1); st.total -= 1; drawPager();
         if (S.overview) { S.overview.review[st.tab === "sor" ? "sor_items" : "basic_rates"] -= 1; renderChrome(); }

@@ -115,7 +115,7 @@ class Correction(BaseModel):
     checked_by: str = Field(..., min_length=2, max_length=80)
     rate: float | None = Field(None, ge=0)
     unit: str | None = None
-    code: str | None = Field(None, pattern=r"^\d{1,2}(\.\d{1,3}){0,3}[A-Z]?(\.\d{1,2})?$")
+    code: str | None = Field(None, pattern=r"^(\d{1,2}(\.\d{1,3}){0,3}[A-Z]?(\.\d{1,2})?|\d{3,5})$")  # DSR item | basic rate
     note: str | None = Field(None, max_length=300)
     exclude: bool = Field(False, description="row is an OCR artefact, not a real item - remove it")
 
@@ -125,7 +125,8 @@ def add_correction(body: Correction, _=Depends(require("admin"))):
     if body.kind == "sor":
         return review.apply_sor_correction(body.key, body.checked_by, body.rate, body.unit, body.code, body.note,
                                            body.exclude)
-    return review.apply_basic_correction(body.key, body.checked_by, body.rate, body.unit, body.note, body.exclude)
+    return review.apply_basic_correction(body.key, body.checked_by, body.rate, body.unit, body.note, body.exclude,
+                                         body.code)
 
 
 @router.get("/admin/corrections", tags=["admin"])

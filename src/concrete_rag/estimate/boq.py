@@ -81,7 +81,8 @@ def build_estimate(req: EstimateRequest) -> dict:
         if row["formwork_m2"] and e.type in mapping["formwork"]:
             add(mapping["formwork"][e.type], row["formwork_m2"], f"{e.id} formwork")
         if row["steel_kg"]:
-            add(mapping["reinforcement"]["default"], row["steel_kg"], f"{e.id} reinforcement")
+            add(mapping["reinforcement"].get(e.level, mapping["reinforcement"]["default"]), row["steel_kg"],
+                f"{e.id} reinforcement")
     if req.floors_above_v > 0:
         n_extra = -(-req.floors_above_v // 4)
         above = sum(r["concrete_m3"] for e, r in zip(req.elements, qt["rows"]) if e.level == "above_plinth")

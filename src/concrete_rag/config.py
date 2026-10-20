@@ -51,6 +51,7 @@ class Settings(BaseSettings):
     llm_api_key: str = ""
     llm_max_tokens: int = 4096
     llm_temperature: float = 0.0
+    llm_reasoning_effort: str = ""         # openai_compat: "none" disables thinking (e.g. Qwen3 on Ollama)
 
     # API
     api_rate_limit: str = "60/minute"

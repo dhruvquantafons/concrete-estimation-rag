@@ -57,14 +57,23 @@ def _write_correction(key: str, entry: dict, path: Path) -> None:
     text = path.read_text() if path.exists() else "items:\n"
     if not re.search(r"^items:\s*$", text, re.M):
         text = text.rstrip("\n") + "\nitems:\n"
-    flow = yaml.safe_dump(entry, default_flow_style=True, sort_keys=False, allow_unicode=True).strip()
+    # one physical line per entry (no wrapping), so a later replace never leaves continuation lines behind
+    flow = yaml.safe_dump(entry, default_flow_style=True, sort_keys=False, allow_unicode=True, width=2**31 - 1).strip()
     line = f'  "{key}": {flow}'
-    pat = re.compile(rf'^\s*"{re.escape(key)}"\s*:.*$', re.M)
+    # the entry may span several lines if it was wrapped by an older writer or by hand: replace them all
+    pat = re.compile(rf'^[ \t]*"{re.escape(key)}"[ \t]*:.*(?:\n[ \t]{{4,}}\S.*)*$', re.M)
     if pat.search(text):
-        text = pat.sub(line, text)
+        text = pat.sub(lambda _: line, text, count=1)
     else:
         text = text.rstrip("\n") + "\n" + line + "\n"
     path.write_text(text)
+
+
+def _prior_entry(key: str, path: Path) -> dict:
+    """Value fields of an existing correction, so a re-save that changes only the rate keeps an earlier code /
+    unit / description fix (the row already shows the corrected values, so they would not look 'changed')."""
+    items = ((yaml.safe_load(path.read_text()) or {}).get("items") or {}) if path.exists() else {}
+    return {k: v for k, v in (items.get(key) or {}).items() if k in ("rate", "unit", "code", "description", "note")}
 
 
 def list_corrections() -> dict:
@@ -73,7 +82,8 @@ def list_corrections() -> dict:
 
 
 def apply_sor_correction(item_key: str, checked_by: str, rate: float | None = None, unit: str | None = None,
-                         code: str | None = None, note: str | None = None, exclude: bool = False) -> dict:
+                         code: str | None = None, note: str | None = None, exclude: bool = False,
+                         description: str | None = None) -> dict:
     with engine().connect() as c:
         row = c.execute(select(sor_items).where(sor_items.c.item_key == item_key)).first()
     if not row:
@@ -86,20 +96,26 @@ def apply_sor_correction(item_key: str, checked_by: str, rate: float | None = No
         _write_correction(item_key, entry, corrections_path(data["sor_name"], data["sor_year"]))
         _delete_item(row.doc_id, item_key)
         return {**data, "excluded": True}
-    entry: dict = {}
+    path = corrections_path(data["sor_name"], data["sor_year"])
+    entry: dict = _prior_entry(item_key, path)
     if rate is not None:
         entry["rate"] = round(float(rate), 2)
     if unit:
         entry["unit"] = unit
     if code and code != data["code"]:
         entry["code"] = code
+    if description:
+        entry["description"] = description
     entry["checked_by"] = checked_by
     entry["checked_on"] = dt.date.today().isoformat()
     if note:
         entry["note"] = note
-    _write_correction(item_key, entry, corrections_path(data["sor_name"], data["sor_year"]))
+    _write_correction(item_key, entry, path)
 
-    data.update({k: v for k, v in (("rate", entry.get("rate")), ("unit", unit), ("code", entry.get("code"))) if v})
+    if entry.get("description"):
+        data["full_description"] = " ".join(filter(None, [data.get("parent_description"), entry["description"]]))
+    data.update({k: v for k, v in (("rate", entry.get("rate")), ("unit", unit), ("code", entry.get("code")),
+                                   ("description", entry.get("description"))) if v})
     data.update({"needs_review": False, "review_reasons": [], "corrected_by": checked_by,
                  "corrected_on": entry["checked_on"]})
     with engine().begin() as c:
@@ -149,37 +165,59 @@ def _refresh_item_chunk(doc_id: str, item_key: str, it: dict) -> None:
 
 
 def apply_basic_correction(db_key: str, checked_by: str, rate: float | None = None, unit: str | None = None,
-                           note: str | None = None, exclude: bool = False) -> dict:
+                           note: str | None = None, exclude: bool = False, code: str | None = None,
+                           description: str | None = None) -> dict:
     with engine().connect() as c:
         row = c.execute(select(basic_rates).where(basic_rates.c.key == db_key)).first()
     if not row:
         raise KeyError(f"basic rate {db_key} not found")
     data = dict(row.data)
+    # the parser looks corrections up by the row's OCR key ("#n" for repeated codes), which stays the same after
+    # a code correction renames the row
+    corr_key = data.get("ocr_key") or db_key
     if exclude:
-        _write_correction(db_key.split("#")[0], {"exclude": True, "checked_by": checked_by,
-                                                 "checked_on": dt.date.today().isoformat()},
+        _write_correction(corr_key, {"exclude": True, "checked_by": checked_by,
+                                     "checked_on": dt.date.today().isoformat()},
                           corrections_path(data["sor_name"], data["sor_year"]))
         from sqlalchemy import delete
         with engine().begin() as c:
             c.execute(delete(basic_rates).where(basic_rates.c.key == db_key))
         return {**data, "excluded": True}
-    entry: dict = {}
+    path = corrections_path(data["sor_name"], data["sor_year"])
+    entry: dict = _prior_entry(corr_key, path)
     if rate is not None:
         entry["rate"] = round(float(rate), 2)
     if unit:
         entry["unit"] = unit
+    if description:
+        entry["description"] = description
+    code = (code or "").strip()
+    if code and code != data["code"]:
+        if not code.isdigit():
+            raise ValueError(f"basic-rate code must be digits, got {code!r}")
+        entry["code"] = code
+    if data.get("ocr_key") and "code" not in entry:   # a renamed row keeps its corrected code on re-ingest
+        entry["code"] = data["code"]
     entry["checked_by"] = checked_by
     entry["checked_on"] = dt.date.today().isoformat()
     if note:
         entry["note"] = note
-    # parser keys basic rates without the "#n" de-duplication suffix
-    _write_correction(db_key.split("#")[0], entry, corrections_path(data["sor_name"], data["sor_year"]))
-    data.update({k: v for k, v in (("rate", entry.get("rate")), ("unit", unit)) if v})
+    _write_correction(corr_key, entry, path)
+    data.update({k: v for k, v in (("rate", entry.get("rate")), ("unit", entry.get("unit")),
+                                   ("description", entry.get("description"))) if v})
     data.update({"needs_review": False, "review_reasons": [], "corrected_by": checked_by})
+    new_key = db_key
+    if entry.get("code") and entry["code"] != data["code"]:      # rename the row only when its code changes
+        new_key = f"{data['sor_name']}-{data['sor_year']}:BR:{entry['code']}"
+        with engine().connect() as c:
+            if c.execute(select(basic_rates.c.key).where(basic_rates.c.key == new_key)).first():
+                new_key += "#2"
+        data.update({"code": entry["code"], "key": new_key.split("#")[0], "ocr_key": corr_key})
     with engine().begin() as c:
         c.execute(update(basic_rates).where(basic_rates.c.key == db_key).values(
-            rate=data["rate"], unit=data["unit"], needs_review=False, data=data))
-    return data
+            key=new_key, code=data["code"], description=data["description"], rate=data["rate"], unit=data["unit"],
+            needs_review=False, data=data))
+    return {**data, "db_key": new_key}
 
 
 # ------------------------------------------------------------------ code tables sign-off

@@ -26,7 +26,7 @@ src/concrete_rag/
   parse/    is_code.py (clauses, tables, annexes, amendments, x-refs)  sor.py (DSR items, basic rates, coefficients)
   normalize/ units, currency (₹, lakh/crore), SOR item-code OCR repair (Viterbi)
   chunking/ clause/table/item chunks + metadata enrichment
-  store/    docstore.py (SQLite/Postgres)  vector.py (Qdrant dense + BM25 sparse)
+  store/    docstore.py (SQLite/Postgres)  vector.py (Qdrant dense + BM25 sparse)  review.py (UI corrections)
   embed/    bge-m3 dense, domain-aware BM25 tokenizer
   retrieval/ router (exact refs) -> hybrid RRF -> cross-encoder rerank -> x-ref/amendment expansion
   calc/     mix_design (IS 10262), rcc (IS 456), steel (Ld, laps, BBS), quantities (IS 1200), rates
@@ -47,16 +47,20 @@ docs/scope.md   Step 1 scope, corpus, tech-stack decisions and known limitations
 | IS 10262 : 2019 (digital) | 77 clauses, 84 annex clauses (worked examples A–F), 15 tables |
 | IS 1200 Parts 1, 2, 5, 8, 22 | 207 clauses (+ Part 8 Amendment 1) |
 | IS 2386 Parts 1–8 + 2 amendment slips | 447 clauses, 15 tables, 29 amendment entries |
-| CPWD DSR 2023 Vol 1+2 (804 pp, 96-dpi bilingual scan) | **2,955 items**, 2,444 basic rates (hire/labour/materials), 345 cement-consumption coefficients |
+| CPWD DSR 2023 Vol 1+2 (804 pp, 96-dpi bilingual scan) | **2,949 items**, 2,437 basic rates (hire/labour/materials), 345 cement-consumption coefficients. Review queue cleared; 764 entries in `config/corrections/cpwd_dsr_2023.yaml`. A dry re-parse reproduces the database exactly |
 | Index | 6,904 chunks (dense bge-m3 + BM25 sparse) in embedded Qdrant |
 
 OCR quality controls:
 - **Rates:** each DSR rate is read three times: English-page OCR, a digits-only re-OCR of the cell, and the
   matching Hindi page aligned over the whole volume. The readings are majority-voted. About 95% of item
   rates are confirmed by at least two readings. The rest are flagged `needs_review` and land in
-  `data/processed/review_*.csv`.
+  `data/processed/review_*.csv` and the UI review queue. All 712 flagged rows have been checked against the
+  scanned pages (see step 3 below).
 - **Item codes:** codes such as `414` → 4.1.4 or `5.224` → 5.2.2A are decoded as a sequence (Viterbi).
-  Uncertain decodes are flagged.
+  Uncertain decodes are flagged. A few mis-split codes (e.g. 18.83.6 read as 18.8.3.6) are not flagged,
+  because the rate and unit look fine (see step 3).
+- **Units:** stored as canonical codes (`m3`, `10_nos`, `each_set` …) and always shown in the UI as printed
+  in the DSR (cum, 10 Nos, each set …). A leading count ("10 Nos", "100 metre") is never dropped.
 - **Curated code tables:** each table is cross-checked against the OCR text (`crag verify-tables`). For
   example, IS 456 Table 5 "Extreme" OCRs as 480 instead of 280, and is reported as a mismatch.
 
@@ -89,8 +93,8 @@ if your key has the scope it needs.
 | Mix design | IS 10262 form → kg/m³ (SSD and field), compliance checks, step-by-step working with clause refs | calc |
 | RCC design | beam / one-way slab / column / footing forms → bars, checks, working | calc |
 | Estimate / BOQ | editable element table → IS 1200 quantities → DSR-priced BOQ, cement statement, cost heads, Excel/PDF/print, saved estimates | estimate |
-| DSR rates | browse/search 2,955 items by keyword or code prefix, OCR readings, source page | estimate |
-| Review queue | flagged DSR rows next to the scanned page: click an OCR reading or type the value, then **Save** (or **Not an item — remove**). Writes `config/corrections/cpwd_dsr_2023.yaml` and applies it immediately | admin |
+| DSR rates | browse/search 2,949 items by keyword or code prefix, OCR readings, source page | estimate |
+| Review queue | flagged DSR items and basic rates next to the scanned page: correct the code, unit (shown as printed) or rate, then **Save** (or **Not an item — remove**). Writes `config/corrections/cpwd_dsr_2023.yaml` and applies it immediately | admin |
 | Code tables | values used by the calculators, OCR cross-check result, **Compare with page**, sign-off button | calc (sign-off: admin) |
 
 Corrections made in the UI update the database and the search results straight away. The embeddings are
@@ -139,7 +143,9 @@ To trade a little ranking quality for speed, set `CRAG_RERANK_ENABLED=false` (0.
 `CRAG_RERANK_POOL`.
 
 - **Calculators:** the IS 10262:2019 Annex A worked example is reproduced: cement 412, water 148,
-  FA 648.6 (648), CA 1234.6 (1234) kg/m³. All 19 tests pass.
+  FA 648.6 (648), CA 1234.6 (1234) kg/m³. An M25 mix, the demo BOQ (quantities and every DSR rate used)
+  and the IS 456 tables were also checked by hand on 2026-10-20 (see step 3). All 21 unit tests pass. The 4
+  integration tests need the search index, which `crag serve` locks, so stop the server before running them.
 - **Code tables:** the IS 10262 tables and IS 456 Table 16 are `ocr_confirmed`. IS 456 Tables 5 and 19 are
   `partially_confirmed`; the source scan misreads, e.g. Table 5 "Extreme 280" as 480. Table 20, bond stress
   and the detailing limits await human sign-off.
@@ -159,41 +165,87 @@ priority order.
 - [ ] Optional, for a server deployment: install/start Docker Desktop, then run `make up` (Qdrant server +
       Postgres + API) and set `CRAG_QDRANT_URL` / `CRAG_DOCSTORE_URL`.
 
-### 2. LLM: local Qwen2.5-7B-Instruct via Ollama (configured)
-`.env` is set to `CRAG_LLM_PROVIDER=openai_compat`, `CRAG_LLM_BASE_URL=http://localhost:11434/v1`,
-`CRAG_LLM_MODEL=hf.co/bartowski/Qwen2.5-7B-Instruct-GGUF:Q4_K_M`. The model comes from Hugging Face; Qwen's
-official Q4 file is sharded, which Ollama can't pull, so this uses the single-file conversion of the same
-weights. Ollama must be running (it starts with the app).
+### 2. LLM: local Qwen2.5-3B-Instruct (≈2 GB) via Ollama (configured)
+`.env`: `CRAG_LLM_PROVIDER=openai_compat`, `CRAG_LLM_BASE_URL=http://localhost:11434/v1`,
+`CRAG_LLM_MODEL=hf.co/bartowski/Qwen2.5-3B-Instruct-GGUF:Q4_K_M`. The GGUF comes from Hugging Face and
+Ollama must be running.
 
-Measured on this Mac (6 golden questions, cited **Ask** answers):
+Benchmark on this Mac (6 golden questions answered from the IS codes / DSR, plus 2 multi-step agent tasks):
 
-| Model | Correct key fact | Cites sources | Avg time |
-|---|---|---|---|
-| **Qwen2.5-7B-Instruct Q4** | **6/6** | 6/6 | ~10 s (first answer ~25 s) |
-| llama3 8B (already installed) | 5/6 (gave the 0.4 m² formwork rule for concrete openings) | 6/6 | ~10 s |
+| Model (4-bit GGUF) | Size | Correct fact | Numbers grounded | Avg time | Agent tasks |
+|---|---|---|---|---|---|
+| **Qwen2.5-3B-Instruct Q4_K_M** (selected) | 1.9 GB | **6/6** | **6/6** | **10 s** | 0/2 |
+| Qwen3-4B-Instruct-2507 IQ3_M | 2.0 GB | 6/6 | 5/6 (cited cl. 5.1.8(a) for (b)) | 18 s | 0/2 (wrote tool calls as text) |
+| Llama-3.2-3B-Instruct Q4_K_M | 2.0 GB | 4/6 (replied only "[S7]") | 6/6 | 9 s | 0/2 (hallucinated code) |
+| Qwen2.5-7B-Instruct Q4_K_M (reference) | 4.7 GB | 6/6 | 6/6 | 17 s | 0/2 |
 
-- [ ] **Use Qwen 7B for Ask (cited answers): it is reliable there.**
-- [ ] **Don't rely on `/v1/agent` (multi-step tool use) with a 7B model.** In tests it skipped a requested DSR
-      rate and once cited the wrong clause (26.2.1.1 instead of 26.2.5.1), although the numbers were right. For
-      design and costing, use the calculator and estimate screens directly; they are deterministic and don't need
-      the LLM. If you want the agent, try a 14B model (`ollama pull hf.co/bartowski/Qwen2.5-14B-Instruct-GGUF:Q4_K_M`,
-      ~9 GB) and compare it with `crag evaluate`.
-- [ ] To switch models, change `CRAG_LLM_MODEL` in `.env` and restart `crag serve`.
+- [ ] **Use the LLM for Ask (cited answers).** Design, quantities and costing come from the deterministic
+      calculator and estimate screens, which don't need the LLM.
+- [ ] **No model in this size range completes the multi-step agent tasks** (they skip a requested rate or
+      cite the wrong clause). Treat `/v1/agent` as experimental.
+- [ ] Six questions is a small test. Add 20–30 questions to `eval/datasets/generation_golden.jsonl` and re-run
+      `crag evaluate` before relying on the model.
+- [ ] To switch models, change `CRAG_LLM_MODEL` and restart `crag serve`. For Qwen3 models on Ollama, also set
+      `CRAG_LLM_REASONING_EFFORT=none`, otherwise their answers come back empty.
 
-### 3. Clear the review queue (most important for estimate accuracy)
-**Easiest:** open **Review queue** in the web UI (`/ui`, needs an `admin` key). Each flagged row is shown
-next to its scanned page; type or click the correct value and press Enter. Use **Not an item — remove**
-for OCR junk rows such as table headers. Filter by sub-head 4 and 5 (concrete, RCC) first.
+### 3. Review queue and data checks (queue cleared 2026-10-20)
+The review queue is at **0 DSR items and 0 basic rates**. All 712 flagged rows were read against the scanned
+pages; 709 were fixed and tagged `checked_by: claude-vision` in `config/corrections/cpwd_dsr_2023.yaml`,
+and the rest were saved by you in the UI. Rows flagged by a future re-ingest appear in **Review queue**
+(`/ui`, `admin` key).
 
-Alternatively, work from the CSV files in `data/processed/`:
-- [ ] `review_sor_items.csv` (~540 rows): DSR items whose rate readings disagreed or whose code decode was
-      uncertain. Check each one against the printed DSR page (the `pdf_page` column), then add the fix to
-      `config/corrections/cpwd_dsr_2023.yaml`:
-      `"CPWD-DSR-2023:5.5": {rate: 12205.85, checked_by: "<name>"}`.
-      Prioritise sub-heads 4 (Concrete), 5 (RCC) and 2 (Earth work), which the estimator uses most.
-- [ ] `review_basic_rates.csv` (~210 rows): labour/material/hire basic rates.
-- [ ] Confirm the one inferred correction already in the corrections file (5.33.2.4 = 10313.30).
-- [ ] Re-run `crag ingest --doc CPWD_DSR_2023_V1 --doc CPWD_DSR_2023_V2 && crag index`. OCR is cached, so this is fast.
+**What to do:**
+- [ ] **Restart `crag serve`.** The running server still has the old code loaded. Until it restarts, the UI and
+      API give the old footing and deflection results and miss the new unit labels.
+- [ ] **Spot-check the `claude-vision` corrections.** Start with the ones where the printed value differs
+      from every OCR reading: `grep "OCR misread\|dropped" config/corrections/cpwd_dsr_2023.yaml`. Delete a
+      line to undo a correction.
+- [ ] **Add the rows OCR merged or dropped** (they aren't in the database, so they never reach the queue):
+      DSR 1.2.4–1.2.15, 1.2.16.3/.4, 3.1, 3.11, 4.9A (₹900.15), 5.4 (₹8821.65), 6.11 (₹608.15 sqm), 8.7.1,
+      8.21, 9.147.F1.1 (₹12496.05), 11.6.1, 11.41A.2.1, 11.41A.2.3, 11.54.1, 15.16.1, 17.59.1, 18.95A.10,
+      15.15.1 (₹589.55 cum per metre span), 19.2.2, 19.10.2, 19.15.1, 19.17.1, 19.22.1, 21.16.3, 24.4, and
+      basic rates 2226 (₹824.64), 2228 (₹1413.67) and 7771. The notes on neighbouring rows give the printed
+      rates. Either fix the parser or add them by hand.
+- [ ] **Percentage items have no ₹ rate on purpose:** 2.24.1 (+20%), 2.24.2 (+25% per metre depth) and
+      5.9.14 (+20% of the shuttering item). The percentage is in the description and note. A BOQ line using
+      one shows ₹0 with a warning, so add that extra by hand.
+- [ ] **Re-check rate-analysis templates** that use count-unit basic rates. Before 2026-10-20 the parser
+      stored "10 Nos"/"100 Nos" as "each", so 122 basic rates looked 10×/100× too high per piece ("1000
+      litre", "100 metre", "pair" and "set" were affected too). This is fixed in `parse/sor.py` and the database.
+      Bricks BR:1986 were stored per brick; they are per 1000 Nos (OCR read "74000 Nos").
+- [ ] **Check item codes on rows that were never flagged.** OCR sometimes splits a code wrongly while the rate
+      and unit look fine, so the row never reached the queue. Seven were found and fixed (18.83.6/7/9/11,
+      18.80.4, 18.93A.13, 11.11.1). `18.5.0.1` (p.142, probably 18.50.1) is unconfirmed. A systematic pass
+      comparing each page's code sequence is still to do.
+- [ ] **Re-run RCC designs saved before 2026-10-20** (beams, slabs, footings), because of the fixes below.
+- [ ] Run `crag index` once with `crag serve` stopped, so search results pick up the corrected units.
+      Re-ingesting (`crag ingest --doc CPWD_DSR_2023_V1 --doc CPWD_DSR_2023_V2 && crag index`) re-applies all
+      corrections and is fast because OCR is cached.
+
+**What changed on 2026-10-20:**
+- **Units are stored and shown as printed.** New units added to `normalize/units.py` and the review dropdown:
+  - measured quantities: `100m`, `cm`, `cm_per_m`, `m_depth`, `m3_m_depth`, `cm_depth_100m`,
+    `cm_depth_cm_width_m`, `m_cm_girth`, `m_per_m_height`, `m_per_m_span`, `m3_per_m_span`,
+    `letter_cm_height`, `dm3` (cudm), `10_dm3` (10 cudm)
+  - counts and packs: `each_set`, `one_set`, `set`, `10_sets`, `pair`, `10_nos`, `100_nos`, `750_ml`,
+    `1000_l`, `roll`, `bundle`, `cartridge`
+  - per occurrence: `each_job`, `each_cut`, `each_hole`, `joint`, `wheel`, `test`
+- **Correction writer fixed.** Saving a row twice used to leave stray lines in the corrections file (making it
+  invalid YAML), and it dropped an earlier code, unit, description or note fix. Entries are now one line each,
+  and a re-save keeps the earlier fields. Junk rows excluded by code are removed in every copy.
+- **Basic-rate codes can be corrected** (Review → Basic rates → Item code). OCR had misread 1543 as 1643
+  (flush pipe, p.48), and 7692/7694 as 7682/7684 (K-9 flanged DI pipe, p.112). When OCR gives two rows the
+  same code, the second row is stored and corrected as `BR:<code>#2`.
+- **Calculator audit.** BOQ quantities, every DSR rate the estimator uses (4.1.8, 5.9.x, 5.22/5.22A,
+  5.33.x) and the IS 10262 mix design were checked against the printed pages and a hand calculation, and
+  are correct. Three fixes:
+  - Above-plinth steel is now priced as **5.22A.6** instead of 5.22.6 (same rate, ₹107.85/kg).
+  - Beam and slab **deflection checks** now apply the IS 456 Fig. 4/5 modification factors. They used to
+    assume the maximum factor (2.0), which let failing sections pass.
+  - **Footings under rectangular columns** now use the longer cantilever and the punching factor ks. The old
+    code understated Mu by about 30% for a 230×600 column.
+- Known over-measurement in the BOQ: slab soffit shuttering doesn't deduct the strip resting on beams
+  (about 1–2% of formwork). Column height should be measured to the slab soffit, not floor-to-floor.
 
 ### 4. Sign off the curated code tables
 - [ ] In the UI, open **Code tables**, click **Compare with page** for each table, and if the values match
@@ -238,7 +290,7 @@ Add each file under `data/` and register it in `config/sources.yaml` (copy an ex
       to the excerpts.
 
 ### 8. Decisions I need from you
-1. ~~Which LLM~~: decided, local Qwen2.5-7B (see step 2). Decide whether the agent workflow is needed (it needs a 14B+ model).
+1. ~~Which LLM~~: decided, local Qwen2.5-3B, about 2 GB (see step 2). The agent workflow is not reliable at this size.
 2. Which State PWD SORs, and which years?
 3. Default contingency % (currently 3%), and whether estimates should add any extra overhead on top of DSR
    rates (DSR item rates already include CP&OH 15% and GST 18%).

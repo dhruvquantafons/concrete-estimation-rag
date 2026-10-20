@@ -66,3 +66,25 @@ def test_is1200_rounding_and_openings():
                          openings=[Opening(width_m=0.3, height_m=0.3), Opening(width_m=1, height_m=1)])])
     row = q["rows"][0]
     assert row["concrete_m3"] == round(6 * 4.5 * 0.125 - 1 * 0.125, 2)   # small opening not deducted
+
+
+def test_footing_rectangular_column_uses_longer_cantilever():
+    from concrete_rag.calc.rcc import FootingInput, design_footing_square
+    r = design_footing_square(FootingInput(column_b_mm=230, column_D_mm=600, service_load_kN=900, sbc_kN_m2=150))
+    mu = next(s for s in r.steps if s.name.startswith("Mu at column face"))
+    qu = 1.5 * 900 / 2.6 ** 2
+    assert abs(mu.value - qu * 2.6 * ((2.6 - 0.23) / 2) ** 2 / 2) < 0.1     # cantilever from the 230 mm side
+
+
+def test_deflection_uses_fig4_modification_factor():
+    from concrete_rag.calc.rcc import span_depth_allowed
+    allowed, _ = span_depth_allowed("simply_supported", 4.0, 500, 600, 600, 1000, 130)   # fs 290, pt 0.46 %
+    assert 20 < allowed < 22.5          # Fig. 4 MF ~1.1 for Fe500 - not the old 2.0 cap (40)
+    allowed_c, _ = span_depth_allowed("simply_supported", 4.0, 500, 600, 600, 1000, 130, asc_prov=650)
+    assert allowed_c > allowed          # Fig. 5 compression steel increases the limit
+
+
+def test_boq_steel_item_by_level():
+    from concrete_rag.estimate.boq import _cfg
+    m = _cfg("boq_mapping")["reinforcement"]
+    assert m["below_plinth"] == "5.22.6" and m["above_plinth"] == "5.22A.6"

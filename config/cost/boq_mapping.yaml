@@ -40,6 +40,7 @@ formwork:                    # centering & shuttering (per m2)
   staircase_waist: "5.9.7"
   chajja: "5.9.19"
 
-reinforcement:               # per kg
-  TMT_Fe500D: "5.22.6"
+reinforcement:               # per kg; 5.22 = up to plinth level, 5.22A = above plinth level (DSR p.110)
+  below_plinth: "5.22.6"     # TMT Fe-500D or more
+  above_plinth: "5.22A.6"
   default: "5.22.6"
