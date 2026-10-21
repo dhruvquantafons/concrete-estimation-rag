@@ -99,8 +99,9 @@ The search index can be used by **one program at a time.** Stop `crag serve` bef
 
 ## Where things stand
 
-- **Data:** all four IS standards and both DSR volumes are read. The review queue is empty. About 770 scanner
-  errors were checked against the scanned pages and fixed.
+- **Data:** complete for this project: IS 456, IS 10262, IS 1200, IS 2386 and both DSR 2023 volumes. No more
+  documents are planned. The review queue is empty, and about 770 scanner errors were checked against the scanned
+  pages and fixed. Rates are for **Delhi** (DSR base); other locations are refused rather than guessed.
 - **Search quality:** the right source is in the top 8 results for all 50 test questions, and first for most of
   them.
 - **Calculators:** reproduce the IS 10262 worked example exactly. All IS 456 values were checked against the
@@ -118,7 +119,6 @@ More detail: [docs/data-notes.md](docs/data-notes.md) (what was read, fixed and 
 In order of priority. Only you can do or decide these.
 
 ### 1. Right now
-- [ ] **Start `crag serve`** (it was stopped to rebuild search on 2026-10-21).
 - [ ] **Re-run saved estimates that use these items.** Their rates were wrong and are now fixed: 11.1.2, 8.2.3.2,
       8.3.2, 8.14.5.2 and basic rate 7773 (details in [docs/data-notes.md](docs/data-notes.md)).
 - [ ] **Re-run RCC designs saved before 2026-10-20** (beams, slabs, footings). The deflection and footing checks
@@ -139,18 +139,7 @@ Many fixes were made by reading the scans with AI vision and are tagged `claude-
 - [ ] Check a few points of IS 10262 **Fig. 1** against your printed copy. It was measured from the PDF image.
 - [ ] Look through a few DSR fixes in `config/corrections/cpwd_dsr_2023.yaml` against the printed DSR.
 
-### 4. Add missing data
-Put each file in `data/`, add it to `config/sources.yaml` (copy an existing entry), then run
-`crag ingest --doc <id> && crag index`.
-- [ ] **CPWD DAR 2023** (Delhi Analysis of Rates), for a proper labour / materials / equipment split.
-- [ ] **State PWD SORs** for the states you price in. A new layout may need parser work; send me a sample.
-- [ ] **Location cost indices** in `config/cost/cost_indices.yaml`. Only Delhi is set, and other places are
-      refused rather than guessed.
-- [ ] Other codes the tools refer to: IS 383, IS 1786, IS 269 / IS 1489, SP 16, SP 34, IS 875 (Parts 1–2).
-- [ ] About 45 DSR rows the scanner missed. They are listed in [docs/data-notes.md](docs/data-notes.md); add them
-      if you use them.
-
-### 5. Give it real test data
+### 4. Give it real test data
 - [ ] **Actual costs of finished projects:** copy `eval/datasets/actual_costs_template.csv` to
       `actual_costs.csv`, one row per BOQ item. For steel rows, also fill `element_type` and `concrete_m3`. Then
       run `crag evaluate` (shows how far estimates were off) and `crag learn calibrate`.
@@ -158,16 +147,15 @@ Put each file in `data/`, add it to `config/sources.yaml` (copy an existing entr
       and add 20–30 questions with expected answers to `generation_golden.jsonl`.
 - [ ] Worked examples you trust (SP 16, your past mix designs) as tests in `tests/unit/test_calculators.py`.
 
-### 6. Before other people use it
+### 5. Before other people use it
 - [ ] One API key per person or system, with only the scopes they need. Revoke with `crag apikey revoke <name>`.
 - [ ] Keep `CRAG_API_BOOTSTRAP_ADMIN_KEY` empty, and put the server behind HTTPS.
 - [ ] Back up `storage/`, `config/` and `data/processed/` regularly.
 - [ ] The IS PDFs are licensed by BIS. Keep `data/` out of git (it already is), and only share excerpts with people
       entitled to them.
 
-### 7. Decisions I need from you
-1. Which State PWD SORs, and which years?
-2. Default contingency (now 3%), and any extra overhead on top of DSR rates? (DSR rates already include 15%
+### 6. Decisions I need from you
+1. Default contingency (now 3%), and any extra overhead on top of DSR rates? (DSR rates already include 15%
    contractor's profit and overheads and 18% GST.)
-3. Default steel per m³ of concrete (`config/cost/estimation_defaults.yaml`), or always require a BBS?
-4. Design mix (now the default, DSR 5.33.x) or nominal mix for estimates?
+2. Default steel per m³ of concrete (`config/cost/estimation_defaults.yaml`), or always require a BBS?
+3. Design mix (now the default, DSR 5.33.x) or nominal mix for estimates?
