@@ -71,22 +71,34 @@ def exact_hits(pq: ParsedQuery) -> list[dict]:
     return out
 
 
-def hybrid_candidates(query: str, filters: dict | None, k: int, mode: str = "hybrid") -> list[tuple[dict, float, list[str]]]:
-    """mode: hybrid | dense | bm25. Returns [(chunk, fused_score, sources)]."""
+def candidate_lists(query: str, filters: dict | None, k: int, mode: str = "hybrid") -> list[tuple[str, list]]:
     lists = []
     if mode in ("hybrid", "dense"):
         lists.append(("dense", vector.search_dense(query, k, filters)))
     if mode in ("hybrid", "bm25"):
         lists.append(("bm25", vector.search_bm25(query, k, filters)))
+    return lists
+
+
+def fuse(lists: list[tuple[str, list]], weights: dict[str, float] | None = None) -> list[tuple[dict, float, list[str]]]:
+    """Weighted reciprocal-rank fusion. Weights come from the learning loop (learn/fusion.py); default 1:1."""
+    if weights is None:
+        from concrete_rag.learn.state import fusion_weights
+        weights = fusion_weights()
     fused: dict[str, list] = {}
     for name, res in lists:
         for rank, (payload, _score) in enumerate(res):
             cid = payload["chunk_id"]
             entry = fused.setdefault(cid, [payload, 0.0, []])
-            entry[1] += 1.0 / (RRF_K + rank + 1)
+            entry[1] += weights.get(name, 1.0) / (RRF_K + rank + 1)
             entry[2].append(name)
     ranked = sorted(fused.values(), key=lambda e: -e[1])
     return [(_payload_to_chunk(p), s, src) for p, s, src in ranked]
+
+
+def hybrid_candidates(query: str, filters: dict | None, k: int, mode: str = "hybrid") -> list[tuple[dict, float, list[str]]]:
+    """mode: hybrid | dense | bm25. Returns [(chunk, fused_score, sources)]."""
+    return fuse(candidate_lists(query, filters, k, mode))
 
 
 def _rerank_text(ch: dict) -> str:

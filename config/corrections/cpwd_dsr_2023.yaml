@@ -1,6 +1,15 @@
 # Human corrections for OCR'd CPWD DSR 2023 rows (from data/processed/review_sor_items.csv /
 # review_basic_rates.csv). Key = item_key from the CSV. Any of rate / unit / description may be given.
 # Applied on the next `crag ingest --doc CPWD_DSR_2023_V1 --doc CPWD_DSR_2023_V2` (OCR is cached, fast).
+code_tokens:   # codes OCR read as letters, checked against the printed page: "DOC_ID:pdf_page:token": printed code
+  "CPWD_DSR_2023_V1:266:a3": "8.3"     # DSR p.128 (was merged into 8.2.3.2, which then showed 8.3.1's rate 298.60)
+  "CPWD_DSR_2023_V1:266:a4": "8.4"     # DSR p.128 (was merged into 8.3.2, which then showed 568.55)
+  "CPWD_DSR_2023_V1:266:a7": "8.7"     # DSR p.128 (heading of 8.7.x cramps)
+  "CPWD_DSR_2023_V1:268:ag": "8.9"     # DSR p.129 (heading, was glued into 8.8.1.3)
+  "CPWD_DSR_2023_V1:268:an": "8.11"    # DSR p.129 (heading, was glued into 8.10.2)
+  "CPWD_DSR_2023_V1:270:a5": "8.15"    # DSR p.130 (was merged into 8.14.5.2, which then showed 714.40)
+  "CPWD_DSR_2023_V1:296:a7": "9.71"    # DSR p.143 (heading of 9.71.x butt hinges, heavy)
+  "CPWD_DSR_2023_V1:116:T7174": "7774" # basic rates p.53 (stone 10x10x7.50 cm, each 10.00; was merged into 7773, which then showed 10.00)
 items:
   "CPWD-DSR-2023:5.33.2.4": {rate: 10313.3, checked_by: claude-vision, checked_on: '2026-10-20', note: confirmed in print DSR p.112}
   "CPWD-DSR-2023:1.2": {rate: 0.5, unit: km, checked_by: admin, checked_on: '2026-10-16'}
@@ -126,7 +135,9 @@ items:
   "CPWD-DSR-2023:7.38.12": {rate: 2766.45, unit: m2, code: 7.38.1.2, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:8.1.1.1": {rate: 5742.55, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:8.6": {rate: 506.7, unit: m2, description: Mirror polishing on marble work/Granite work/stone work where ever required to give high gloss finish complete., checked_by: claude-vision, checked_on: '2026-10-20', note: 'OCR merged 8.6 with 8.7/8.7.1 (Gunmetal cramps, kg 723.45); 8.7.1 is missing'}
-  "CPWD-DSR-2023:8.7": {rate: 3135.0, unit: m2, code: '8.17', checked_by: claude-vision, checked_on: '2026-10-20', note: was mis-coded 8.7; printed 8.17 (DSR p.130)}
+  "CPWD-DSR-2023:8.7": {rate: 723.45, unit: kg, code: 8.7.1, description: 'Providing and fixing cramps of required size & shape in RCC/ CC / Brick masonry backing with cement mortar 1:2 ( 1 cement :2 coarse sand), including drilling necessary hole in stones and embedding the cramp in the hole (fastener to be paid separately): Gunmetal cramps', checked_by: claude-vision, checked_on: '2026-10-21', note: 'heading 8.7 (DSR p.128) + first line of p.129 "8.7.1 Gunmetal cramps kg 723.45" read as one row'}
+  "CPWD-DSR-2023:8.7#p270": {rate: 3135.0, unit: m2, code: '8.17', checked_by: claude-vision, checked_on: '2026-10-21', note: was mis-coded 8.7; printed 8.17 (DSR p.130)}
+  "CPWD-DSR-2023:8.3": {rate: 298.6, unit: m, code: 8.3.1, description: 'Providing edge moulding to 18 mm thick marble stone counters, Vanities etc., including machine polishing to edge to give high gloss finish etc. complete as per design approved by Engineer-in-Charge: Marble work', checked_by: claude-vision, checked_on: '2026-10-21', note: 'heading 8.3 and 8.3.1 Marble work (metre 298.60, DSR p.128) read as one row'}
   "CPWD-DSR-2023:8.20.2": {rate: 3040.1, unit: m2, description: White sand stone - 30 mm thick gang saw cut stone, checked_by: claude-vision, checked_on: '2026-10-20', note: 'OCR merged 8.20.2 with 8.21 (structural steel frame for dry cladding, kg 269.95); 8.21 is missing'}
   "CPWD-DSR-2023:8.32": {rate: 5015.05, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20', note: rate printed on DSR p.133}
   "CPWD-DSR-2023:9.1": {rate: 142949.7, unit: m3, code: 9.1.1, description: Second class teak wood, checked_by: claude-vision, checked_on: '2026-10-20'}
@@ -206,12 +217,11 @@ items:
   "CPWD-DSR-2023:10.22": {rate: 3.7, unit: cm, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'cm' (per cm of welding)}
   "CPWD-DSR-2023:10.28": {rate: 772.4, unit: kg, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:11.1A": {rate: 1006.95, unit: m2, code: 11.1.1, checked_by: claude-vision, checked_on: '2026-10-20'}
-  "CPWD-DSR-2023:11.31": {rate: 614.2, unit: m2, code: 11.3.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:11.31": {rate: 614.2, unit: m2, code: 11.3.1, description: 'Cement concrete flooring 1:2:4 (1 cement : 2 coarse sand : 4 graded stone aggregate) finished with a floating coat of neat cement, including cement slurry, but excluding the cost of nosing of steps etc. complete: 40 mm thick with 20 mm nominal size stone aggregate', checked_by: claude-vision, checked_on: '2026-10-21', note: heading 11.3 read as "13" (DSR p.175)}
   "CPWD-DSR-2023:14": {rate: 978.45, unit: m2, code: '11.4', checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:15": {rate: 1056.15, unit: m2, code: '11.5', checked_by: claude-vision, checked_on: '2026-10-20'}
-  "CPWD-DSR-2023:11.64": {rate: 8595.15, unit: m3, code: '11.7', description: 'Cement concrete pavement with 1:2:4 (1 cement : 2 coarse sand : 4 graded stone aggregate 20 mm nominal size), including finishing complete.', checked_by: claude-vision, checked_on: '2026-10-20', note: 'OCR merged 11.6.1 (18 mm cement plaster skirting, sqm 662.05) and 11.7 into this row; kept as 11.7. 11.6.1 is missing'}
+  "CPWD-DSR-2023:11.6.4": {rate: 662.05, unit: m2, code: 11.6.1, checked_by: claude-vision, checked_on: '2026-10-21', note: printed 11.6.1 (DSR p.175); OCR read 1164}
   "CPWD-DSR-2023:18": {rate: 83.85, unit: m2, code: '11.8', checked_by: claude-vision, checked_on: '2026-10-20'}
-  "CPWD-DSR-2023:11.91": {rate: 1065.75, unit: m2, code: 11.9.1, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:11.7.0.1": {rate: 1072.1, unit: m2, code: 11.10.1, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:11.10.3": {rate: 1085.45, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:11.11B": {rate: 1027.1, unit: m2, code: 11.10.6, checked_by: claude-vision, checked_on: '2026-10-20'}
@@ -670,7 +680,8 @@ items:
   "CPWD-DSR-2023:BR:7736": {rate: 5500.0, unit: 1000_nos, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:BR:7760": {rate: 150.0, unit: each, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:BR:7767": {rate: 300.0, unit: l, checked_by: claude-vision, checked_on: '2026-10-20', note: Unit printed 'litre'}
-  "CPWD-DSR-2023:BR:7770": {rate: 60.0, unit: l, checked_by: claude-vision, checked_on: '2026-10-20', note: 'Turpentine oil; was 150.00 (that is 7771 Liquid Ammonia 5%, merged by OCR); printed 60.00. 7771 may be missing'}
+  "CPWD-DSR-2023:BR:7770": {rate: 60.0, unit: l, checked_by: claude-vision, checked_on: '2026-10-20', note: 'Turpentine oil; was 150.00 (that is 7771 Liquid Ammonia 5%, merged by OCR); printed 60.00'}
+  "CPWD-DSR-2023:BR:7771": {rate: 150.0, unit: l, checked_by: claude-vision, checked_on: '2026-10-21', note: 'Liquid Ammonia 5%, printed 150.00 (basic rates p.53); OCR code read TTT1'}
   "CPWD-DSR-2023:BR:7776": {rate: 300.0, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:BR:7901": {rate: 5000.0, unit: 1000_nos, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:BR:7902": {rate: 5500.0, unit: 1000_nos, checked_by: claude-vision, checked_on: '2026-10-20'}

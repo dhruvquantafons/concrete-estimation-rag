@@ -1,6 +1,7 @@
 """Compare estimated vs actual project costs (eval/datasets/actual_costs.csv).
 
 CSV columns: project, item_code, description, unit, est_qty, est_amount, actual_qty, actual_amount
+(+ optional element_type, concrete_m3 - used by `crag learn calibrate`)
 Reports per-item variance %, MAPE on amounts and quantities, and total variance per project."""
 from __future__ import annotations
 

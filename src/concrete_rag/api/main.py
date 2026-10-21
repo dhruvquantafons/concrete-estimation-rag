@@ -16,7 +16,7 @@ from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
-from concrete_rag.api.auth import require
+from concrete_rag.api.auth import principal, require
 from concrete_rag.calc import rates, rcc
 from concrete_rag.calc.code_tables import verify_all
 from concrete_rag.calc.mix_design import MixDesignInput, design_mix
@@ -117,7 +117,17 @@ class RetrieveRequest(BaseModel):
 @limiter.limit(get_settings().api_rate_limit)
 def retrieve_ep(request: Request, body: RetrieveRequest, _=Depends(require("retrieve"))):
     from concrete_rag.retrieval.hybrid import retrieve
-    return retrieve(body.query, body.top_k, body.filters, body.mode, body.rerank).model_dump()
+    out = retrieve(body.query, body.top_k, body.filters, body.mode, body.rerank).model_dump()
+    out["query_id"] = _log_query(request, "retrieve", body.query, body.filters, [c["chunk_id"] for c in out["chunks"]])
+    return out
+
+
+def _log_query(request: Request, kind: str, query: str, filters, chunk_ids: list[str], answer: str | None = None):
+    """Log for the learning loop; the returned id is what /v1/feedback refers to."""
+    try:
+        return docstore.log_query(kind, query, filters, chunk_ids, answer, getattr(request.state, "key_name", None))
+    except Exception:  # noqa: BLE001 - logging must never break a request
+        return None
 
 
 class GenerateRequest(BaseModel):
@@ -130,7 +140,39 @@ class GenerateRequest(BaseModel):
 @limiter.limit("20/minute")
 def generate_ep(request: Request, body: GenerateRequest, _=Depends(require("generate"))):
     from concrete_rag.agents.generate import answer
-    return answer(body.query, body.top_k, body.filters)
+    out = answer(body.query, body.top_k, body.filters)
+    out["query_id"] = _log_query(request, "generate", body.query, body.filters,
+                                 [x["chunk_id"] for x in out["sources"]], out["answer"])
+    return out
+
+
+class FeedbackRequest(BaseModel):
+    query_id: str = Field(..., min_length=8, max_length=32)
+    kind: str = Field(..., pattern="^(chunk|answer)$", description="rate one source (chunk) or the whole answer")
+    rating: int = Field(..., description="+1 useful / -1 not useful")
+    chunk_id: str | None = Field(None, max_length=200)
+    correction: str | None = Field(None, max_length=8000, description="the answer an engineer would give (kind=answer)")
+
+
+@v1.post("/feedback", tags=["learning"])
+@limiter.limit("120/minute")
+def feedback_ep(request: Request, body: FeedbackRequest, p: dict = Depends(principal)):
+    """Rate a search result or an answer. Feeds the learning loop (crag learn ...); never changes code
+    values or rates."""
+    if not ({"retrieve", "generate", "admin"} & set(p["scopes"])):
+        raise HTTPException(403, "API key lacks scope 'retrieve' or 'generate'")
+    if body.rating not in (1, -1):
+        raise HTTPException(422, "rating must be 1 or -1")
+    q = docstore.get_query(body.query_id)
+    if not q:
+        raise HTTPException(404, "unknown query_id")
+    if body.kind == "chunk" and body.chunk_id not in (q["results"] or []):
+        raise HTTPException(422, "chunk_id was not among the results of this query")
+    if body.kind == "answer" and q["kind"] != "generate":
+        raise HTTPException(422, "answer feedback needs a /v1/generate query_id")
+    fid = docstore.add_feedback(body.query_id, body.kind, body.rating, body.chunk_id if body.kind == "chunk" else None,
+                                body.correction, p["name"])
+    return {"id": fid, "status": "new"}
 
 
 class AgentRequest(BaseModel):
@@ -261,6 +303,36 @@ def ingest_ep(doc_id: str | None = None, reindex: bool = True, _=Depends(require
     rep = ingest([doc_id] if doc_id else None, log=lambda *a: None)
     n = index(log=lambda *a: None) if reindex else None
     return {"ingested": rep, "indexed": n}
+
+
+@v1.get("/admin/feedback", tags=["learning"])
+def feedback_list(status: str | None = None, kind: str | None = None, limit: int = 200, _=Depends(require("admin"))):
+    return docstore.list_feedback(status, kind, min(limit, 1000))
+
+
+class FeedbackReview(BaseModel):
+    status: str = Field(..., pattern="^(approved|discarded|new)$")
+    reviewed_by: str = Field(..., min_length=2, max_length=80)
+
+
+@v1.post("/admin/feedback/{fid}", tags=["learning"])
+def feedback_review(fid: int, body: FeedbackReview, _=Depends(require("admin"))):
+    if not docstore.set_feedback_status(fid, body.status, body.reviewed_by):
+        raise HTTPException(404, "feedback not found")
+    return {"id": fid, "status": body.status}
+
+
+@v1.get("/admin/learning", tags=["learning"])
+def learning_status(_=Depends(require("admin"))):
+    from concrete_rag.learn import calibrate, state
+    act = state.active()
+    cal = calibrate.load()
+    return {"feedback": docstore.feedback_counts(),
+            "reranker": act.get("reranker") or {"version": "default", "path": get_settings().rerank_model},
+            "fusion": act.get("fusion") or {"version": "default", "weights": state.DEFAULT_WEIGHTS},
+            "history": act.get("history", [])[-20:],
+            "calibration": {k: cal.get(k) for k in ("status", "approved_by", "approved_on", "generated_on",
+                                                    "steel_kg_per_m3")} if cal else None}
 
 
 app.include_router(v1)

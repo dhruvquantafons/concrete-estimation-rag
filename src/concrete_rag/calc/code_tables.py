@@ -171,6 +171,16 @@ def exposure_row(exposure: str) -> dict:
     raise ValueError(f"unknown exposure '{exposure}' (mild/moderate/severe/very_severe/extreme)")
 
 
+def fig1_curve(cement_type: str) -> str:
+    """IS 10262 Fig. 1 curve for a cement (Note 1: curves 1/2/3 for OPC 33/43/53; PPC/PSC use curve 2 by default)."""
+    return "curve_3_opc53" if "53" in cement_type else "curve_1_opc33" if "33" in cement_type else "curve_2_opc43"
+
+
+def fig1_range(cement_type: str) -> tuple[float, float]:
+    pts = tables()["fig_1_wc_vs_strength"]["curves"].get(fig1_curve(cement_type)) or [[0, 0]]
+    return pts[0][0], pts[-1][0]
+
+
 def interp(x: float, xs: list[float], ys: list[float]) -> float:
     if x <= xs[0]:
         return ys[0]

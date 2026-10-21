@@ -51,7 +51,7 @@ class MixDesignInput(BaseModel):
 
 def _fig1_wc(target: float, cement_type: str) -> tuple[float | None, ct.Ref]:
     t = ct.tables()["fig_1_wc_vs_strength"]
-    curve = "curve_3_opc53" if "53" in cement_type else "curve_1_opc33" if "33" in cement_type else "curve_2_opc43"
+    curve = ct.fig1_curve(cement_type)
     pts = t["curves"].get(curve) or []
     if not pts:
         return None, ct.ref("fig_1_wc_vs_strength", None, f"{curve} not digitized")
@@ -91,11 +91,15 @@ def design_mix(inp: MixDesignInput) -> CalcResult:
             raise ValueError("w_c_ratio is required: IS 10262 Fig. 1 curves are not digitized in "
                              "config/code_tables/is10262_2019.yaml (see README 'Your next steps').")
         res.step("free w/c from Fig. 1", r2(wc, 3), None, refs=[fref])
+        lo, hi = ct.fig1_range(inp.cement_type)
+        if not lo <= target <= hi:
+            res.warnings.append(f"target strength {target} N/mm2 is outside IS 10262 Fig. 1 ({fref.note}: "
+                                f"{lo}-{hi} N/mm2); w/c taken at the end of the curve - establish w/c by trials")
     else:
         res.step("free w/c (input, from Fig. 1 / trials)", wc, None,
                  refs=[ct.Ref(code="IS 10262", item="cl. 5.1 / Fig. 1", status="verified", note="user input")])
     if wc > max_wc:
-        res.warnings.append(f"w/c {wc} exceeds durability limit {max_wc} -> limited to {max_wc} (cl. 5.1.1)")
+        res.warnings.append(f"w/c {wc:.3f} exceeds durability limit {max_wc} -> limited to {max_wc} (cl. 5.1.1)")
         wc = max_wc
     res.check("w/c within durability limit", wc <= max_wc, f"{wc} <= {max_wc} ({inp.exposure}, {pre.upper()})",
               [dref])

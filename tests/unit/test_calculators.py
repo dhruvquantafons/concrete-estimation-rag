@@ -26,9 +26,13 @@ def test_is10262_annex_a_reproduced():
     assert abs(f["water_to_add_kg"] - 160) <= 1.0 and abs(f["coarse_aggregate_kg"] - 1228) <= 1.0
 
 
-def test_mix_requires_wc_without_fig1_curve():
-    with pytest.raises(ValueError, match="w_c_ratio is required"):
-        design_mix(MixDesignInput(grade="M30"))
+def test_mix_wc_from_digitized_fig1():
+    # IS 10262 Annex A: target 48.25 N/mm2 on curve 2 (OPC 43); the drawn curve gives 0.35 (the example rounds to 0.36)
+    r = design_mix(MixDesignInput(grade="M40", exposure="severe", cement_type="OPC43"))
+    wc = next(s.value for s in r.steps if s.name == "free w/c from Fig. 1")
+    assert abs(wc - 0.35) <= 0.005
+    r = design_mix(MixDesignInput(grade="M60", cement_type="OPC33"))          # 68.25 > curve 1 maximum (60)
+    assert any("outside IS 10262 Fig. 1" in w for w in r.warnings)
 
 
 def test_wc_capped_by_durability():

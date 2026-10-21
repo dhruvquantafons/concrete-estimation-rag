@@ -58,6 +58,13 @@ def load_corrections(sor_name: str, year: int) -> dict:
     return data.get("items", {}) or {}
 
 
+def load_code_tokens(sor_name: str, year: int) -> dict:
+    """Page-verified readings for code tokens OCR read as letters: {"DOC_ID:page:token": "8.15"}."""
+    p = get_settings().root / "config" / "corrections" / f"{sor_name.lower().replace('-', '_')}_{year}.yaml"
+    data = (yaml.safe_load(p.read_text()) or {}) if p.exists() else {}
+    return {str(k): str(v) for k, v in (data.get("code_tokens") or {}).items()}
+
+
 def is_english(page: PageText) -> bool:
     return (page.mean_conf or 0) >= ENGLISH_CONF and len(page.words) > 15
 
@@ -286,12 +293,29 @@ def _is_code_token(words, left_margin: float, cols: Columns, head: int | None = 
     return nxt is None or (nxt.x0 - w.x1) >= 12 or nxt.text in ("—", "-", "–", "_")
 
 
+_LETTER_AS_HEAD = {"n": (11,), "N": (11,)}   # "a" for 8/9 is ambiguous ("a7" was 9.71) - left to the review queue
+
+
+def _letter_code(tok: str, head: int | None, section: str | None) -> str | None:
+    """OCR reads a code's leading sub-head number as a look-alike letter: 'n2' = 11.2, 'nT' = 11.7 (T = 7),
+    basic rate 'TTT1' = 7771. Repaired only when the letter matches the current
+    sub-head (basic rates: only when the result is a 4-digit code); the sequence decoder then places it."""
+    if section == "basic":
+        return tok.replace("T", "7") if re.fullmatch(r"[T7]{1,3}\d{1,3}", tok) and len(tok) == 4 and "T" in tok else None
+    m = re.fullmatch(r"([nNaA])([\dTOoIl|.,]{1,6})", tok)
+    if not m or head not in _LETTER_AS_HEAD.get(m.group(1), ()):
+        return None
+    rest = m.group(2).replace("T", "7")
+    return f"{head}{rest}" if re.search(r"\d", rest) else None
+
+
 def _uppercase_heading(text: str) -> bool:
     letters = [c for c in text if c.isalpha()]
     return len(letters) >= 4 and sum(c.isupper() for c in letters) / len(letters) > 0.85 and len(text) < 90
 
 
-def parse_pages(doc: SourceDoc, pages: list[PageText], cfg: dict) -> tuple[list[Row], list[dict]]:
+def parse_pages(doc: SourceDoc, pages: list[PageText], cfg: dict,
+                code_tokens: dict | None = None) -> tuple[list[Row], list[dict]]:
     sub_heads = {int(k): v for k, v in (cfg.get("sub_heads") or {}).items()}
     rows: list[Row] = []
     notes: list[dict] = []
@@ -325,6 +349,12 @@ def parse_pages(doc: SourceDoc, pages: list[PageText], cfg: dict) -> tuple[list[
             if re.fullmatch(r"[\d\s|(){}\[\].,-]{1,6}", t) or tl in ("z", "=", "₹", "rs"):
                 continue
             words = ln.words
+            fixed = None
+            if words[0].x0 < left_margin + 25:          # code column only
+                fixed = (code_tokens or {}).get(f"{doc.doc_id}:{page.page}:{words[0].text}") or \
+                    _letter_code(words[0].text, head, section)
+            if fixed:
+                words = [words[0].model_copy(update={"text": fixed})] + words[1:]
             if _is_code_token(words, left_margin, cols, head if section != "basic" else None):
                 cur = Row(raw_code=words[0].text, page=page.page, section=section, head=head,
                           category=category, group=group, conf=words[0].conf)
@@ -381,6 +411,15 @@ def hindi_rate_sequence(pages: list[PageText], rate_x: float) -> list[str]:
     return seq
 
 
+def _parent_chain(code: str, group_desc: dict[str, str]) -> list[str]:
+    parents, p = [], parent_code(code)
+    while p:
+        if p in group_desc:
+            parents.insert(0, group_desc[p])
+        p = parent_code(p)
+    return parents
+
+
 # ------------------------------------------------------------------ main entry
 @dataclass
 class SorParseResult:
@@ -395,7 +434,7 @@ def parse_sor(doc: SourceDoc, pages: list[PageText], alt_read: bool = True) -> S
     s = get_settings()
     cfg = load_sor_config(doc.sor_name or "CPWD-DSR", doc.revision_year)
     corrections = load_corrections(doc.sor_name or "CPWD-DSR", doc.revision_year)
-    rows, notes = parse_pages(doc, pages, cfg)
+    rows, notes = parse_pages(doc, pages, cfg, load_code_tokens(doc.sor_name or "CPWD-DSR", doc.revision_year))
 
     # ---- alternate digits-only reading of each rate cell (parallel per page)
     if alt_read:
@@ -446,8 +485,9 @@ def parse_sor(doc: SourceDoc, pages: list[PageText], alt_read: bool = True) -> S
                     continue
                 nxt = seg[j + 1].code or ""
                 par = parent_code(nxt) if nxt else None
-                digits = re.sub(r"\D", "", r.raw_code)
-                if par and digits.startswith(par.replace(".", "")) and r.code != par and \
+                digits, pdig = re.sub(r"\D", "", r.raw_code), re.sub(r"\D", "", par or "")
+                # "113" -> 11.3, and also "13" when OCR dropped the leading "1." of "11.3"
+                if par and (digits.startswith(pdig) or (len(digits) >= 2 and pdig.endswith(digits))) and r.code != par and \
                         not (r.code or "").startswith(par + "."):
                     r.code, r.code_cost = par, min(r.code_cost, 1.0)
             seg_start = i
@@ -515,12 +555,6 @@ def parse_sor(doc: SourceDoc, pages: list[PageText], alt_read: bool = True) -> S
             continue
         if unit is None:
             reasons.append(f"unit not recognised ('{unit_raw}')")
-        # parent description chain
-        parents, p = [], parent_code(code)
-        while p:
-            if p in group_desc:
-                parents.insert(0, group_desc[p])
-            p = parent_code(p)
         key = canonical_key(sor_name, year, code)
         dup = key in by_code
         final_key = f"{key}#p{r.page}" if dup else key        # duplicate code after decoding -> keep both
@@ -531,6 +565,9 @@ def parse_sor(doc: SourceDoc, pages: list[PageText], alt_read: bool = True) -> S
         if dup and not corr:
             reasons.append("duplicate item code after OCR decoding")
         out_code = str(corr.get("code") or code)             # human-corrected item code
+        # parent description chain from the decoded code (headings and items are decoded together, so they agree);
+        # only when that finds nothing, from the human-corrected code (e.g. 4.20A.1.1, 5.33A.2.1)
+        parents = _parent_chain(code, group_desc) or _parent_chain(out_code, group_desc)
         item = SorItem(
             item_key=final_key, sor_name=sor_name, sor_year=year, doc_id=doc.doc_id, code=out_code, raw_code=r.raw_code,
             sub_head=f"{r.head}.0 {cfg.get('sub_heads', {}).get(r.head, '')}".strip() if r.head else None,

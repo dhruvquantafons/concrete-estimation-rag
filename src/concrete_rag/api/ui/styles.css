@@ -333,3 +333,8 @@ table.edit input, table.edit select { padding: 6px 8px; font-size: 13px; border-
   #utility, #site-header, #catbar, #site-footer, .no-print, .crumb { display: none !important; }
   #main { padding: 0; max-width: none; }
 }
+/* learning-loop feedback buttons */
+.rate { display: inline-flex; gap: 2px; }
+.rate button { padding: 2px 7px; filter: grayscale(1); opacity: .7; }
+.rate button:hover, .rate button.on { filter: none; opacity: 1; }
+.rate button.on { border-color: var(--accent); background: var(--accent-soft); }

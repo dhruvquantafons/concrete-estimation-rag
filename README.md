@@ -35,6 +35,7 @@ src/concrete_rag/
   agents/   tools for LLMs + cited answer generation with number-grounding verification
   api/      FastAPI app, API keys with scopes, rate limiting, audit log
   eval/     retrieval metrics, generation checks, calculator reproduction, estimate variance
+  learn/    learning loop: feedback -> fusion weights, fine-tuned reranker, answer examples, estimate calibration
 eval/datasets/  retrieval_golden.jsonl (50 queries), generation_golden.jsonl, actual_costs_template.csv
 docs/scope.md   Step 1 scope, corpus, tech-stack decisions and known limitations
 ```
@@ -96,6 +97,10 @@ if your key has the scope it needs.
 | DSR rates | browse/search 2,949 items by keyword or code prefix, OCR readings, source page | estimate |
 | Review queue | flagged DSR items and basic rates next to the scanned page: correct the code, unit (shown as printed) or rate, then **Save** (or **Not an item — remove**). Writes `config/corrections/cpwd_dsr_2023.yaml` and applies it immediately | admin |
 | Code tables | values used by the calculators, OCR cross-check result, **Compare with page**, sign-off button | calc (sign-off: admin) |
+| Learning | ratings and corrections from users: **Approve** / **Discard**; live reranker and fusion versions, promotion history, estimate calibration | admin |
+
+Every search result, answer and answer source has 👍 / 👎 buttons. 👎 on an answer asks for the answer an engineer
+would have given. These ratings feed the learning loop (below).
 
 Corrections made in the UI update the database and the search results straight away. The embeddings are
 refreshed on the next `crag index`.
@@ -113,7 +118,8 @@ refreshed on the next `crag index`.
 | `GET /v1/rates/{code}?location=` | estimate | DSR rate × cost index, citation, OCR check status |
 | `POST /v1/estimate`, `GET /v1/estimate/{id}/export?format=xlsx\|pdf` | estimate | BOQ + cost summary + exports |
 | `GET /v1/code-tables/status` | calc | verification status of curated tables |
-| `/v1/admin/*` | admin | documents, review queue, re-ingest |
+| `POST /v1/feedback` | retrieve / generate | rate a result (`kind: chunk`) or an answer (`kind: answer`, optional `correction`) using the `query_id` returned by `/v1/retrieve` and `/v1/generate` |
+| `/v1/admin/*` | admin | documents, review queue, re-ingest, `feedback` (approve / discard), `learning` (status) |
 
 Example:
 ```bash
@@ -144,13 +150,36 @@ To trade a little ranking quality for speed, set `CRAG_RERANK_ENABLED=false` (0.
 
 - **Calculators:** the IS 10262:2019 Annex A worked example is reproduced: cement 412, water 148,
   FA 648.6 (648), CA 1234.6 (1234) kg/m³. An M25 mix, the demo BOQ (quantities and every DSR rate used)
-  and the IS 456 tables were also checked by hand on 2026-10-20 (see step 3). All 21 unit tests pass. The 4
+  and the IS 456 tables were also checked by hand on 2026-10-20 (see step 3). All 29 unit tests pass. The 4
   integration tests need the search index, which `crag serve` locks, so stop the server before running them.
-- **Code tables:** the IS 10262 tables and IS 456 Table 16 are `ocr_confirmed`. IS 456 Tables 5 and 19 are
-  `partially_confirmed`; the source scan misreads, e.g. Table 5 "Extreme 280" as 480. Table 20, bond stress
-  and the detailing limits await human sign-off.
+- **Code tables:** every IS 456 table and limit used by the calculators was checked value by value against the
+  scanned pages on 2026-10-21 and signed off as `claude-vision`. All matched; the automatic OCR check had flagged
+  them only because the scan's OCR misreads digits (e.g. Table 5 "Extreme 280" as 480). IS 10262 Fig. 1 is now
+  digitized, so mix design no longer needs `w_c_ratio` as an input. The IS 10262 tables are `ocr_confirmed`.
 - **Generation and estimate accuracy:** these are not measured yet. They need an LLM choice and actual
   project costs (see below).
+
+## Learning loop (how the system keeps improving)
+
+The system learns from use, on the reinforcement-learning principle of **action → feedback → improvement**.
+Textbook RL (a model updating itself by trial and error) is not used: it has no safe place to practise, the
+real reward (actual cost) arrives months later, and an estimating tool must stay auditable. Instead, each
+improvement is **proposed from feedback, tested against the golden evaluation sets, and promoted only if it is
+better**. Every version is kept and can be rolled back.
+
+| What learns | From | How | Command |
+|---|---|---|---|
+| Hybrid search weighting (dense vs BM25) | 👍 sources + golden set | Tries 6 weightings on logged queries (an offline bandit) and keeps the best | `crag learn fusion` |
+| Reranker (bge-reranker-v2-m3) | 👍 / 👎 sources | Fine-tuned from the base model on all feedback. 20% of rated queries are held out. Promoted only if it ranks better on those and the golden set does not get worse | `crag learn rerank` |
+| Answers | Approved 👍 answers and engineers' corrections | Used as style examples when a similar question comes in. Numbers must still come from the sources (the number check flags anything copied from an example). Also exported as preference pairs for a later DPO fine-tune | automatic once approved; `crag learn export-preferences` |
+| Steel kg/m³ thumb rules | Actual project costs | Blended with the default (the default counts as 3 projects). Used only after approval | `crag learn calibrate`, `crag learn approve-calibration` |
+
+**Never learned:** IS code values, DSR rates and calculator formulas. These change only through the review
+queue, `config/corrections/` and code-table sign-off.
+
+Live versions are in `storage/learned/active.json`, and fine-tuned models in `storage/models/`. The server
+picks up a promotion or rollback without a restart. `crag learn status` shows what is live, and
+`crag learn rollback reranker|fusion` undoes the last promotion.
 
 ---
 
@@ -201,11 +230,26 @@ and the rest were saved by you in the UI. Rows flagged by a future re-ingest app
       from every OCR reading: `grep "OCR misread\|dropped" config/corrections/cpwd_dsr_2023.yaml`. Delete a
       line to undo a correction.
 - [ ] **Add the rows OCR merged or dropped** (they aren't in the database, so they never reach the queue):
-      DSR 1.2.4–1.2.15, 1.2.16.3/.4, 3.1, 3.11, 4.9A (₹900.15), 5.4 (₹8821.65), 6.11 (₹608.15 sqm), 8.7.1,
-      8.21, 9.147.F1.1 (₹12496.05), 11.6.1, 11.41A.2.1, 11.41A.2.3, 11.54.1, 15.16.1, 17.59.1, 18.95A.10,
+      DSR 1.2.4–1.2.15, 1.2.16.3/.4, 3.1, 3.11, 4.9A (₹900.15), 5.4 (₹8821.65), 6.11 (₹608.15 sqm),
+      8.21, 9.147.F1.1 (₹12496.05), 11.41A.2.1, 11.41A.2.3, 11.54.1, 15.16.1, 17.59.1, 18.95A.10,
       15.15.1 (₹589.55 cum per metre span), 19.2.2, 19.10.2, 19.15.1, 19.17.1, 19.22.1, 21.16.3, 24.4, and
-      basic rates 2226 (₹824.64), 2228 (₹1413.67) and 7771. The notes on neighbouring rows give the printed
-      rates. Either fix the parser or add them by hand.
+      basic rates 2226 (₹824.64) and 2228 (₹1413.67). The notes on neighbouring rows give the printed
+      rates. Either fix the parser or add them by hand. (8.7.1, 11.6.1 and 7771 were recovered on 2026-10-21.)
+- [ ] **Codes OCR read as letters (fixed 2026-10-21).** The scan sometimes prints a code's leading number as a
+      letter ("n2" = 11.2, "a3" = 8.3, "TTT1" = 7771), so the row was glued onto the item above and **that item
+      showed the next item's rate**, with all three readings agreeing, so it never reached the review queue. Fixed
+      and checked against the pages: 11.1.2 (₹792.05 → **965.55**), 8.2.3.2 (₹298.60 → **3848.70**), 8.3.2
+      (₹568.55 → **510.95**), 8.14.5.2 (₹714.40 → **3119.20**), basic rate 7773 paver block (₹10.00 → **450.00**);
+      recovered 11.2, 11.6.1, 11.7, 8.3.1, 8.4, 8.7.1, 8.15, 9.71.1, basic rates 7771 and 7774. "n" = 11 is
+      repaired automatically; ambiguous cases are listed under `code_tokens` in
+      `config/corrections/cpwd_dsr_2023.yaml` (page + token → printed code). If you spot another item whose rate
+      belongs to the next line, add an entry there and re-ingest.
+- [ ] **209 child items still lack their parent description** (was 314), so search sees only their short tail
+      (e.g. "1:6 (1 cement : 6 coarse sand)"). Rates are unaffected. Their heading rows were misread; fix them as found
+      by adding a `description` to the item's correction.
+- [ ] The cement-consumption coefficients page for sub-head 11 (V2 p.342) is poorly read ("11.1.2 = 612.85",
+      skirting under code "16"). The BOQ uses coefficients only for concrete items (sub-heads 4/5), so estimates are
+      not affected.
 - [ ] **Percentage items have no ₹ rate on purpose:** 2.24.1 (+20%), 2.24.2 (+25% per metre depth) and
       5.9.14 (+20% of the shuttering item). The percentage is in the description and note. A BOQ line using
       one shows ₹0 with a warning, so add that extra by hand.
@@ -247,14 +291,20 @@ and the rest were saved by you in the UI. Rows flagged by a future re-ingest app
 - Known over-measurement in the BOQ: slab soffit shuttering doesn't deduct the strip resting on beams
   (about 1–2% of formwork). Column height should be measured to the slab soffit, not floor-to-floor.
 
-### 4. Sign off the curated code tables
-- [ ] In the UI, open **Code tables**, click **Compare with page** for each table, and if the values match
-      your licensed copy, click **sign off**. Or run `crag verify-tables`, and for each table in `config/code_tables/is456_2000.yaml` and
-      `is10262_2019.yaml`, compare the values with your licensed copy, then fill in `verified_by` and
-      `verified_on`. Mismatches listed by the command are usually OCR errors in the source scan, but check them.
-- [ ] **Digitize IS 10262 Fig. 1** (free w/c vs 28-day strength, curves 1/2/3) into
-      `fig_1_wc_vs_strength.curves` as `[[strength, w/c], ...]` points. Until then, mix design needs
-      `w_c_ratio` as an input.
+### 4. Sign off the curated code tables (reviewed 2026-10-21)
+All IS 456 tables and limits used by the calculators were compared with the scanned pages, and every value
+matched: Tables 5, 16, 19 (all 78 values), 20 and 18 (load factor), cl. 26.2.1.1 bond stress, the 38.1 xu,max/d
+note, and the detailing limits (26.3.3, 26.5.1.1, 26.5.1.5, 26.5.1.6, 26.5.2.1/2, 26.5.3.1, 23.2.1, 25.4, 39.3).
+They show as **Signed off by claude-vision** on the Code tables page.
+- [ ] **Spot-check two or three of them yourself** with **Compare with page**, and if you like, re-sign them in
+      your own name (set `verified_by` in `config/code_tables/is456_2000.yaml`).
+- [ ] **IS 10262 Fig. 1 was digitized from the PDF image** (`fig_1_wc_vs_strength` in
+      `config/code_tables/is10262_2019.yaml`, accurate to about ±0.3 N/mm²). Mix design now picks w/c from it
+      when you leave `w_c_ratio` empty. It follows the drawn curve, which gives slightly lower w/c than the
+      standard's rounded worked examples (0.35 against 0.36 for 48.25 N/mm² on curve 2). Durability limits from
+      IS 456 Table 5 still cap the result, and a target outside the curve warns. Check a few points against your
+      printed copy of the figure. For PPC/PSC the calculator uses curve 2, as Fig. 1 Note 2 allows; if your
+      cement's tested strength is known, choose the matching cement type.
 
 ### 5. Add the data that is still missing
 Add each file under `data/` and register it in `config/sources.yaml` (copy an existing entry and set
@@ -279,17 +329,38 @@ Add each file under `data/` and register it in `config/sources.yaml` (copy an ex
       with one row per BOQ item (estimated vs actual qty and amount). `crag evaluate` then reports
       variance and MAPE.
 
-### 7. Go-live checklist
+### 7. Run the learning loop (added 2026-10-21)
+Nothing has been learned yet. The loop needs your engineers' feedback first.
+- [ ] **Restart `crag serve`** to load the 👍 / 👎 buttons and the **Learning** page (Account menu → Learning).
+- [ ] **Ask engineers to rate results while they work.** 👍 the source that answered the question, 👎 the
+      misleading ones, and 👎 + a correction on wrong answers. About 30 rated questions are needed before the first
+      reranker training. More is better, and a spread across IS 456, 10262, 1200, 2386 and DSR helps most.
+- [ ] **Review feedback weekly** on the Learning page. **Approve** good answers and corrections (approved
+      answers become examples for similar questions). **Discard** careless or wrong ratings.
+- [ ] **Monthly, with `crag serve` stopped** (the embedded index allows one process):
+      `crag learn fusion`, then `crag learn rerank`. Each prints before/after scores and promotes only if
+      better. Training the reranker takes a few minutes on the M4. Then run `crag evaluate` and restart `crag serve`.
+- [ ] **When projects finish:** add their actual costs to `eval/datasets/actual_costs.csv`. For the
+      reinforcement rows, fill `element_type` (column, beam, slab, footing …) and `concrete_m3` (the concrete in
+      those elements). Then run `crag learn calibrate`, check `config/cost/learned_adjustments.yaml`, and
+      `crag learn approve-calibration --by <name>`.
+- [ ] **Later (optional):** once there are a few hundred approved corrections, `crag learn export-preferences`
+      writes `data/processed/preferences.jsonl` for a DPO fine-tune of the local Qwen model. Ask me when you
+      get there.
+- [ ] If a promotion makes results worse in practice: `crag learn rollback reranker` (or `fusion`).
+
+### 8. Go-live checklist
 - [ ] Create one API key per consumer, with least-privilege scopes: `crag apikey create <name> --scopes ...`.
       Revoke keys with `crag apikey revoke <name>`.
 - [ ] Leave `CRAG_API_BOOTSTRAP_ADMIN_KEY` empty in production. Set `CRAG_API_CORS_ORIGINS` and put the API
       behind HTTPS (a reverse proxy).
-- [ ] Back up `storage/` (or the Postgres and Qdrant volumes), `config/` and `data/processed/`.
+- [ ] Back up `storage/` (or the Postgres and Qdrant volumes; this includes the feedback, `storage/learned/` and
+      `storage/models/`), `config/` and `data/processed/`.
 - [ ] Licensing: the IS PDFs are BIS-licensed and carry purchaser watermarks, which the pipeline strips from
       chunks. Keep `data/` out of git (already in `.gitignore`), and make sure API consumers are entitled
       to the excerpts.
 
-### 8. Decisions I need from you
+### 9. Decisions I need from you
 1. ~~Which LLM~~: decided, local Qwen2.5-3B, about 2 GB (see step 2). The agent workflow is not reliable at this size.
 2. Which State PWD SORs, and which years?
 3. Default contingency % (currently 3%), and whether estimates should add any extra overhead on top of DSR

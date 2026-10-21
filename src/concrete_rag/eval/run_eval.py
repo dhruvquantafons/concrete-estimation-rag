@@ -65,24 +65,38 @@ def eval_generation(log=print) -> dict:
                      "cites": bool(r["citations"]),
                      "contains_expected": all(e.lower() in r["answer"].lower() for e in q.get("expect", [])),
                      **judge})
-    n = max(len(rows), 1)
-    agg = {k: round(sum(float(r.get(k) or 0) for r in rows) / n, 3)
-           for k in ("faithful_numbers", "cites", "contains_expected", "judge_faithfulness", "judge_context_relevance")}
+    agg = {}
+    for k in ("faithful_numbers", "cites", "contains_expected", "judge_faithfulness", "judge_context_relevance"):
+        vals = [float(r[k]) for r in rows if r.get(k) is not None]      # a judge failure is not a score of 0
+        agg[k] = round(sum(vals) / len(vals), 3) if vals else None
+    agg["judge_errors"] = sum(1 for r in rows if "judge_error" in r)
     log(f"  generation {agg}")
     return {"aggregate": agg, "per_query": rows}
 
 
-def _judge(llm, query: str, r: dict) -> dict:
-    prompt = (f"Question: {query}\n\nSources:\n" + "\n".join(s["ref"] for s in r["sources"]) +
-              f"\n\nAnswer:\n{r['answer']}\n\nRate 0-1: (a) faithfulness - every claim supported by the sources; "
-              "(b) context_relevance - the sources are relevant to the question. Reply ONLY JSON "
-              '{"faithfulness": x, "context_relevance": y}.')
+def _judge(llm, query: str, r: dict, max_chars: int = 1500) -> dict:
+    """LLM-as-judge. The judge must see the source TEXT (not just the references), otherwise it can never
+    confirm a claim and scores every answer 0."""
+    from concrete_rag.store import docstore
+    texts = docstore.get_chunks([s["chunk_id"] for s in r["sources"]])
+    blocks = [f"[{s['id']}] {s['ref']}\n{(texts.get(s['chunk_id']) or {}).get('text', '')[:max_chars]}" for s in r["sources"]]
+    prompt = (f"Question: {query}\n\nSources:\n" + "\n\n".join(blocks) +
+              f"\n\nAnswer:\n{r['answer']}\n\nRate 0-1: (a) faithfulness - every claim in the answer is supported by "
+              "the source text above; (b) context_relevance - the sources contain what is needed to answer the question. "
+              'Reply ONLY JSON {"faithfulness": x, "context_relevance": y}.')
     try:
         txt = llm.generate("You are a strict evaluator.", prompt, max_tokens=2000).text
         d = json.loads(txt[txt.index("{"): txt.rindex("}") + 1])
-        return {"judge_faithfulness": float(d["faithfulness"]), "judge_context_relevance": float(d["context_relevance"])}
+        return {"judge_faithfulness": _score(d["faithfulness"]), "judge_context_relevance": _score(d["context_relevance"])}
     except Exception as e:  # noqa: BLE001
         return {"judge_error": str(e)[:200]}
+
+
+def _score(v) -> float:
+    """Small judges sometimes answer true/false (or "true") instead of 0-1."""
+    if isinstance(v, str) and v.strip().lower() in ("true", "yes", "false", "no"):
+        return 1.0 if v.strip().lower() in ("true", "yes") else 0.0
+    return min(1.0, max(0.0, float(v)))
 
 
 def eval_calculators() -> dict:

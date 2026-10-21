@@ -277,6 +277,7 @@ const PAGES = [
   { id: "rates", label: "DSR rates", ico: "list", scope: "estimate" },
   { id: "tables", label: "Code tables", ico: "table", scope: "calc" },
   { id: "review", label: "Review queue", ico: "edit", scope: "admin" },
+  { id: "learning", label: "Learning", ico: "layers", scope: "admin" },
 ];
 const SOURCES = ["", "IS 456", "IS 10262", "IS 1200", "IS 2386", "CPWD DSR"];
 const reviewCount = () => S.overview ? S.overview.review.sor_items + S.overview.review.basic_rates : 0;
@@ -301,6 +302,7 @@ function renderChrome() {
     h("div", { class: "who" }, h("b", {}, S.me.name), h("br"), h("small", {}, S.me.scopes.join(" · "))),
     h("a", { href: "#/estimate" }, icon("receipt"), "My estimates"),
     can("admin") ? h("a", { href: "#/review" }, icon("edit"), "Review queue") : null,
+    can("admin") ? h("a", { href: "#/learning" }, icon("layers"), "Learning (feedback)") : null,
     h("a", { href: "/docs", target: "_blank" }, icon("code"), "API documentation"),
     h("button", { onclick: logout }, icon("out"), "Sign out"));
   const acct = h("div", { style: { position: "relative" } },
@@ -317,7 +319,7 @@ function renderChrome() {
   // category bar
   $("#catbar").replaceChildren(h("div", { class: "wrap" },
     h("a", { class: "all" + (cur === "" ? " active" : ""), href: "#/" }, icon("grid"), "All tools"),
-    PAGES.filter((p) => p.id !== "review" && (!p.scope || can(p.scope))).map((p) => h("a", { href: "#/" + p.id, class: cur === p.id ? "active" : "" }, p.label)),
+    PAGES.filter((p) => !["review", "learning"].includes(p.id) && (!p.scope || can(p.scope))).map((p) => h("a", { href: "#/" + p.id, class: cur === p.id ? "active" : "" }, p.label)),
     h("div", { class: "right" },
       h("a", { href: "#/search?code=CPWD%20DSR&q=design%20mix%20concrete", class: "" }, icon("book"), "Standards"),
       can("admin") ? h("a", { href: "#/review", class: "pill-amber" + (cur === "review" ? " active" : "") }, icon("edit"), `Review ${rc}`) : null)));
@@ -433,7 +435,7 @@ function trustItem(ic, title, text) { return h("div", {}, h("div", { class: "ic"
 function stat(v, l, s) { return h("div", { class: "card stat" }, h("div", { class: "v" }, v), h("div", { class: "l" }, l), h("div", { class: "s muted" }, s)); }
 
 const ROUTES = { "": pageHome, search: pageSearch, mix: pageMix, design: pageDesign, estimate: pageEstimate,
-  rates: pageRates, review: pageReview, tables: pageTables };
+  rates: pageRates, review: pageReview, tables: pageTables, learning: pageLearning };
 
 // ---------- search & ask
 async function pageSearch(main) {
@@ -467,7 +469,7 @@ async function pageSearch(main) {
   q.focus();
   if (params.get("q")) go();
 }
-function resultCard(c, idx) {
+function resultCard(c, idx, qid) {
   const m = c.metadata || {};
   const via = (c.retrieval || []).filter((x) => !x.startsWith("from:"));
   const body = h("div", { class: "body clamp" }, c.text);
@@ -480,6 +482,7 @@ function resultCard(c, idx) {
       via.includes("amendment") ? h("span", { class: "badge info" }, "amendment") : null,
       m.rate != null ? h("span", { class: "badge ok" }, `${inr(m.rate)} / ${unitLabel(m.unit)}`) : null,
       h("span", { class: "spacer" }),
+      feedbackButtons(qid, "chunk", c.citation.chunk_id),
       h("button", { class: "ghost small", onclick: () => showSourcePage(c.citation.doc_id, c.citation.page_start, c.citation.ref) }, "View page ↗")),
     body,
     c.table && c.table.rows && c.table.rows.length ? tableFromRows(c.table) : null);
@@ -495,7 +498,32 @@ function renderResults(pack) {
   if (!pack.chunks.length) return h("div", { class: "empty" }, "No results.");
   return h("div", {},
     (pack.warnings || []).length ? h("div", { class: "alert warn", style: { marginBottom: "10px" } }, pack.warnings.join(" · ")) : null,
-    pack.chunks.map((c) => resultCard(c)));
+    pack.chunks.map((c) => resultCard(c, null, pack.query_id)));
+}
+// Learning loop: ratings go to /v1/feedback; an admin reviews them on the Learning page.
+function feedbackButtons(qid, kind, chunkId) {
+  if (!qid) return null;
+  const wrap = h("span", { class: "rate", title: "Was this useful? Your rating helps the search and answers improve." });
+  const send = async (rating, correction = null) => {
+    try {
+      await api("/v1/feedback", { method: "POST", body: { query_id: qid, kind, rating, chunk_id: chunkId || null, correction } });
+      [...wrap.children].forEach((b) => b.classList.toggle("on", Number(b.dataset.r) === rating));
+      toast(correction ? "Thanks — your correction was sent for review." : rating > 0 ? "Thanks — marked useful." : "Thanks — marked not useful.");
+    } catch (e) { toast(errText(e), true); }
+  };
+  wrap.append(
+    h("button", { class: "ghost small", "data-r": "1", "aria-label": "Useful", onclick: () => send(1) }, "👍"),
+    h("button", { class: "ghost small", "data-r": "-1", "aria-label": "Not useful", onclick: () => (kind === "answer" ? correctionModal(send) : send(-1)) }, "👎"));
+  return wrap;
+}
+function correctionModal(send) {
+  const ta = h("textarea", { rows: 8, placeholder: "Optional: the answer you expected, with the clause / table / DSR item it comes from." });
+  let close;
+  const submit = h("button", { class: "primary small", onclick: async () => { await send(-1, ta.value.trim() || null); close(); } }, "Send");
+  close = modal("What should the answer have been?", h("div", { class: "stack" },
+    h("p", { class: "muted", style: { margin: 0 } }, "An admin reviews corrections before they are used as examples for future answers. Leave it empty to just mark the answer as not useful."), ta),
+    { actions: [submit] });
+  ta.focus();
 }
 function renderAnswer(r) {
   const html = esc(r.answer || "(no answer)").replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\[S(\d+)\]/g, '<a href="#" class="s" data-s="$1">S$1</a>');
@@ -510,11 +538,13 @@ function renderAnswer(r) {
     h("div", { class: "card" },
       h("div", { class: "row", style: { marginBottom: "10px" } }, h("h2", { style: { margin: 0 } }, "Answer"),
         h("span", { class: "badge" }, `${r.provider} · ${r.model || ""}`),
+        (r.exemplars_used || []).length ? h("span", { class: "badge info", title: "Engineer-approved answers to similar questions were shown to the model as style examples" }, `${r.exemplars_used.length} approved example(s) used`) : null,
         v.faithful_numbers ? h("span", { class: "badge ok", title: "every number in the answer appears in the sources" }, `✓ ${v.grounded}/${v.numbers_in_answer} numbers grounded`)
-          : h("span", { class: "badge bad", title: "numbers not found in any source" }, `✗ ungrounded: ${(v.ungrounded_numbers || []).join(", ")}`)),
+          : h("span", { class: "badge bad", title: "numbers not found in any source" }, `✗ ungrounded: ${(v.ungrounded_numbers || []).join(", ")}`),
+        h("span", { class: "spacer" }), feedbackButtons(r.query_id, "answer")),
       ans),
     h("h2", {}, "Sources"),
-    r.sources.map((s, i) => resultCard({ citation: s, text: "", metadata: {}, retrieval: [] }, i + 1)));
+    r.sources.map((s, i) => resultCard({ citation: s, text: "", metadata: {}, retrieval: [] }, i + 1, r.query_id)));
 }
 
 // ---------- mix design
@@ -843,6 +873,68 @@ function shortReason(rs) {
   if (r.includes("outlier")) return "rate outlier";
   if (r.startsWith("unit")) return "unit unclear";
   return r.slice(0, 40);
+}
+
+// ---------- learning (admin)
+async function pageLearning(main) {
+  if (!can("admin")) { main.replaceChildren(h("div", { class: "alert warn" }, "The Learning page needs an API key with the 'admin' scope.")); return; }
+  const st = { status: "new", kind: "" };
+  const status = await api("/v1/admin/learning");
+  const checker = h("input", { value: S.checker || (S.me && S.me.name) || "", placeholder: "your name", style: { width: "180px" },
+    oninput: (e) => { S.checker = e.target.value; lsSet("crag_checker", e.target.value); } });
+  const list = h("div", { class: "tbl-wrap" });
+  const tabs = h("div", { class: "tabs" });
+  const fb = status.feedback || {};
+  const cnt = (kind, s) => (fb[kind] || {})[s] || 0;
+  const ver = (c) => (c.version === "default" ? "shipped default" : `v${c.version} · ${c.promoted_on || ""}`);
+  const cal = status.calibration;
+  const load = async () => {
+    list.replaceChildren(loading());
+    const p = new URLSearchParams({ limit: 200 });
+    if (st.status) p.set("status", st.status);
+    if (st.kind) p.set("kind", st.kind);
+    try { drawList(await api(`/v1/admin/feedback?${p}`)); } catch (e) { list.replaceChildren(errorBox(e)); }
+  };
+  const review = async (f, s) => {
+    if ((S.checker || "").trim().length < 2) { toast("Enter your name in “Reviewed by” first.", true); return; }
+    try { await api(`/v1/admin/feedback/${f.id}`, { method: "POST", body: { status: s, reviewed_by: S.checker.trim() } }); toast(`Feedback #${f.id} ${s}.`); load(); }
+    catch (e) { toast(errText(e), true); }
+  };
+  const drawList = (rows) => {
+    if (!rows.length) { list.replaceChildren(h("div", { class: "empty" }, "No feedback here.")); return; }
+    list.replaceChildren(h("table", { class: "t" },
+      h("thead", {}, h("tr", {}, h("th", {}, "When"), h("th", {}, "By"), h("th", {}, "Rating"), h("th", {}, "Question / rated item"), h("th", {}, "Status"), h("th", {}, ""))),
+      h("tbody", {}, rows.map((f) => h("tr", {},
+        h("td", { class: "mono" }, f.ts.slice(0, 16)), h("td", {}, f.key_name || "—"),
+        h("td", {}, f.rating > 0 ? "👍" : "👎", " ", h("small", { class: "muted" }, f.kind === "answer" ? "answer" : "source")),
+        h("td", {}, h("div", {}, h("b", {}, f.query)),
+          f.kind === "chunk" ? h("small", { class: "mono muted" }, f.chunk_id) : null,
+          f.kind === "answer" && f.answer ? h("details", {}, h("summary", { class: "muted" }, "Answer given"), h("div", { style: { whiteSpace: "pre-wrap" } }, f.answer)) : null,
+          f.correction ? h("div", { class: "alert info", style: { whiteSpace: "pre-wrap", marginTop: "6px" } }, h("b", {}, "Correction: "), f.correction) : null),
+        h("td", {}, statusBadge(f.status === "approved" ? "verified" : f.status === "discarded" ? "unconfirmed" : "review"), f.reviewed_by ? h("small", { class: "muted" }, ` ${f.reviewed_by}`) : null),
+        h("td", { style: { whiteSpace: "nowrap" } },
+          f.status !== "approved" ? h("button", { class: "small primary", title: f.kind === "answer" ? "Use as an example for similar questions (and for fine-tuning)" : "Keep for training", onclick: () => review(f, "approved") }, "Approve") : null, " ",
+          f.status !== "discarded" ? h("button", { class: "small", title: "Wrong or careless feedback - never used for learning", onclick: () => review(f, "discarded") }, "Discard") : null))))));
+  };
+  const drawTabs = () => tabs.replaceChildren(...[["new", "To review"], ["approved", "Approved"], ["discarded", "Discarded"], ["", "All"]].map(([k, l]) =>
+    h("button", { class: st.status === k ? "on" : "", onclick: () => { st.status = k; drawTabs(); load(); } }, l)));
+  main.replaceChildren(h("h1", {}, "Learning"),
+    h("p", { class: "sub" }, "The system improves from use: ratings on search results and answers, engineers' corrections and actual project costs. Every change is tested against the golden evaluation sets before it goes live, and can be rolled back. IS code values, DSR rates and calculator formulas never change here."),
+    h("div", { class: "grid4", style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px", marginBottom: "18px" } },
+      stat(String(fb.queries_logged || 0), "Queries logged", "searches + questions"),
+      stat(String(cnt("chunk", "new") + cnt("answer", "new")), "Ratings to review", `${cnt("chunk", "approved") + cnt("answer", "approved")} approved · ${cnt("chunk", "discarded") + cnt("answer", "discarded")} discarded`),
+      stat(ver(status.reranker), "Reranker", "crag learn rerank"),
+      stat(ver(status.fusion), "Hybrid fusion", `dense ${status.fusion.weights.dense} : BM25 ${status.fusion.weights.bm25}`)),
+    cal ? h("div", { class: `alert ${cal.status === "approved" ? "info" : "warn"}`, style: { marginBottom: "18px" } },
+      h("b", {}, `Estimate calibration ${cal.status}`), cal.approved_by ? ` by ${cal.approved_by} on ${cal.approved_on}` : " — run crag learn approve-calibration --by <name> to use it",
+      ": steel kg/m³ ", Object.entries(cal.steel_kg_per_m3 || {}).map(([k, v]) => `${k} ${v.default}→${v.value} (${v.projects} proj.)`).join(", ") || "none") : null,
+    h("div", { class: "row", style: { marginBottom: "8px" } }, h("h2", { style: { margin: 0 } }, "Feedback"), h("span", { class: "spacer" }), h("span", { class: "muted" }, "Reviewed by"), checker),
+    tabs, list,
+    (status.history || []).length ? h("details", { style: { marginTop: "18px" } }, h("summary", {}, "Promotion history"),
+      h("table", { class: "t" }, h("tbody", {}, status.history.slice().reverse().map((x) => h("tr", {},
+        h("td", { class: "mono" }, (x.promoted_on || x.on || "").slice(0, 16)), h("td", {}, x.component), h("td", {}, x.action),
+        h("td", {}, x.action === "promote" ? `v${x.version}` : `v${x.from_version} → ${x.to_version}`)))))) : null);
+  drawTabs(); load();
 }
 
 // ---------- code tables

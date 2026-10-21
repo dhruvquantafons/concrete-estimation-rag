@@ -11,6 +11,8 @@ from rich.table import Table
 app = typer.Typer(help="Concrete works RAG + estimation toolkit", no_args_is_help=True)
 keys_app = typer.Typer(help="Manage API keys")
 app.add_typer(keys_app, name="apikey")
+learn_app = typer.Typer(help="Learning loop: improve retrieval, answers and estimates from feedback", no_args_is_help=True)
+app.add_typer(learn_app, name="learn")
 console = Console()
 
 
@@ -114,6 +116,80 @@ def key_list():
 def key_revoke(name: str):
     from concrete_rag.store.docstore import revoke_api_key
     console.print("revoked" if revoke_api_key(name) else "not found")
+
+
+@learn_app.command("status")
+def learn_status():
+    """Feedback collected, live reranker / fusion versions, estimate calibration."""
+    from concrete_rag.learn import calibrate, data, state
+    console.print(data.summary())
+    act = state.active()
+    console.print({"reranker": act.get("reranker", {"version": "default"}).get("version"),
+                   "fusion": act.get("fusion", {"version": "default"}).get("version"),
+                   "fusion_weights": state.fusion_weights()})
+    cal = calibrate.load()
+    console.print({"calibration": cal.get("status") if cal else "none",
+                   "steel_kg_per_m3": {k: v["value"] for k, v in (cal.get("steel_kg_per_m3") or {}).items()}})
+    for h in act.get("history", [])[-10:]:
+        console.print(f"  {h.get('promoted_on') or h.get('on')}  {h['component']}  {h['action']}  "
+                      f"v{h.get('version', h.get('to_version'))}")
+
+
+@learn_app.command("fusion")
+def learn_fusion(no_promote: bool = typer.Option(False, help="report only, do not promote")):
+    """Tune the dense / BM25 fusion weights on golden set + 👍 feedback; promote if better.
+    Needs the search index: stop `crag serve` first (embedded Qdrant)."""
+    from concrete_rag.learn.fusion import tune
+    tune(promote=not no_promote, log=console.print)
+
+
+@learn_app.command("rerank")
+def learn_rerank(min_queries: int = typer.Option(30, help="minimum rated queries before training"),
+                 epochs: int = 2, no_promote: bool = typer.Option(False, help="train + evaluate only")):
+    """Fine-tune the reranker on 👍/👎 feedback; promote only if it beats the live one on held-out feedback
+    without losing golden-set quality. Stop `crag serve` first."""
+    from concrete_rag.learn.reranker import run
+    r = run(min_queries=min_queries, epochs=epochs, promote=not no_promote, log=console.print)
+    if not r.get("trained"):
+        console.print(f"[yellow]{r['reason']}[/]")
+
+
+@learn_app.command("rollback")
+def learn_rollback(component: str = typer.Argument(..., help="reranker | fusion")):
+    """Return a component to its previous version (or the shipped default)."""
+    from concrete_rag.learn.state import rollback
+    r = rollback(component)
+    console.print(f"{component}: now {r['version'] if r else 'default (nothing to roll back)'}")
+
+
+@learn_app.command("calibrate")
+def learn_calibrate(csv: Optional[str] = typer.Option(None, help="default eval/datasets/actual_costs.csv")):
+    """Propose steel densities from actual project costs -> config/cost/learned_adjustments.yaml (proposed)."""
+    from pathlib import Path
+
+    from concrete_rag.learn.calibrate import calibrate
+    r = calibrate(Path(csv) if csv else None)
+    for et, v in r["steel_kg_per_m3"].items():
+        console.print(f"  {et}: {v['default']} -> [bold]{v['value']}[/] kg/m3 (observed {v['observed']} over "
+                      f"{v['projects']} project(s))")
+    if not r["steel_kg_per_m3"]:
+        console.print("[yellow]no reinforcement rows with element_type + concrete_m3 - nothing to learn[/]")
+    console.print("Review config/cost/learned_adjustments.yaml, then: crag learn approve-calibration --by <name>")
+
+
+@learn_app.command("approve-calibration")
+def learn_approve(by: str = typer.Option(..., help="your name")):
+    """Let the BOQ use the proposed learned steel densities."""
+    from concrete_rag.learn.calibrate import approve
+    approve(by)
+    console.print("approved - new estimates use the learned values (shown in each estimate's assumptions)")
+
+
+@learn_app.command("export-preferences")
+def learn_export_preferences():
+    """Write approved 👎 answer + correction pairs to data/processed/preferences.jsonl (for DPO fine-tuning)."""
+    from concrete_rag.learn.exemplars import export_preferences
+    console.print(export_preferences())
 
 
 if __name__ == "__main__":

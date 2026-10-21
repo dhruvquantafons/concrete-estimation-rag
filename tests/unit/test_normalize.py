@@ -1,9 +1,9 @@
 from decimal import Decimal
 
 from concrete_rag.normalize.currency import format_inr, parse_inr
-from concrete_rag.normalize.item_codes import decode_sequence
+from concrete_rag.normalize.item_codes import decode_sequence, parent_code
 from concrete_rag.normalize.units import convert, normalize_unit
-from concrete_rag.parse.sor import _vote, norm_rate
+from concrete_rag.parse.sor import _letter_code, _vote, norm_rate
 
 
 def test_units():
@@ -38,3 +38,18 @@ def test_dsr_code_decoding_real_ocr_sequences():
     assert got == ["5.9", "5.9.1", "5.9.2", "5.9.3"]
     got = [c for c, _ in decode_sequence(["5.22A1", "5.22A2"], 5, [True, True], prev="5.22.6")]
     assert got == ["5.22A.1", "5.22A.2"]
+
+
+def test_parent_code_with_letter_inside():
+    assert parent_code("11.3.1") == "11.3" and parent_code("4.1.5A") == "4.1"
+    assert parent_code("5.22A.6") == "5.22A" and parent_code("9.147.F1.1") == "9.147.F1"
+    assert parent_code("5") is None
+
+
+def test_code_read_as_letters():
+    # DSR p.175: "n2" = 11.2, "nT" = 11.7; basic rate "TTT1" = 7771
+    assert _letter_code("n2", 11, "item") == "112" and _letter_code("nT", 11, "item") == "117"
+    assert _letter_code("TTT1", None, "basic") == "7771"
+    # only when the letter matches the sub-head; "a" (8 or 9, ambiguous) goes through code_tokens overrides
+    assert _letter_code("n2", 12, "item") is None and _letter_code("a7", 9, "item") is None
+    assert _letter_code("T7174", None, "basic") is None and _letter_code("and", 11, "item") is None

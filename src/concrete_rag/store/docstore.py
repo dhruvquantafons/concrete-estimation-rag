@@ -72,6 +72,25 @@ estimates = Table("estimates", md,
                   Column("created_at", DateTime), Column("project", String(200)),
                   Column("data", JSON))
 
+# Learning loop: every /v1/retrieve and /v1/generate call is logged, and users rate results / answers.
+query_log = Table("query_log", md,
+                  Column("id", String(32), primary_key=True),
+                  Column("ts", DateTime), Column("key_name", String(80)),
+                  Column("kind", String(20)),                      # retrieve | generate
+                  Column("query", Text), Column("filters", JSON),
+                  Column("results", JSON),                         # ranked chunk ids as shown
+                  Column("answer", Text))
+
+feedback = Table("feedback", md,
+                 Column("id", Integer, primary_key=True, autoincrement=True),
+                 Column("ts", DateTime), Column("key_name", String(80)),
+                 Column("query_id", String(32), index=True),
+                 Column("kind", String(20)),                       # chunk | answer
+                 Column("chunk_id", String(200)), Column("rating", Integer),   # +1 / -1
+                 Column("correction", Text),                       # engineer's corrected answer (kind=answer)
+                 Column("status", String(12), default="new"),      # new | approved | discarded
+                 Column("reviewed_by", String(80)))
+
 
 @lru_cache
 def engine() -> Engine:
@@ -289,6 +308,65 @@ def get_estimate(est_id: str) -> dict | None:
     with engine().connect() as c:
         r = c.execute(select(estimates).where(estimates.c.id == est_id)).first()
         return dict(r.data) if r else None
+
+
+# ------------------------------------------------------------------ learning loop: query log + feedback
+def log_query(kind: str, query: str, filters: dict | None, chunk_ids: list[str], answer: str | None = None,
+              key_name: str | None = None) -> str:
+    import uuid
+    qid = uuid.uuid4().hex[:16]
+    with engine().begin() as c:
+        c.execute(insert(query_log).values(id=qid, ts=_now(), key_name=key_name, kind=kind, query=query,
+                                           filters=filters, results=chunk_ids, answer=answer))
+    return qid
+
+
+def get_query(qid: str) -> dict | None:
+    with engine().connect() as c:
+        r = c.execute(select(query_log).where(query_log.c.id == qid)).first()
+        return dict(r._mapping) if r else None
+
+
+def add_feedback(query_id: str, kind: str, rating: int, chunk_id: str | None = None, correction: str | None = None,
+                 key_name: str | None = None) -> int:
+    """One rating per (query, kind, chunk) and key: a second click replaces the first."""
+    with engine().begin() as c:
+        c.execute(delete(feedback).where(feedback.c.query_id == query_id, feedback.c.kind == kind,
+                                         feedback.c.chunk_id.is_(None) if chunk_id is None else feedback.c.chunk_id == chunk_id,
+                                         feedback.c.key_name.is_(None) if key_name is None else feedback.c.key_name == key_name))
+        return c.execute(insert(feedback).values(ts=_now(), key_name=key_name, query_id=query_id, kind=kind,
+                                                 chunk_id=chunk_id, rating=rating, correction=correction,
+                                                 status="new")).inserted_primary_key[0]
+
+
+def list_feedback(status: str | None = None, kind: str | None = None, limit: int = 1000) -> list[dict]:
+    """Feedback rows joined with the logged query (text, filters, results shown, answer)."""
+    with engine().connect() as c:
+        q = select(feedback, query_log.c.query, query_log.c.filters, query_log.c.results, query_log.c.answer,
+                   query_log.c.kind.label("query_kind")).join(query_log, query_log.c.id == feedback.c.query_id)
+        if status:
+            q = q.where(feedback.c.status == status)
+        if kind:
+            q = q.where(feedback.c.kind == kind)
+        rows = c.execute(q.order_by(feedback.c.ts.desc()).limit(limit)).all()
+    return [{**dict(r._mapping), "ts": str(r.ts)} for r in rows]
+
+
+def set_feedback_status(fid: int, status: str, reviewed_by: str) -> bool:
+    with engine().begin() as c:
+        return c.execute(update(feedback).where(feedback.c.id == fid).values(status=status,
+                                                                             reviewed_by=reviewed_by)).rowcount > 0
+
+
+def feedback_counts() -> dict:
+    with engine().connect() as c:
+        rows = c.execute(select(feedback.c.kind, feedback.c.status, func.count()).group_by(feedback.c.kind,
+                                                                                          feedback.c.status)).all()
+        logged = c.execute(select(func.count()).select_from(query_log)).scalar_one()
+    out: dict = {"queries_logged": logged}
+    for kind, status, n in rows:
+        out.setdefault(kind, {})[status] = n
+    return out
 
 
 def list_estimates(limit: int = 50) -> list[dict]:

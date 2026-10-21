@@ -62,10 +62,17 @@ def build_estimate(req: EstimateRequest) -> dict:
     warnings: list[str] = []
 
     # --- steel density defaults
+    from concrete_rag.learn.calibrate import approved_steel_density
     for e in req.elements:
         if e.steel_kg_per_m3 is None and e.type != "pcc_bed":
-            e.steel_kg_per_m3 = defaults["steel_kg_per_m3"].get(e.type, 100)
-            assumptions.append(f"{e.id}: reinforcement {e.steel_kg_per_m3} kg/m3 (thumb rule; replace with BBS)")
+            learned = approved_steel_density(e.type)
+            if learned:
+                e.steel_kg_per_m3 = learned["value"]
+                assumptions.append(f"{e.id}: reinforcement {e.steel_kg_per_m3} kg/m3 (learned from {learned['projects']} "
+                                   f"projects' actual steel, default {learned['default']}; replace with BBS)")
+            else:
+                e.steel_kg_per_m3 = defaults["steel_kg_per_m3"].get(e.type, 100)
+                assumptions.append(f"{e.id}: reinforcement {e.steel_kg_per_m3} kg/m3 (thumb rule; replace with BBS)")
     qt = takeoff(req.elements)
 
     # --- aggregate quantities per SOR item

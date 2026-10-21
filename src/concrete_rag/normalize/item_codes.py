@@ -32,7 +32,9 @@ def parse_code(code: str) -> tuple[tuple[int, ...], str] | None:
 def parent_code(code: str) -> str | None:
     p = parse_code(code)
     if not p:
-        return None
+        # letter inside the code (5.22A.6 -> 5.22A, 9.147.F1.1 -> 9.147.F1): drop the last component
+        parts = code.split(".")
+        return ".".join(parts[:-1]) if len(parts) > 1 and all(parts) else None
     nums, letter = p
     if letter:  # 4.1.5A's parent is 4.1
         return ".".join(map(str, nums[:-1])) if len(nums) > 1 else None

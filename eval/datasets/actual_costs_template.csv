@@ -1,3 +1,4 @@
-project,item_code,description,unit,est_qty,est_amount,actual_qty,actual_amount
-Example block A,5.33.2.1,RCC M25 design mix above plinth,m3,120.5,1188177.20,126.0,1252000.00
-Example block A,5.9.3,Centering & shuttering slabs,m2,640.0,593440.00,612.0,571000.00
+project,item_code,description,unit,est_qty,est_amount,actual_qty,actual_amount,element_type,concrete_m3
+Example block A,5.33.2.1,RCC M25 design mix above plinth,m3,120.5,1188177.20,126.0,1252000.00,,
+Example block A,5.9.3,Centering & shuttering slabs,m2,640.0,593440.00,612.0,571000.00,slab,
+Example block A,5.22A.6,Reinforcement TMT Fe-500D above plinth (columns),kg,4608.0,496973.00,4410.0,475600.00,column,25.6

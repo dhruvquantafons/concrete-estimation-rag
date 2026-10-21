@@ -61,7 +61,12 @@ def answer(query: str, top_k: int = 6, filters: dict | None = None) -> dict:
         flag = "" if c.citation.verified else " (UNVERIFIED OCR)"
         body = c.text if not c.table else c.text
         blocks.append(f"[S{i}] {c.citation.ref}{flag}\n{body[:2500]}")
-    user = "### SOURCES\n" + "\n\n".join(blocks) + f"\n\n### QUESTION\n{query}"
+    from concrete_rag.learn.exemplars import prompt_block, similar
+    try:
+        examples = similar(query)
+    except Exception:  # noqa: BLE001 - exemplars are an optional aid, never a reason to fail
+        examples = []
+    user = prompt_block(examples) + "### SOURCES\n" + "\n\n".join(blocks) + f"\n\n### QUESTION\n{query}"
     llm = get_provider()
     res = llm.generate(SYSTEM_RAG, user)
     cited = sorted({int(x) for x in re.findall(r"\[S(\d+)\]", res.text)})
@@ -73,6 +78,7 @@ def answer(query: str, top_k: int = 6, filters: dict | None = None) -> dict:
         "verification": {**verify_numbers(res.text, evidence),
                          "cites_sources": bool(cited) or res.stop_reason != "end_turn"},
         "warnings": pack.warnings, "usage": res.usage,
+        "exemplars_used": [{"feedback_id": e["id"], "similarity": e["similarity"]} for e in examples],
     }
 
 
