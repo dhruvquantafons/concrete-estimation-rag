@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     prefetch_k: int = 50
     top_k: int = 8
 
-    # LLM (decide later): fake | anthropic | openai_compat
+    # LLM: fake (offline) | openai_compat (Ollama, vLLM)
     llm_provider: str = "fake"
     llm_model: str = ""
     llm_base_url: str = ""                 # openai_compat: e.g. http://localhost:11434/v1 (Ollama)

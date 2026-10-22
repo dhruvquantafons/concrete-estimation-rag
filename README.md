@@ -119,6 +119,9 @@ More detail: [docs/data-notes.md](docs/data-notes.md) (what was read, fixed and 
 In order of priority. Only you can do or decide these.
 
 ### 1. Right now
+- [ ] **Restart `crag serve`** so it drops the removed `/v1/agent` endpoint. If a downstream system called it,
+      switch it to the calculator and `/v1/estimate` endpoints. The Claude (`anthropic`) LLM option is gone too;
+      local Ollama is the only LLM.
 - [ ] **Re-run saved estimates that use these items.** Their rates were wrong and are now fixed: 11.1.2, 8.2.3.2,
       8.3.2, 8.14.5.2 and basic rate 7773 (details in [docs/data-notes.md](docs/data-notes.md)).
 - [ ] **Re-run RCC designs saved before 2026-10-20** (beams, slabs, footings). The deflection and footing checks

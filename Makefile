@@ -2,7 +2,7 @@ PY=.venv/bin/python
 CRAG=.venv/bin/crag
 
 setup:            ## create venv + install (needs python3.12 and tesseract)
-	python3.12 -m venv .venv && .venv/bin/pip install -U pip && .venv/bin/pip install -e ".[anthropic,dev]"
+	python3.12 -m venv .venv && .venv/bin/pip install -U pip && .venv/bin/pip install -e ".[dev]"
 
 ingest:           ## OCR + parse + chunk all sources (cached OCR is reused)
 	$(CRAG) ingest

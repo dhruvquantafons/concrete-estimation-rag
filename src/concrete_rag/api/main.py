@@ -175,18 +175,6 @@ def feedback_ep(request: Request, body: FeedbackRequest, p: dict = Depends(princ
     return {"id": fid, "status": "new"}
 
 
-class AgentRequest(BaseModel):
-    task: str = Field(..., min_length=5, max_length=8000)
-    max_steps: int = Field(12, ge=1, le=30)
-
-
-@v1.post("/agent", tags=["generation"])
-@limiter.limit("10/minute")
-def agent_ep(request: Request, body: AgentRequest, _=Depends(require("generate"))):
-    from concrete_rag.agents.generate import agent
-    return agent(body.task, body.max_steps)
-
-
 # ------------------------------------------------------------------ calculators
 @v1.post("/mix-design", tags=["calculators"])
 def mix_ep(body: MixDesignInput, _=Depends(require("calc"))):

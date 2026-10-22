@@ -1,17 +1,14 @@
 """Citation-backed generation + post-hoc verification.
 
 answer():  retrieve -> numbered sources -> LLM answer that must cite [S#] -> verification
-agent():   LLM with tools (retrieval + calculators) -> verification against tool outputs
 
-verify_numbers(): every number in the answer must appear in the supplied context or a tool output;
+verify_numbers(): every number in the answer must appear in the supplied context;
 anything else is reported as `ungrounded_numbers` (flagged, never silently corrected).
 """
 from __future__ import annotations
 
-import json
 import re
 
-from concrete_rag.agents.tools import all_tools
 from concrete_rag.llm.base import get_provider
 from concrete_rag.retrieval.hybrid import retrieve
 
@@ -20,15 +17,6 @@ IS 2386, CPWD DSR). Answer ONLY from the numbered sources provided. Cite every s
 e.g. [S2]. Quote numerical limits exactly as written in the source. If the sources do not contain the answer,
 say so - do not use outside knowledge. Sources marked UNVERIFIED come from OCR that was not cross-checked;
 mention that when you rely on them."""
-
-SYSTEM_AGENT = """You are an estimation engineer for concrete works in India. Use the tools: `retrieve` /
-`get_clause` / `get_table` for code provisions, the calculators for every design or arithmetic result, and
-`get_sor_rate` / `build_estimate` for costs. Never do arithmetic yourself and never invent code values or rates -
-every number in your answer must come from a tool result. Cite clauses/tables/DSR items as the tools report them.
-State assumptions and surface any tool warnings (unverified OCR values, failed checks).
-Before answering, list (to yourself) every quantity the user asked for, and make sure each one has come from a
-tool call - e.g. a rate needs `get_sor_rate` or `search_sor_items`, a design value needs a calculator. If something
-is still missing, call the tool for it first. Only answer when every requested item is covered."""
 
 NUM_RE = re.compile(r"(?<![\w.])\d+(?:[.,]\d+)*(?:\.\d+)?")
 
@@ -81,16 +69,3 @@ def answer(query: str, top_k: int = 6, filters: dict | None = None) -> dict:
         "exemplars_used": [{"feedback_id": e["id"], "similarity": e["similarity"]} for e in examples],
     }
 
-
-def agent(task: str, max_steps: int = 12) -> dict:
-    llm = get_provider()
-    res = llm.run_tools(SYSTEM_AGENT, task, all_tools(), max_steps=max_steps)
-    evidence = "\n".join(json.dumps(t.output, default=str) for t in res.tool_calls if t.output is not None)
-    warnings = []
-    for t in res.tool_calls:
-        if isinstance(t.output, dict):
-            warnings += t.output.get("warnings", []) or []
-    return {"task": task, "answer": res.text, "provider": llm.name, "model": res.model, "stop_reason": res.stop_reason,
-            "tool_calls": [{"name": t.name, "input": t.input, "error": t.error} for t in res.tool_calls],
-            "verification": verify_numbers(res.text, evidence + "\n" + task),
-            "warnings": sorted(set(map(str, warnings))), "usage": res.usage}

@@ -34,7 +34,7 @@ State PWD SORs, market rate feeds, historical project costs.
 | Docstore | SQLAlchemy (SQLite default, Postgres via URL) | source of truth for chunks, rates, keys, audit, estimates |
 | Vector DB | Qdrant (embedded local or server), named vectors dense + BM25-sparse (IDF modifier) | native hybrid, payload filters |
 | Embeddings / rerank | BAAI/bge-m3, BAAI/bge-reranker-v2-m3 (local, MPS) | multilingual, strong on technical text, no data leaves the machine |
-| LLM | provider interface: `fake` (offline), `anthropic` (Claude), `openai_compat` (Ollama/vLLM) | decision deferred |
+| LLM | provider interface: `fake` (offline), `openai_compat` (Ollama/vLLM) | local Qwen2.5-3B via Ollama; no data leaves the machine |
 | Numbers | deterministic Python calculators + curated, verified code tables | the LLM never does arithmetic or supplies code values |
 | API | FastAPI, API keys with scopes, slowapi rate limit, audit log | secure service for downstream AI models |
 | Estimation libs | pandas/NumPy-free core (Decimal, pint), openpyxl, reportlab | exact money arithmetic, live-formula Excel |

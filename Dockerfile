@@ -3,7 +3,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends tesseract-ocr t
 WORKDIR /app
 COPY pyproject.toml README.md ./
 COPY src ./src
-RUN pip install --no-cache-dir -e ".[anthropic]" "psycopg[binary]>=3.1"
+RUN pip install --no-cache-dir -e . "psycopg[binary]>=3.1"
 COPY config ./config
 COPY eval ./eval
 EXPOSE 8000

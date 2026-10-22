@@ -26,8 +26,8 @@ src/concrete_rag/
   retrieval/  exact-reference router → hybrid search → reranker → cross-references and amendments
   calc/       mix design (IS 10262), RCC design (IS 456), steel / BBS, quantities (IS 1200), rates
   estimate/   BOQ, cement statement, cost split, Excel and PDF export
-  llm/        LLM providers: fake (offline), anthropic (Claude), openai_compat (Ollama, vLLM)
-  agents/     cited answers with a number check; tools for the experimental agent
+  llm/        LLM providers: fake (offline), openai_compat (Ollama, vLLM)
+  agents/     cited answers with a number check
   learn/      learning loop (feedback → tuning → test → promote / roll back)
   api/        FastAPI app, API keys with scopes, rate limit, audit log, web UI
   eval/       search scores, answer checks, calculator checks, estimate variance
@@ -56,7 +56,7 @@ All settings are environment variables starting with `CRAG_`, read from `.env`. 
 
 | Setting | Default | Meaning |
 |---|---|---|
-| `CRAG_LLM_PROVIDER` | `fake` | `fake` (no LLM), `anthropic`, or `openai_compat` (Ollama) |
+| `CRAG_LLM_PROVIDER` | `fake` | `fake` (no LLM) or `openai_compat` (Ollama, vLLM) |
 | `CRAG_LLM_MODEL`, `CRAG_LLM_BASE_URL` | | model name and server address for the LLM |
 | `CRAG_RERANK_ENABLED` | `true` | turn the reranker off for speed (0.13 s instead of 1.9 s per search) |
 | `CRAG_RERANK_POOL` | `24` | how many candidates the reranker looks at |
@@ -77,7 +77,6 @@ Every call needs an `X-API-Key` header. Each key has scopes; `admin` can do ever
 |---|---|---|
 | `POST /v1/retrieve` | retrieve | search; returns cited chunks, tables as JSON, DSR rates, and a `query_id` |
 | `POST /v1/generate` | generate | cited answer with number check; returns a `query_id` |
-| `POST /v1/agent` | generate | LLM with tools (search, calculators, estimate). **Experimental:** small local models get multi-step tasks wrong |
 | `POST /v1/mix-design` | calc | IS 10262 mix proportioning |
 | `POST /v1/design/{beam,slab,column,footing}` | calc | IS 456 design with checks and clause references |
 | `POST /v1/quantity`, `POST /v1/bbs` | calc | IS 1200 quantities, bar bending schedule |
@@ -131,17 +130,17 @@ CRAG_LLM_BASE_URL=http://localhost:11434/v1
 CRAG_LLM_MODEL=hf.co/bartowski/Qwen2.5-3B-Instruct-GGUF:Q4_K_M
 ```
 
-Benchmark on this Mac (6 questions answered from the IS codes / DSR, plus 2 multi-step agent tasks):
+Benchmark on this Mac (6 questions answered from the IS codes / DSR):
 
-| Model (4-bit) | Size | Correct fact | Numbers found in sources | Average time | Agent tasks |
-|---|---|---|---|---|---|
-| **Qwen2.5-3B-Instruct** (selected) | 1.9 GB | 6/6 | 6/6 | 10 s | 0/2 |
-| Qwen3-4B-Instruct-2507 | 2.0 GB | 6/6 | 5/6 | 18 s | 0/2 |
-| Llama-3.2-3B-Instruct | 2.0 GB | 4/6 | 6/6 | 9 s | 0/2 |
-| Qwen2.5-7B-Instruct (reference) | 4.7 GB | 6/6 | 6/6 | 17 s | 0/2 |
+| Model (4-bit) | Size | Correct fact | Numbers found in sources | Average time |
+|---|---|---|---|---|
+| **Qwen2.5-3B-Instruct** (selected) | 1.9 GB | 6/6 | 6/6 | 10 s |
+| Qwen3-4B-Instruct-2507 | 2.0 GB | 6/6 | 5/6 | 18 s |
+| Llama-3.2-3B-Instruct | 2.0 GB | 4/6 | 6/6 | 9 s |
+| Qwen2.5-7B-Instruct (reference) | 4.7 GB | 6/6 | 6/6 | 17 s |
 
-No model of this size completes the agent tasks, so `/v1/agent` stays experimental. To switch models, change
-`CRAG_LLM_MODEL` and restart the server. Qwen3 models on Ollama also need `CRAG_LLM_REASONING_EFFORT=none`.
+Multi-step tool use (the former `/v1/agent`) was removed: no model of this size completed it. Downstream AI
+models call the calculator and estimate endpoints directly. To switch models, change `CRAG_LLM_MODEL` and restart the server. Qwen3 models on Ollama also need `CRAG_LLM_REASONING_EFFORT=none`.
 
 ## Learning loop details
 
