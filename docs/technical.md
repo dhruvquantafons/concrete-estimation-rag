@@ -14,6 +14,7 @@ config/
   cost/*.yaml             BOQ → DSR item mapping, location cost indices, rate analysis, estimate defaults,
                           learned_adjustments.yaml (estimate calibration, once approved)
   corrections/*.yaml      checked fixes to OCR'd DSR rows (re-applied on every ingest)
+  equations/*.yaml        equations read from the scanned pages, added to their clause chunks on ingest
   vocab/enrichment.yaml   word lists for tagging chunks (material, work item, element)
 src/concrete_rag/
   ingest/     read PDF pages: text layer or OCR (cached), two-column reading order
@@ -24,7 +25,7 @@ src/concrete_rag/
   store/      docstore.py (SQLite or Postgres: the source of truth), vector.py (Qdrant), review.py (UI fixes)
   embed/      bge-m3 embeddings, BM25 tokenizer that keeps codes like 26.5.1.1 and M25 whole
   retrieval/  exact-reference router → hybrid search → reranker → cross-references and amendments
-  calc/       mix design (IS 10262), RCC design (IS 456), steel / BBS, quantities (IS 1200), rates
+  calc/       mix design (IS 10262), RCC design aids (IS 456), steel / BBS, quantities (IS 1200), rates
   estimate/   BOQ, cement statement, cost split, Excel and PDF export
   llm/        LLM providers: fake (offline), openai_compat (Ollama, vLLM)
   agents/     cited answers with a number check
@@ -78,7 +79,7 @@ Every call needs an `X-API-Key` header. Each key has scopes; `admin` can do ever
 | `POST /v1/retrieve` | retrieve | search; returns cited chunks, tables as JSON, DSR rates, and a `query_id` |
 | `POST /v1/generate` | generate | cited answer with number check; returns a `query_id` |
 | `POST /v1/mix-design` | calc | IS 10262 mix proportioning |
-| `POST /v1/design/{beam,slab,column,footing}` | calc | IS 456 design with checks and clause references |
+| `POST /v1/design/{beam,slab,column,footing}` | calc | IS 456 design with checks and clause references. **Design aid only**: every result has `outputs.label = "Design aid only"` and that warning first |
 | `POST /v1/quantity`, `POST /v1/bbs` | calc | IS 1200 quantities, bar bending schedule |
 | `GET /v1/rates/{code}?location=` | estimate | DSR rate × location index, with citation and OCR check status |
 | `POST /v1/estimate` | estimate | BOQ, cost summary, cement statement |
@@ -102,22 +103,35 @@ curl -s -X POST localhost:8000/v1/estimate -H "X-API-Key: $KEY" -H 'Content-Type
 ## Test results
 
 `crag evaluate` writes a full report to `eval/reports/`. Search is scored on 50 questions written against the real
-documents, looking at the top 8 results.
+documents, looking at the top 8 results. Scores from 2026-10-22 (`report_20261022_120727`), after the
+equations, the checked table values and the two-column reading-order fix.
 
 | Search method | Recall@8 | Hit@8 | MRR | nDCG@8 | Seconds per search (M4) |
 |---|---|---|---|---|---|
-| Keyword only (BM25) | 0.92 | 0.94 | 0.800 | 0.825 | 0.08 |
-| Meaning only (bge-m3) | 0.93 | 0.96 | 0.790 | 0.813 | 0.25 |
-| Hybrid | 0.97 | 1.00 | 0.807 | 0.840 | 0.13 |
-| **Hybrid + reranker (default)** | **0.97** | **1.00** | **0.823** | **0.861** | 1.9 |
+| Keyword only (BM25) | 0.91 | 0.94 | 0.808 | 0.829 | 0.08 |
+| Meaning only (bge-m3) | 0.93 | 0.96 | 0.810 | 0.823 | 0.23 |
+| Hybrid (reranker off) | 0.93 | 0.96 | 0.812 | 0.838 | 0.13 |
+| **Hybrid + reranker (default)** | **0.95** | **0.98** | **0.823** | **0.856** | 1.8 |
 
 - *Recall*: share of the right sources found in the top 8. *Hit*: at least one right source in the top 8.
   *MRR / nDCG*: how high the right source ranks (1.0 = always first).
+- The one miss with the reranker on is q29 ("entrapped air content…", target IS 10262 Table 3). Table 3 is at
+  rank 9. Above it are the worked-example steps A-4 to F-4 ("From Table 3, … 1.0 percent for 20 mm"), which the
+  reading-order fix made into chunks of their own. They answer the question, but the test expects the table
+  itself.
+- With the reranker off, q04 (Table 19) and q50 (DSR 5.33.2.1) rank just outside the top 8. With it on, they
+  rank in the top 4. Keep the reranker on unless speed matters more.
 - **Calculators:** the IS 10262 Annex A worked example is reproduced (cement 412, water 148, fine aggregate 648.6,
   coarse aggregate 1234.6 kg/m³). An M25 mix, the demo BOQ and the IS 456 tables were also checked by hand.
-- **Tests:** 29 unit tests and 4 integration tests pass (`pytest -q`; the integration tests need the server stopped).
-- **Answers:** the 6-question answer set passes the number check 6/6; 5/6 contain the expected fact. The
-  "judge" score (a small LLM rating faithfulness) is unreliable at 3B size; treat it as a rough signal.
+- **Tests:** 36 unit tests and 4 integration tests pass (`pytest -q`; the integration tests need the server stopped).
+- **Answers** (Qwen2.5-3B, 26 questions in `generation_golden.jsonl`, each with its source page):
+  - 20 of 23 answerable questions contain the expected fact (0.87).
+  - 3 of 3 questions the corpus cannot answer were refused (1.00).
+  - 25 of 26 answers had every number found in the sources (0.96); 20 of 23 answers cite a source (0.87).
+  - The remaining misses are model errors, with the right source in front of the model: g10 (Table 20), g13
+    (cl. 40.4 Vus) and g22 (picked IS 1200 Part 2's 0.1 m² instead of Part 5's 0.4 m²).
+  - The "judge" score (a small LLM rating faithfulness, 0.89) is unreliable at 3B size; treat it as a rough
+    signal.
 - **Estimate accuracy** is not measured yet. It needs actual project costs in `eval/datasets/actual_costs.csv`.
 
 ## LLM choice

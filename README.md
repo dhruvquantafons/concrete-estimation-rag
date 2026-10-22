@@ -4,7 +4,7 @@ A tool for concrete works in India. It does three things:
 
 1. **Finds answers in the standards.** Search IS 456, IS 10262, IS 1200, IS 2386 and the CPWD Delhi Schedule of
    Rates (DSR) 2023. Every answer shows where it came from, down to the clause and the scanned page.
-2. **Does the engineering calculations.** Mix design, RCC design (beam, slab, column, footing), quantities and
+2. **Does the engineering calculations.** Mix design, RCC design aids (beam, slab, column, footing), quantities and
    bar bending schedules, following the IS codes.
 3. **Prepares cost estimates.** Turns a list of building elements into a priced BOQ using DSR rates, with Excel
    and PDF export.
@@ -46,7 +46,7 @@ For **Ask** (written answers), [Ollama](https://ollama.com) must also be running
 |---|---|
 | **Search & Ask** | Search the standards and the DSR. **View page** opens the original scan. **Ask** writes a short answer with sources [S1], [S2]… |
 | **Mix design** | Get kg/m³ of cement, water and aggregates (IS 10262), with every step and clause shown |
-| **RCC design** | Design a beam, one-way slab, column or footing (IS 456) and see which checks pass |
+| **RCC design** *(design aid only)* | Size a beam, one-way slab, column or footing (IS 456) and see which checks pass. Not a checked structural design: a qualified structural engineer must review it |
 | **Estimate / BOQ** | Enter elements → quantities (IS 1200) → priced BOQ, cement statement, Excel / PDF |
 | **DSR rates** | Look up any of the 2,955 DSR items by word or code |
 | **Code tables** | See the IS values the calculators use, compare them with the scan, sign them off |
@@ -102,11 +102,11 @@ The search index can be used by **one program at a time.** Stop `crag serve` bef
 - **Data:** complete for this project: IS 456, IS 10262, IS 1200, IS 2386 and both DSR 2023 volumes. No more
   documents are planned. The review queue is empty, and about 770 scanner errors were checked against the scanned
   pages and fixed. Rates are for **Delhi** (DSR base); other locations are refused rather than guessed.
-- **Search quality:** the right source is in the top 8 results for all 50 test questions, and first for most of
-  them.
+- **Search quality:** the right source is in the top 8 results for 49 of 50 test questions, and first for most of
+  them. The one miss still finds the worked examples that quote the right table.
 - **Calculators:** reproduce the IS 10262 worked example exactly. All IS 456 values were checked against the
   scanned pages.
-- **Tests:** 33 pass.
+- **Tests:** 40 pass.
 - **Not measured yet:** how close estimates are to real costs (needs your project data).
 
 More detail: [docs/data-notes.md](docs/data-notes.md) (what was read, fixed and still known to be wrong) and
@@ -122,6 +122,7 @@ In order of priority. Only you can do or decide these.
 - [ ] **Restart `crag serve`** so it drops the removed `/v1/agent` endpoint. If a downstream system called it,
       switch it to the calculator and `/v1/estimate` endpoints. The Claude (`anthropic`) LLM option is gone too;
       local Ollama is the only LLM.
+- [ ] **Run `crag serve` again**: the search index was rebuilt on 2026-10-22 with readable equations.
 - [ ] **Re-run saved estimates that use these items.** Their rates were wrong and are now fixed: 11.1.2, 8.2.3.2,
       8.3.2, 8.14.5.2 and basic rate 7773 (details in [docs/data-notes.md](docs/data-notes.md)).
 - [ ] **Re-run RCC designs saved before 2026-10-20** (beams, slabs, footings). The deflection and footing checks
@@ -137,17 +138,20 @@ In order of priority. Only you can do or decide these.
 
 ### 3. Spot-check the automatic fixes
 Many fixes were made by reading the scans with AI vision and are tagged `claude-vision`.
-- [ ] Open **Code tables**, press **Compare with page** on two or three tables, and sign them in your own name if
-      you like.
-- [ ] Check a few points of IS 10262 **Fig. 1** against your printed copy. It was measured from the PDF image.
+- [ ] Open **Code tables**. Every table now shows **AI-checked, needs human sign-off**. Press **Compare with
+      page**, and sign the ones you have compared in your own name. Only then do they count as verified.
+- [ ] Open `data/processed/fig1_overlay.png` and compare it with IS 10262 **Fig. 1** in your printed copy. The
+      coloured rings are the stored points; each should sit on its curve.
+- [ ] Spot-check a few equations in `config/equations/is456_2000.yaml` against your copy of IS 456 (for example
+      cl. 26.2.1, 39.3, 40.4 and Annex G).
 - [ ] Look through a few DSR fixes in `config/corrections/cpwd_dsr_2023.yaml` against the printed DSR.
 
 ### 4. Give it real test data
 - [ ] **Actual costs of finished projects:** copy `eval/datasets/actual_costs_template.csv` to
       `actual_costs.csv`, one row per BOQ item. For steel rows, also fill `element_type` and `concrete_m3`. Then
       run `crag evaluate` (shows how far estimates were off) and `crag learn calibrate`.
-- [ ] More test questions from your engineers: grow `eval/datasets/retrieval_golden.jsonl` from 50 to about 150,
-      and add 20–30 questions with expected answers to `generation_golden.jsonl`.
+- [ ] More test questions from your engineers: grow `eval/datasets/retrieval_golden.jsonl` from 50 to about 150.
+      `generation_golden.jsonl` now has 26 (each with its source page); add your own the same way.
 - [ ] Worked examples you trust (SP 16, your past mix designs) as tests in `tests/unit/test_calculators.py`.
 
 ### 5. Before other people use it

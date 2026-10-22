@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import re
 
+from concrete_rag.chunking import equations
 from concrete_rag.chunking.enrich import grades, tag
 from concrete_rag.parse.is_code import Unit, extract_xrefs
 from concrete_rag.parse.sor import SorParseResult
@@ -141,13 +142,25 @@ def chunk_is_code(doc: SourceDoc, units: list[Unit]) -> list[Chunk]:
                 meta.applicability = sorted(set(meta.applicability + [f"grade:{x}" for x in g]))
             path = " > ".join(([u.section] if u.section else []) + u.heading_path)
             label = f"Clause {num}" if u.kind == "clause" else f"Annex clause {num}"
+            eqs = equations.for_clause(doc.doc_id, num) if pi == 0 else []
+            if eqs:
+                part = f"{part}\n{equations.block(eqs)}"
+                meta.has_equation = True
+                meta.equations = [e["id"] for e in eqs]
             embed = f"{doc.code_label} | {path} | {label} {u.title or ''}\n{part}"
             text = f"{num} {u.title + chr(10) if u.title else ''}{part}"
             suffix = f":p{pi + 1}" if len(parts) > 1 else ""
             chunks.append(Chunk(chunk_id=f"{doc.doc_id}:cl:{num}{suffix}",
                                 chunk_type="clause" if u.kind == "clause" else "annex_clause",
                                 text=text, embed_text=embed, metadata=meta, content_hash=_hash(text)))
-    return _dedupe_ids(chunks)
+    chunks = _dedupe_ids(chunks)
+    checked = equations.table_blocks()
+    for c in chunks:
+        blk = checked.get(c.chunk_id) or checked.get(c.chunk_id.removesuffix(":p1"))
+        if blk:
+            c.text, c.embed_text = f"{c.text}\n{blk}", f"{c.embed_text}\n{blk}"
+            c.content_hash = _hash(c.text)
+    return chunks
 
 
 def _dedupe_ids(chunks: list[Chunk]) -> list[Chunk]:

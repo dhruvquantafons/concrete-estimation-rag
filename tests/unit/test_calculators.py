@@ -92,3 +92,20 @@ def test_boq_steel_item_by_level():
     from concrete_rag.estimate.boq import _cfg
     m = _cfg("boq_mapping")["reinforcement"]
     assert m["below_plinth"] == "5.22.6" and m["above_plinth"] == "5.22A.6"
+
+
+def test_rcc_results_are_labelled_design_aid():
+    from concrete_rag.calc.rcc import DESIGN_AID, FootingInput, SlabInput, design_footing_square, design_slab_one_way
+    for r in (design_beam(BeamInput(b_mm=230, D_mm=450, grade="M25", fy=500, Mu_kNm=90, Vu_kN=80)),
+              design_slab_one_way(SlabInput(span_m=3.5)),
+              design_column_axial(ColumnInput(b_mm=300, D_mm=450, Pu_kN=1500)),
+              design_footing_square(FootingInput(column_b_mm=300, column_D_mm=450, service_load_kN=1200, sbc_kN_m2=200))):
+        assert r.outputs["label"] == "Design aid only"
+        assert r.warnings[0] == DESIGN_AID
+
+
+def test_ai_check_is_not_human_verification():
+    from concrete_rag.calc.code_tables import signed_status
+    assert signed_status("claude-vision (checked against scanned page)") == "ai_checked"
+    assert signed_status("R. Sharma") == "verified"
+    assert signed_status(None) is None

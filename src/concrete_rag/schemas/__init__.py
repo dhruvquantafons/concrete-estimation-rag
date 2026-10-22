@@ -87,6 +87,7 @@ class ChunkMetadata(BaseModel):
     supersedes: list[str] = Field(default_factory=list)
     is_current: bool = True
     has_equation: bool = False
+    equations: list[str] = Field(default_factory=list)   # curated equation ids (config/equations)
     needs_review: bool = False
     review_reasons: list[str] = Field(default_factory=list)
 

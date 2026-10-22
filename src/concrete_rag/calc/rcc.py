@@ -21,6 +21,17 @@ def _R(item: str, status: str = "ocr_confirmed") -> ct.Ref:
     return ct.Ref(code="IS 456", item=item, status=status)
 
 
+DESIGN_AID = ("Design aid only - not a checked structural design; must be reviewed by a qualified structural "
+              "engineer before use.")
+
+
+def _design_aid(res: CalcResult) -> CalcResult:
+    """Every RCC result is labelled, so API consumers (people and downstream AI models) cannot miss it."""
+    res.outputs["label"] = "Design aid only"
+    res.warnings.insert(0, DESIGN_AID)
+    return res.finalize()
+
+
 def xu_max_ratio(fy: float) -> tuple[float, ct.Ref]:
     t = ct.tables()["flexure_38_1"]["xu_max_by_fy"]
     if fy in t:
@@ -190,7 +201,7 @@ def design_beam(inp: BeamInput) -> CalcResult:
                    "tension_bars": f"{n}-{inp.main_bar_dia_mm:g}mm", "Ast_provided_mm2": r2(ast_prov, 0),
                    "pt_percent": r2(pt, 3), "stirrups": f"{inp.stirrup_legs}L-{inp.stirrup_dia_mm:g}mm @ {sv:.0f} mm c/c",
                    "Mu_kNm": r2(Mu), "Vu_kN": r2(Vu), "Mu_lim_kNm": r2(mlim / 1e6)}
-    return res.finalize()
+    return _design_aid(res)
 
 
 # ------------------------------------------------------------------ one-way slab
@@ -253,7 +264,7 @@ def design_slab_one_way(inp: SlabInput) -> CalcResult:
                    "main_bars": f"{inp.bar_dia_mm:g}mm @ {sp_main} mm c/c",
                    "distribution_bars": f"{inp.dist_bar_dia_mm:g}mm @ {sp_dist} mm c/c",
                    "Ast_dist_mm2_per_m": r2(dist, 0)}
-    return res.finalize()
+    return _design_aid(res)
 
 
 # ------------------------------------------------------------------ column
@@ -296,7 +307,7 @@ def design_column_axial(inp: ColumnInput) -> CalcResult:
                    "Pu_capacity_kN": r2((0.4 * fck * (Ag - prov) + 0.67 * fy * prov) / 1e3, 1)}
     res.step("lateral ties", res.outputs["ties"], None, "dia >= max(phi/4, 6 mm); pitch <= min(least dim, 16 phi, 300)",
              [_R("cl. 26.5.3.2")])
-    return res.finalize()
+    return _design_aid(res)
 
 
 # ------------------------------------------------------------------ isolated footing
@@ -353,4 +364,4 @@ def design_footing_square(inp: FootingInput) -> CalcResult:
               f"{Vu1 * 1e3 / (B * 1000 * d):.3f} <= {tc1:.3f}", [_R("cl. 34.2.4.1 a")])
     res.outputs = {"B_m": B, "D_mm": d + inp.clear_cover_mm + inp.bar_dia_mm, "d_mm": d,
                    "bars_each_way": f"{n}-{inp.bar_dia_mm:g}mm @ {sp} mm c/c", "Ast_each_way_mm2": r2(ast, 0)}
-    return res.finalize()
+    return _design_aid(res)

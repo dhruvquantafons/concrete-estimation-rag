@@ -4,3 +4,23 @@
 {"id": "g04", "query": "Up to what size of opening is no deduction made in measuring concrete under IS 1200 Part 2?", "expect": ["0.1"]}
 {"id": "g05", "query": "What is the minimum reinforcement in slabs with HYSD bars?", "expect": ["0.12"]}
 {"id": "g06", "query": "What is the CPWD DSR 2023 rate for M25 design mix concrete above plinth level up to floor V?", "expect": ["9860"]}
+{"id": "g07", "query": "What is the maximum spacing of vertical stirrups in a beam as per IS 456?", "expect": ["0.75", "300"], "source": "IS 456 cl. 26.5.1.5 (pdf p.60-61)"}
+{"id": "g08", "query": "What is the design bond stress for plain bars in tension in M25 concrete in limit state design?", "expect": ["1.4"], "source": "IS 456 cl. 26.2.1.1 (pdf p.56)"}
+{"id": "g09", "query": "By what percentage is the design bond stress increased for deformed bars conforming to IS 1786?", "expect": ["60"], "source": "IS 456 cl. 26.2.1.1 (pdf p.56)"}
+{"id": "g10", "query": "What is the maximum shear stress tau c,max for M30 concrete as per IS 456 Table 20?", "expect": ["3.5"], "source": "IS 456 Table 20 (pdf p.86)"}
+{"id": "g11", "query": "What minimum eccentricity shall all columns be designed for as per IS 456?", "expect": ["500", "30", "20"], "source": "IS 456 cl. 25.4 (pdf p.55)"}
+{"id": "g12", "query": "What is the basic span to effective depth ratio for a simply supported beam for spans up to 10 m?", "expect": ["20"], "source": "IS 456 cl. 23.2.1 (pdf p.50)"}
+{"id": "g13", "query": "How is the strength of vertical stirrups Vus calculated in IS 456 shear design?", "expect": ["0.87"], "source": "IS 456 cl. 40.4 (pdf p.86), curated equation is456_40_4_vus"}
+{"id": "g14", "query": "What is the minimum and maximum percentage of longitudinal reinforcement in a column?", "expect": ["0.8", "6"], "source": "IS 456 cl. 26.5.3.1 (pdf p.61)"}
+{"id": "g15", "query": "What is the minimum nominal cover for footings as per IS 456?", "expect": ["50"], "source": "IS 456 cl. 26.4.2.2 (pdf p.59)"}
+{"id": "g16", "query": "What is the value of factor X for M25 concrete in IS 10262:2019?", "expect": ["5.5"], "source": "IS 10262 Table 1 (pdf p.5)"}
+{"id": "g17", "query": "What is the water content per cubic metre of concrete for 20 mm nominal maximum size aggregate in IS 10262?", "expect": ["186"], "source": "IS 10262 Table 4 (pdf p.7)"}
+{"id": "g18", "query": "What is the volume of coarse aggregate per unit volume of total aggregate for 20 mm aggregate with Zone II fine aggregate at w/c 0.50?", "expect": ["0.62"], "source": "IS 10262 Table 5 (pdf p.8)"}
+{"id": "g19", "query": "In the aggregate impact value test, from what height does the hammer fall and how many blows are given?", "expect": ["380", "15"], "source": "IS 2386 Part 4 cl. 4.4.3 (pdf p.17)"}
+{"id": "g20", "query": "How is the load required for 10 percent fines calculated in IS 2386?", "expect": ["14"], "source": "IS 2386 Part 4 cl. 3.5 (pdf p.14), curated equation is2386_p4_3_5_ten_percent_fines"}
+{"id": "g21", "query": "To what accuracy shall the thickness of a slab be measured under IS 1200 Part 2?", "expect": ["0.005"], "source": "IS 1200 Part 2 cl. 3.5.1 (pdf p.3)"}
+{"id": "g22", "query": "Up to what size of opening is no deduction made in measuring formwork under IS 1200 Part 5?", "expect": ["0.4"], "source": "IS 1200 Part 5 cl. 6.5 (pdf p.5)"}
+{"id": "g23", "query": "What is the CPWD DSR 2023 rate for centering and shuttering of suspended floors and roofs (item 5.9.3)?", "expect": ["927.25"], "source": "CPWD DSR 2023 item 5.9.3 (rate confirmed)"}
+{"id": "g24", "query": "What is the CPWD DSR 2023 rate for M25 design mix concrete in Mumbai?", "expect": [], "expect_refusal": true, "source": "unanswerable: only Delhi rates are in the corpus"}
+{"id": "g25", "query": "What is the seismic zone factor for zone IV as per IS 1893?", "expect": [], "expect_refusal": true, "source": "unanswerable: IS 1893 is not in the corpus"}
+{"id": "g26", "query": "What fire resistance rating does IS 1642 give for a 230 mm brick wall?", "expect": [], "expect_refusal": true, "source": "unanswerable: IS 1642 (fire safety) is not in the corpus"}

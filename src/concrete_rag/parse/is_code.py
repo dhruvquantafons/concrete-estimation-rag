@@ -31,7 +31,7 @@ WATERMARK_RE = re.compile(r"Free Standard provided by BIS|BSB Edge|Supplied by B
 SECTION_RE = re.compile(r"^SECTION\s+(\d+)\s*(.*)$")
 ANNEX_RE = re.compile(r"^ANNEX\s+([A-Z])\b\s*(.*)$")
 CLAUSE_RE = re.compile(r"^(\d{1,2}(?:\s?[.,]\s?\d{1,2}){0,5})[.,]?\s+(.*)$|^(\d{1,2}(?:\.\d{1,2}){0,5})[.,]?$")
-ANNEX_CLAUSE_RE = re.compile(r"^([A-Z])\s?[-–—]\s?(\d{1,2}(?:\.\d{1,2}){0,4})[.,]?\s*(.*)$")
+ANNEX_CLAUSE_RE = re.compile(r"^([A-Z])\s?[-–—]\s?(\d{1,2}(?:\s?[.,]\s?\d{1,2}){0,4})[.,]?\s*(.*)$")
 TABLE_RE = re.compile(r"^(?:Tab[l1I|]e|TAB[L1I|]E)\s+(\d{1,2}[A-Z]?|[IVXLTfl1]{1,6})\b\.?\s*(.*)$")
 CAPTION_RE = re.compile(r"^\(\s*(?:Clauses?|Clause»|Foreword)\b(.*)\)?\s*$", re.I)
 NOTES_RE = re.compile(r"^NOTES?\b\s*[-—–:]*\s*(.*)$")
@@ -225,7 +225,7 @@ class ISCodeParser:
         m = ANNEX_CLAUSE_RE.match(text)
         if not m or self.annex is None or m.group(1) != self.annex:
             return None
-        num = m.group(2)
+        num = _norm_clause(m.group(2))          # OCR "G-1,1" -> G-1.1
         prev = self.prev_annex_clause.get(self.annex)
         if prev is not None and successor_cost(prev, num) > 2.5:
             return None

@@ -12,12 +12,15 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import re
 import time
 
 from concrete_rag.config import get_settings
 from concrete_rag.eval.retrieval_metrics import aggregate, score_query
 
 THRESHOLDS = {"hybrid+rerank": {"recall": 0.75, "mrr": 0.60}}
+REFUSAL_RE = re.compile(r"\b(?:do(?:es)? not|don't|cannot|can't|not (?:contain|provide|mention|include|available|"
+                        r"given|found|covered)|no (?:information|data|mention))\b", re.I)
 
 
 def _load(name: str) -> list[dict]:
@@ -61,12 +64,17 @@ def eval_generation(log=print) -> dict:
     for q in gold:
         r = answer(q["query"])
         judge = _judge(llm, q["query"], r)
-        rows.append({"id": q["id"], "faithful_numbers": r["verification"]["faithful_numbers"],
-                     "cites": bool(r["citations"]),
-                     "contains_expected": all(e.lower() in r["answer"].lower() for e in q.get("expect", [])),
-                     **judge})
-    agg = {}
-    for k in ("faithful_numbers", "cites", "contains_expected", "judge_faithfulness", "judge_context_relevance"):
+        row = {"id": q["id"], "faithful_numbers": r["verification"]["faithful_numbers"], **judge}
+        if q.get("expect_refusal"):      # not in the corpus: the answer must say so, not cite or invent
+            row["refused"] = bool(REFUSAL_RE.search(r["answer"]))
+        else:
+            row["cites"] = bool(r["citations"])
+            plain = re.sub(r"(?<=\d),(?=\d{2})", "", r["answer"]).lower()   # "9,860.40", "1,23,456" -> no commas
+            row["contains_expected"] = all(e.lower() in plain for e in q.get("expect", []))
+        rows.append(row)
+    agg = {"questions": len(rows)}
+    for k in ("faithful_numbers", "cites", "contains_expected", "refused", "judge_faithfulness",
+              "judge_context_relevance"):
         vals = [float(r[k]) for r in rows if r.get(k) is not None]      # a judge failure is not a score of 0
         agg[k] = round(sum(vals) / len(vals), 3) if vals else None
     agg["judge_errors"] = sum(1 for r in rows if "judge_error" in r)

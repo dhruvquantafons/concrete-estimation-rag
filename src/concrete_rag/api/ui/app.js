@@ -91,7 +91,7 @@ function loading(text = "Working…") { return h("div", { class: "loading" }, h(
 function errorBox(e) { return h("div", { class: "alert bad", style: { whiteSpace: "pre-wrap" } }, errText(e)); }
 
 function statusBadge(status) {
-  const map = { verified: ["ok", "verified"], ocr_confirmed: ["accent", "OCR-confirmed"], partially_confirmed: ["warn", "partially confirmed"],
+  const map = { verified: ["ok", "verified"], ai_checked: ["accent", "AI-checked, needs human sign-off"], ocr_confirmed: ["accent", "OCR-confirmed"], partially_confirmed: ["warn", "partially confirmed"],
     unconfirmed: ["bad", "unconfirmed"], confirmed: ["ok", "confirmed"], review: ["warn", "needs review"] };
   const [cls, label] = map[status] || ["", status];
   return h("span", { class: "badge " + cls }, label);
@@ -201,7 +201,7 @@ function fieldInput(field, p, def, required) {
 // ------------------------------------------------------------------ calculator result rendering
 function refList(refs) {
   if (!refs || !refs.length) return null;
-  return h("span", { class: "ref" }, refs.map((r) => h("span", { class: "badge " + ({ verified: "ok", ocr_confirmed: "accent", partially_confirmed: "warn" }[r.status] || "bad"),
+  return h("span", { class: "ref" }, refs.map((r) => h("span", { class: "badge " + ({ verified: "ok", ai_checked: "accent", ocr_confirmed: "accent", partially_confirmed: "warn" }[r.status] || "bad"),
     title: `${r.status}${r.note ? " - " + r.note : ""}`, style: { marginRight: "4px" } }, `${r.code}, ${r.item}`)));
 }
 function valueCell(v) {
@@ -272,7 +272,7 @@ const LOGO = () => { const d = h("span", { class: "logo" }); d.innerHTML = '<svg
 const PAGES = [
   { id: "search", label: "Search codes", ico: "search", scope: "retrieve" },
   { id: "mix", label: "Mix design", ico: "flask", scope: "calc" },
-  { id: "design", label: "RCC design", ico: "beam", scope: "calc" },
+  { id: "design", label: "RCC design (aid)", ico: "beam", scope: "calc" },
   { id: "estimate", label: "Estimate / BOQ", ico: "rupee", scope: "estimate" },
   { id: "rates", label: "DSR rates", ico: "list", scope: "estimate" },
   { id: "tables", label: "Code tables", ico: "table", scope: "calc" },
@@ -331,7 +331,7 @@ function renderChrome() {
         h("p", { class: "blurb" }, "Code-compliant mix design, RCC design and cost estimates for concrete works — every number cited to IS codes and the CPWD Delhi Schedule of Rates."),
         h("div", { class: "boxed" }, h("b", { style: { color: "#fff" } }, "LLM: ", S.overview ? S.overview.llm_provider : "—"), h("br"),
           S.overview && S.overview.llm_provider === "fake" ? "Running offline. Answers are extractive until an LLM is configured in .env." : "Answers are generated with citations and number checks.")),
-      col("Tools", [["Search codes", "#/search"], ["Mix design", "#/mix"], ["RCC design", "#/design"], ["Estimate / BOQ", "#/estimate"]]),
+      col("Tools", [["Search codes", "#/search"], ["Mix design", "#/mix"], ["RCC design (aid)", "#/design"], ["Estimate / BOQ", "#/estimate"]]),
       col("Standards", [["IS 456 : 2000", "#/search?code=IS%20456&q=scope"], ["IS 10262 : 2019", "#/search?code=IS%2010262&q=mix%20proportioning"], ["IS 1200 (Parts 1–22)", "#/search?code=IS%201200&q=method%20of%20measurement"], ["IS 2386 (Parts 1–8)", "#/search?code=IS%202386&q=methods%20of%20test"], ["CPWD DSR 2023", "#/rates"]]),
       col("Data quality", [["Review queue", "#/review"], ["Code tables", "#/tables"], ["DSR rates", "#/rates"]]),
       col("Developers", [["API documentation", "/docs"], ["OpenAPI schema", "/openapi.json"], ["Health", "/health"]])),
@@ -603,8 +603,9 @@ async function pageDesign(main) {
         try { out.replaceChildren(renderCalc(await api(kd.ep, { method: "POST", body: form.value() }))); } catch (e) { out.replaceChildren(errorBox(e)); }
       } }, `Design ${kd.label.toLowerCase()}`))), out);
   };
-  main.replaceChildren(h("h1", {}, "RCC element design"),
-    h("p", { class: "sub" }, "IS 456 : 2000 limit-state design aids with clause-referenced checks. Results must be reviewed by a qualified structural engineer."),
+  main.replaceChildren(h("h1", {}, "RCC element design (Design aid only)"),
+    h("p", { class: "sub" }, "IS 456 : 2000 limit-state design aids with clause-referenced checks."),
+    h("div", { class: "alert warn section" }, h("b", {}, "Design aid only. "), "Not a checked structural design. Every result must be reviewed by a qualified structural engineer before use."),
     tabs, body);
   show();
 }
@@ -947,7 +948,8 @@ async function pageTables(main) {
 }
 function tableCard(t, checker) {
   const v = t.verification || {};
-  const status = t.verified_by ? "verified" : v.status;
+  const status = v.status || (t.verified_by ? "verified" : "unconfirmed");
+  const human = status === "verified";                  // ai_checked tables still need a person's sign-off
   const name = h("input", { value: checker, placeholder: "your name", style: { width: "180px" } });
   return h("div", { class: "card" },
     h("div", { class: "row" }, h("h2", { style: { margin: 0 } }, `${t.source.code} — ${t.source.table ? "Table " + t.source.table : t.source.figure ? "Fig. " + t.source.figure : "cl. " + (t.source.clause || (t.source.clauses || []).join(", "))}`),
@@ -956,12 +958,14 @@ function tableCard(t, checker) {
       t.source_page ? h("button", { class: "small", onclick: () => showSourcePage(t.source_page.doc_id, t.source_page.page, t.title) }, "Compare with page ↗") : null),
     h("p", { class: "muted", style: { margin: "6px 0 10px" } }, t.title),
     renderTableValues(t.values),
-    (v.mismatches || []).length && !t.verified_by ? h("div", { class: "alert warn", style: { marginTop: "10px" } }, h("b", {}, "Not found in the OCR text (check these against your copy):"),
+    (v.mismatches || []).length && !human ? h("div", { class: "alert warn", style: { marginTop: "10px" } }, h("b", {}, "Not found in the OCR text (check these against your copy):"),
       h("ul", {}, v.mismatches.map((m) => h("li", { class: "mono" }, m)))) : null,
     h("div", { class: "row", style: { marginTop: "12px" } },
-      t.verified_by ? h("span", { class: "badge ok" }, `Signed off by ${t.verified_by} on ${t.verified_on}`) : h("span", { class: "muted" }, "Not yet signed off."),
+      human ? h("span", { class: "badge ok" }, `Signed off by ${t.verified_by} on ${t.verified_on}`)
+        : t.verified_by ? h("span", { class: "muted" }, `Checked by ${t.verified_by} on ${t.verified_on}. Not yet signed off by a person.`)
+        : h("span", { class: "muted" }, "Not yet signed off."),
       h("span", { class: "spacer" }),
-      can("admin") && !t.verified_by ? [name, h("button", { class: "primary small", onclick: async () => {
+      can("admin") && !human ? [name, h("button", { class: "primary small", onclick: async () => {
         if (name.value.trim().length < 2) return toast("Enter your name.", true);
         try { await api(`/v1/admin/code-tables/${t.name}/sign-off`, { method: "POST", body: { verified_by: name.value.trim() } }); toast("Signed off."); route(); }
         catch (e) { toast(errText(e), true); } } }, "I compared this with the standard — sign off")] : null));

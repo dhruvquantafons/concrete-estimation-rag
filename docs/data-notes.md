@@ -7,12 +7,12 @@ For the overview, see the [README](../README.md).
 
 | Document | What was extracted |
 |---|---|
-| IS 456 : 2000 (114 pages, old scan, re-OCR'd) | 441 clauses, 67 annex clauses, 28 tables, 21 amendment entries (Amendments 1–3) |
-| IS 10262 : 2019 (digital PDF) | 77 clauses, 84 annex clauses (worked examples A–F), 15 tables |
+| IS 456 : 2000 (114 pages, old scan, re-OCR'd) | 455 clauses, 68 annex clauses, 28 tables, 21 amendment entries (Amendments 1–3) |
+| IS 10262 : 2019 (digital PDF) | 81 clauses, 94 annex clauses (worked examples A–F), 15 tables |
 | IS 1200 Parts 1, 2, 5, 8, 22 | 207 clauses (+ Part 8 Amendment 1) |
 | IS 2386 Parts 1–8 + 2 amendment slips | 447 clauses, 15 tables, 29 amendment entries |
 | CPWD DSR 2023 Volumes 1 and 2 (804 pages, 96-dpi scan, English and Hindi pages) | 2,955 items, 2,439 basic rates (labour, materials, hire), 346 cement-consumption coefficients |
-| Search index | 6,899 chunks |
+| Search index | 6,927 chunks |
 
 The review queue is empty. `config/corrections/cpwd_dsr_2023.yaml` holds about 770 checked fixes, which are
 re-applied every time the DSR is ingested.
@@ -30,6 +30,68 @@ re-applied every time the DSR is ingested.
   from OCR. `crag verify-tables` cross-checks them against the OCR text, and each one has a sign-off.
 
 ## Fix history
+
+### 2026-10-22
+
+**Code tables re-checked, and AI checks no longer count as human sign-off.** Every curated value was compared
+with the rendered page again, value by value. All match:
+
+- IS 456: Tables 5, 6, 16, 18, 19 (78 values) and 20; cl. 26.2.1.1; the cl. 38.1 xu,max/d note; and the
+  detailing limits.
+- IS 10262 (digital PDF): Tables 1 to 5, newly checked.
+
+Until now, a table signed `claude-vision` showed as **verified**, the status meant for a person's sign-off.
+It now shows as **ai_checked** ("AI-checked, needs human sign-off"). Only a person's own name gives
+**verified**. Two related fixes:
+
+- The Code tables screen hid the sign-off button on AI-checked tables, so they could never be signed by a
+  person. It now shows the button.
+- The sign-off API refuses `claude-vision` as a name.
+
+**IS 10262 Fig. 1 re-measured independently.** A second digitizer, with its own grid fit, measured all 51 stored
+points. The largest difference was 0.28 N/mm² and the mean 0.10, inside the stated ±0.3, so nothing changed. The
+image `data/processed/fig1_overlay.png` (git-ignored; it is part of the BIS figure) draws the stored points over
+the figure, for checking against the printed copy.
+
+**Equations readable.** The OCR of printed formulas in the scanned codes was unusable. For example,
+cl. 26.2.1 read "L = 95s" for Ld = φ σs / (4 τbd), and cl. 39.3 read "PL = O4F,.A,+0.67F, A,". The fix:
+
+- 46 equations, each read from its page, are now in `config/equations/`: 29 from IS 456 (cl. 6.2.2 to
+  Annex G) and 17 IS 2386 test-result formulas.
+- `crag ingest` adds each equation to its clause chunk, labelled with its check status. The OCR text stays, so
+  the citation still matches the page.
+- IS 10262 is a digital PDF, and its equations were already readable.
+
+**Checked table values added to garbled table chunks.** The new answer tests showed the local model inventing
+values for IS 456 Table 20 (3.2 instead of 3.5 for M30) and cl. 26.2.1.1 (6.0 instead of 1.4 for M25). The
+OCR text of those tables was garbled ("1.5 1.8 2.0"), so the model had no correct numbers to read.
+
+- On ingest, each curated code table's page-checked values are now added to its source chunk, labelled with
+  their check status. That covers 11 chunks: IS 456 Tables 5, 16, 19, 20, cl. 26.2.1.1 and cl. 38.1, and
+  IS 10262 Tables 1–5.
+- The OCR text and the table JSON are unchanged.
+
+**Two-column reading order fixed** (`ingest/layout.py`, `parse/is_code.py`). On IS 456 page 85,
+cl. 39.7.1.1, 40, 40.1 and 40.1.1 had been merged into the chunk for cl. 40.2.1.1, and G-1.1 into G-1. All IS
+codes were re-ingested and every changed chunk was compared with the previous version. Four causes were fixed:
+
+- **A column's last word beside a table row.** When the last word of a left-column paragraph sat on the same
+  baseline as a row of a right-column table, the gap across the gutter counted as a table gap. The line was then
+  read as a full-width table row, which put the right column before the rest of the left. The gutter gap no
+  longer counts as a table gap.
+- **OCR comma in annex clause numbers.** "G-1,1" now reads as G-1.1, as main clause numbers already did.
+- **"Label : value" rows across the page.** In the IS 10262 worked examples (A-1, B-1, B-2, D-1 …), rows like
+  "Grade designation : M40" are now kept together. Before, the labels and values ended up in separate runs.
+- **Full-width sentences on digital pages.** Where ordinary word spacing happens to sit on the gutter (IS 10262
+  B-0, captions, the BIS watermark line), the line is no longer split. This applies to digital pages only.
+  Scanned pages have column edges too ragged for this test: trying it there wrongly merged IS 456 cl. 26.5.1.2
+  into 26.5.1.4, so it was dropped for scans.
+
+Result: 45 clauses now have chunks of their own, where before they were inside a neighbour. In IS 456 they are
+cl. 2, 3, 11.1, 11.2, 23.2, 28.2.2/3, 39.7.1.1, 40.1, 40.1.1, 41.3.2 to 41.4.2 and G-1.1. In IS 10262 they are
+6.1.1 to 6.1.3 and the worked-example steps B-4/B-5, C-4 to C-6 and D-3 to F-6. The BIS watermark, which carries
+the licence holder's name, no longer leaks into 8 IS 1200 chunks. The `attach_to` workaround was removed from
+`config/equations/`, and all 46 equations now sit on their own clause.
 
 ### 2026-10-21
 

@@ -18,7 +18,7 @@ State PWD SORs, market rate feeds, historical project costs.
 
 1. Citation-backed retrieval (clause / table / annex / amendment / SOR item level).
 2. Concrete mix proportioning — IS 10262:2019 Section 2 with IS 456 durability limits.
-3. RCC element design aids — beams (flexure, shear), one-way slabs, short axial columns, isolated footings (IS 456).
+3. RCC element design aids (labelled **Design aid only** in the API and UI) — beams (flexure, shear), one-way slabs, short axial columns, isolated footings (IS 456).
 4. Quantity take-off — IS 1200 Parts 2/5/8 rules (rounding, deductions, formwork contact area, steel mass).
 5. Rate lookup + location cost index; DAR-style rate analysis engine (templates to be filled from DAR).
 6. BOQ, cost summary, cement consumption statement, indicative cost-head split; Excel/PDF export.
@@ -42,7 +42,9 @@ State PWD SORs, market rate feeds, historical project costs.
 ## Known limitations (by design, surfaced to users)
 
 * IS 10262 Fig. 1 (w/c vs strength curves) cannot be extracted from text; w/c is an input until the curves are digitized.
-* Curated IS 456 tables are `ocr_confirmed` / `partially_confirmed` until a human signs them off.
+* Curated code tables are `ai_checked` (compared with the page by AI vision) until a person signs them off.
 * Indicative cost-head split uses basic rates × mix quantities; a full labour/T&P split needs DAR 2023.
-* Equations in scanned codes are kept as OCR text (flag `has_equation`), not LaTeX.
-* RCC calculators are design aids (no slenderness/biaxial columns, two-way slabs, or deflection modification factors).
+* Equations in scanned codes: the OCR text is kept, and 46 key equations (IS 456, IS 2386) read from the pages are
+  added beside it from `config/equations/` (plain text + LaTeX). Others remain OCR text only.
+* RCC calculators are design aids only (no slender or biaxially loaded columns, two-way slabs, or flanged beams).
+  Deflection uses the span/depth ratios with the Fig. 4/5 modification factors (cl. 23.2.1), not a calculated deflection.

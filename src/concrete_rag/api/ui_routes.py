@@ -145,6 +145,9 @@ class SignOff(BaseModel):
 
 @router.post("/admin/code-tables/{name}/sign-off", tags=["admin"])
 def sign_off(name: str, body: SignOff, _=Depends(require("admin"))):
+    from concrete_rag.calc.code_tables import signed_status
+    if signed_status(body.verified_by) != "verified":
+        raise HTTPException(422, "sign off with your own name; AI checks are recorded separately")
     if not re.fullmatch(r"[a-z0-9_]+", name):
         raise HTTPException(400, "bad table name")
     return review.sign_off_table(name, body.verified_by)

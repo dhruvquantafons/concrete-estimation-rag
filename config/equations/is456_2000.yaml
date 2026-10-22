@@ -1,0 +1,261 @@
+# Curated equations from IS 456 : 2000 (legacy scan). The OCR text of printed formulas is unreadable
+# (e.g. cl. 26.2.1 "L = 95s" for Ld = φ σs / (4 τbd)), so each equation here was read from the scanned page
+# and is added beside the clause's OCR text at chunking time (chunking/equations.py). The OCR text is kept, so
+# the citation still matches the page.
+#
+#   clause : the clause the equation belongs to; it is added to that clause's chunk
+#   page   : PDF page (1-based) the equation was checked on
+#
+# checked_by "claude-vision ..." = AI vision check, not a human sign-off.
+checked_by: "claude-vision (checked against scanned page)"
+checked_on: "2026-10-22"
+equations:
+  - id: is456_6_2_2_fcr
+    doc_id: IS456_2000
+    clause: "6.2.2"
+    page: 29
+    text: "Flexural strength fcr = 0.7 √fck  (N/mm²)"
+    latex: 'f_{cr} = 0.7\sqrt{f_{ck}}'
+    variables: {fck: characteristic cube compressive strength of concrete (N/mm²)}
+
+  - id: is456_6_2_3_1_ec
+    doc_id: IS456_2000
+    clause: "6.2.3.1"
+    page: 29
+    text: "Ec = 5000 √fck  (N/mm²); actual measured values may differ by ±20 percent"
+    latex: 'E_c = 5000\sqrt{f_{ck}}'
+    variables: {Ec: short term static modulus of elasticity (N/mm²), fck: characteristic cube compressive strength (N/mm²)}
+
+  - id: is456_23_1_2_flange_width
+    doc_id: IS456_2000
+    clause: "23.1.2"
+    page: 50
+    text: >-
+      Effective flange width: T-beams bf = l0/6 + bw + 6 Df; L-beams bf = l0/12 + bw + 3 Df.
+      Isolated beams: T-beam bf = l0 / (l0/b + 4) + bw; L-beam bf = 0.5 l0 / (l0/b + 4) + bw (not greater than the actual width)
+    latex: 'b_f = \frac{l_0}{6} + b_w + 6D_f;\quad b_f = \frac{l_0}{12} + b_w + 3D_f;\quad b_f = \frac{l_0}{l_0/b + 4} + b_w;\quad b_f = \frac{0.5\,l_0}{l_0/b + 4} + b_w'
+    variables: {bf: effective width of flange, l0: distance between points of zero moments (0.7 x effective span for continuous beams), bw: breadth of web, Df: thickness of flange, b: actual width of flange}
+
+  - id: is456_25_3_2_cantilever_column
+    doc_id: IS456_2000
+    clause: "25.3.2"
+    page: 55
+    text: "If one end of a column is unrestrained, its unsupported length l shall not exceed 100 b² / D"
+    latex: 'l \le \frac{100\,b^2}{D}'
+    variables: {l: unsupported length, b: width of the cross-section, D: depth of the cross-section in the plane under consideration}
+
+  - id: is456_25_4_emin
+    doc_id: IS456_2000
+    clause: "25.4"
+    page: 55
+    text: "Minimum eccentricity e_min = l/500 + D/30, subject to a minimum of 20 mm"
+    latex: 'e_{min} = \frac{l}{500} + \frac{D}{30} \ge 20\ \text{mm}'
+    variables: {l: unsupported length of column, D: lateral dimension in the direction considered}
+
+  - id: is456_26_2_1_ld
+    doc_id: IS456_2000
+    clause: "26.2.1"
+    page: 55
+    text: "Development length Ld = φ σs / (4 τbd)"
+    latex: 'L_d = \frac{\phi\,\sigma_s}{4\,\tau_{bd}}'
+    variables: {φ: nominal diameter of the bar, σs: stress in bar at the section considered at design load, τbd: design bond stress (26.2.1.1)}
+
+  - id: is456_26_2_2_5_bearing
+    doc_id: IS456_2000
+    clause: "26.2.2.5"
+    page: 56
+    text: >-
+      Bearing stress inside a bend = Fbt / (r φ); for limit state design it shall not exceed 1.5 fck / (1 + 2φ/a);
+      for working stress design fck / (1 + 2φ/a)
+    latex: '\frac{F_{bt}}{r\phi} \le \frac{1.5 f_{ck}}{1 + 2\phi/a}'
+    variables: {Fbt: tensile force due to design loads in a bar or group of bars, r: internal radius of the bend, φ: size of bar (or equivalent bundle), a: centre-to-centre distance between bars perpendicular to the plane of the bend (cover + φ for bars adjacent to the face)}
+
+  - id: is456_26_5_1_1_ast_min
+    doc_id: IS456_2000
+    clause: "26.5.1.1"
+    page: 60
+    text: "Beams: minimum tension reinforcement As / (b d) = 0.85 / fy; maximum tension reinforcement 0.04 b D"
+    latex: '\frac{A_s}{bd} = \frac{0.85}{f_y};\quad A_{s,max} = 0.04\,bD'
+    variables: {As: minimum area of tension reinforcement, b: breadth of beam or web of T-beam, d: effective depth, fy: characteristic strength of reinforcement (N/mm²), D: overall depth}
+
+  - id: is456_26_5_1_6_asv_min
+    doc_id: IS456_2000
+    clause: "26.5.1.6"
+    page: 61
+    text: "Minimum shear reinforcement Asv / (b sv) ≥ 0.4 / (0.87 fy), fy not taken greater than 415 N/mm²"
+    latex: '\frac{A_{sv}}{b\,s_v} \ge \frac{0.4}{0.87 f_y}'
+    variables: {Asv: total cross-sectional area of stirrup legs effective in shear, sv: stirrup spacing, b: breadth of beam or web, fy: characteristic strength of stirrup reinforcement (≤ 415 N/mm²)}
+
+  - id: is456_31_6_3_1_punching
+    doc_id: IS456_2000
+    clause: "31.6.3.1"
+    page: 72
+    text: >-
+      Flat slab shear: permissible ks τc, where ks = 0.5 + βc (not greater than 1) and
+      τc = 0.25 √fck (limit state), 0.16 √fck (working stress)
+    latex: 'k_s = 0.5 + \beta_c \le 1;\quad \tau_c = 0.25\sqrt{f_{ck}}'
+    variables: {βc: ratio of short side to long side of the column/capital, fck: characteristic cube compressive strength (N/mm²)}
+
+  - id: is456_34_3_1_central_band
+    doc_id: IS456_2000
+    clause: "34.3.1"
+    page: 78
+    text: "Rectangular footing, short direction: reinforcement in central band / total reinforcement in short direction = 2 / (β + 1)"
+    latex: '\frac{A_{central}}{A_{short}} = \frac{2}{\beta + 1}'
+    variables: {β: ratio of the long side to the short side of the footing}
+
+  - id: is456_34_4_bearing
+    doc_id: IS456_2000
+    clause: "34.4"
+    page: 78
+    text: "Bearing at column base: permissible bearing stress in direct compression x √(A1/A2), but not greater than 2"
+    latex: '\sqrt{A_1 / A_2} \le 2'
+    variables: {A1: supporting area for bearing of footing, A2: loaded area at the column base}
+
+  - id: is456_36_3_design_values
+    doc_id: IS456_2000
+    clause: "36.3.1"
+    page: 81
+    text: "Design strength fd = f / γm; design load Fd = F γf (36.3.2)"
+    latex: 'f_d = \frac{f}{\gamma_m};\quad F_d = F\,\gamma_f'
+    variables: {f: characteristic strength of the material, γm: partial safety factor for material (1.5 concrete; 1.15 steel), F: characteristic load, γf: partial safety factor for loads (Table 18)}
+
+  - id: is456_37_1_1_redistribution
+    doc_id: IS456_2000
+    clause: "37.1.1"
+    page: 82
+    text: "Moment redistribution: xu/d + δM/100 ≤ 0.6"
+    latex: '\frac{x_u}{d} + \frac{\delta M}{100} \le 0.6'
+    variables: {xu: depth of neutral axis, d: effective depth, δM: percentage reduction in moment}
+
+  - id: is456_38_1_strain
+    doc_id: IS456_2000
+    clause: "38.1"
+    page: 82
+    text: >-
+      Flexure assumptions: maximum concrete strain 0.0035; stress block area 0.36 fck xu acting at 0.42 xu from the
+      compression face; minimum strain in tension steel at failure fy / (1.15 Es) + 0.002
+    latex: '\varepsilon_{cu} = 0.0035;\quad C = 0.36 f_{ck} x_u \text{ at } 0.42 x_u;\quad \varepsilon_s \ge \frac{f_y}{1.15 E_s} + 0.002'
+    variables: {fck: characteristic compressive strength, xu: depth of neutral axis, fy: characteristic strength of steel, Es: modulus of elasticity of steel (200 000 N/mm²)}
+
+  - id: is456_39_3_pu
+    doc_id: IS456_2000
+    clause: "39.3"
+    page: 84
+    text: "Short axially loaded column (e_min ≤ 0.05 x lateral dimension): Pu = 0.4 fck Ac + 0.67 fy Asc"
+    latex: 'P_u = 0.4 f_{ck} A_c + 0.67 f_y A_{sc}'
+    variables: {Pu: axial load on the member, fck: characteristic compressive strength of concrete, Ac: area of concrete, fy: characteristic strength of compression reinforcement, Asc: area of longitudinal reinforcement}
+
+  - id: is456_39_4_1_helical
+    doc_id: IS456_2000
+    clause: "39.4.1"
+    page: 84
+    text: "Helical reinforcement: volume of helix / volume of core ≥ 0.36 (Ag/Ak − 1) fck/fy (strength = 1.05 x tied column, 39.4)"
+    latex: '\frac{V_{helix}}{V_{core}} \ge 0.36\left(\frac{A_g}{A_k} - 1\right)\frac{f_{ck}}{f_y}'
+    variables: {Ag: gross area of the section, Ak: area of the core measured to the outside diameter of the helix, fck: characteristic compressive strength, fy: characteristic strength of helical reinforcement (≤ 415 N/mm²)}
+
+  - id: is456_39_6_biaxial
+    doc_id: IS456_2000
+    clause: "39.6"
+    page: 84
+    text: >-
+      Biaxial bending: (Mux/Mux1)^αn + (Muy/Muy1)^αn ≤ 1.0, with Puz = 0.45 fck Ac + 0.75 fy Asc;
+      αn = 1.0 for Pu/Puz ≤ 0.2, 2.0 for Pu/Puz ≥ 0.8, linear in between
+    latex: '\left[\frac{M_{ux}}{M_{ux1}}\right]^{\alpha_n} + \left[\frac{M_{uy}}{M_{uy1}}\right]^{\alpha_n} \le 1.0;\quad P_{uz} = 0.45 f_{ck} A_c + 0.75 f_y A_{sc}'
+    variables: {"Mux, Muy": moments about x and y axes due to design loads, "Mux1, Muy1": maximum uniaxial moment capacity for axial load Pu, αn: exponent related to Pu/Puz}
+
+  - id: is456_39_7_1_slender
+    doc_id: IS456_2000
+    clause: "39.7.1"
+    page: 84
+    text: "Slender columns, additional moments: Max = (Pu D / 2000) (lex/D)²; May = (Pu b / 2000) (ley/b)²"
+    latex: 'M_{ax} = \frac{P_u D}{2000}\left(\frac{l_{ex}}{D}\right)^2;\quad M_{ay} = \frac{P_u b}{2000}\left(\frac{l_{ey}}{b}\right)^2'
+    variables: {Pu: axial load, "lex, ley": effective lengths about major and minor axes, D: depth at right angles to the major axis, b: width of the member}
+
+  - id: is456_39_7_1_1_k
+    doc_id: IS456_2000
+    clause: "39.7.1.1"
+    page: 85
+    text: "Reduction factor for additional moments: k = (Puz − Pu) / (Puz − Pb) ≤ 1"
+    latex: 'k = \frac{P_{uz} - P_u}{P_{uz} - P_b} \le 1'
+    variables: {Pu: axial load, Puz: as defined in 39.6, Pb: axial load at balanced failure (concrete strain 0.0035; tension steel strain 0.002)}
+
+  - id: is456_40_1_tau_v
+    doc_id: IS456_2000
+    clause: "40.1"
+    page: 85
+    text: "Nominal shear stress τv = Vu / (b d)"
+    latex: '\tau_v = \frac{V_u}{bd}'
+    variables: {Vu: shear force due to design loads, b: breadth (web breadth for flanged sections), d: effective depth}
+
+  - id: is456_40_1_1_tau_v_varying
+    doc_id: IS456_2000
+    clause: "40.1.1"
+    page: 85
+    text: "Beams of varying depth: τv = (Vu ± (Mu/d) tan β) / (b d); minus when Mu increases numerically in the direction d increases"
+    latex: '\tau_v = \frac{V_u \pm \frac{M_u}{d}\tan\beta}{bd}'
+    variables: {Vu: shear force due to design loads, Mu: bending moment at the section, β: angle between the top and the bottom edges of the beam, b: breadth, d: effective depth}
+
+  - id: is456_40_2_1_1_slab_k
+    doc_id: IS456_2000
+    clause: "40.2.1.1"
+    page: 85
+    text: "Solid slabs: design shear strength = k τc, k = 1.00 (D ≥ 300 mm), 1.05 (275), 1.10 (250), 1.15 (225), 1.20 (200), 1.25 (175), 1.30 (D ≤ 150 mm)"
+    latex: '\tau = k\,\tau_c'
+    variables: {k: factor for overall slab depth, τc: design shear strength from Table 19}
+
+  - id: is456_40_2_2_delta
+    doc_id: IS456_2000
+    clause: "40.2.2"
+    page: 85
+    text: "Members under axial compression: τc multiplied by δ = 1 + 3 Pu / (Ag fck), not exceeding 1.5"
+    latex: '\delta = 1 + \frac{3P_u}{A_g f_{ck}} \le 1.5'
+    variables: {Pu: axial compressive force (N), Ag: gross area of concrete section (mm²), fck: characteristic compressive strength}
+
+  - id: is456_40_4_vus
+    doc_id: IS456_2000
+    clause: "40.4"
+    page: 86
+    text: >-
+      Shear reinforcement for Vus = Vu − τc b d: vertical stirrups Vus = 0.87 fy Asv d / sv; inclined stirrups or bent-up
+      bars Vus = 0.87 fy Asv d (sin α + cos α) / sv; single bar or group bent up at one section Vus = 0.87 fy Asv sin α
+    latex: 'V_{us} = \frac{0.87 f_y A_{sv} d}{s_v};\quad V_{us} = \frac{0.87 f_y A_{sv} d}{s_v}(\sin\alpha + \cos\alpha);\quad V_{us} = 0.87 f_y A_{sv}\sin\alpha'
+    variables: {Asv: total cross-sectional area of stirrup legs or bent-up bars within sv, sv: spacing along the member, fy: characteristic strength of stirrups (≤ 415 N/mm²), α: angle between inclined stirrup or bent-up bar and member axis (≥ 45°), d: effective depth}
+
+  - id: is456_40_5_2_near_support
+    doc_id: IS456_2000
+    clause: "40.5.2"
+    page: 87
+    text: "Shear reinforcement near supports: As = av b (τv − 2d τc / av) / (0.87 fy) ≥ 0.4 av b / (0.87 fy)"
+    latex: 'A_s = \frac{a_v b\,(\tau_v - 2d\,\tau_c / a_v)}{0.87 f_y} \ge \frac{0.4\,a_v b}{0.87 f_y}'
+    variables: {av: distance of the section from the face of the support, τv: nominal shear stress, τc: design shear strength (Table 19), b: breadth, d: effective depth, fy: characteristic strength of steel}
+
+  - id: is456_g_1_1_singly
+    doc_id: IS456_2000
+    clause: "G-1.1"
+    page: 109
+    text: >-
+      Rectangular sections without compression steel: xu/d = 0.87 fy Ast / (0.36 fck b d);
+      Mu = 0.87 fy Ast d (1 − Ast fy / (b d fck)) for xu < xu,max;
+      Mu,lim = 0.36 (xu,max/d) (1 − 0.42 xu,max/d) b d² fck
+    latex: '\frac{x_u}{d} = \frac{0.87 f_y A_{st}}{0.36 f_{ck} b d};\quad M_u = 0.87 f_y A_{st} d\left(1 - \frac{A_{st} f_y}{b d f_{ck}}\right);\quad M_{u,lim} = 0.36\frac{x_{u,max}}{d}\left(1 - 0.42\frac{x_{u,max}}{d}\right) b d^2 f_{ck}'
+    variables: {xu: depth of neutral axis, d: effective depth, fy: characteristic strength of reinforcement, Ast: area of tension reinforcement, fck: characteristic compressive strength, b: width of compression face, xu_max: limiting value of xu (38.1 Note)}
+
+  - id: is456_g_1_2_doubly
+    doc_id: IS456_2000
+    clause: "G-1.2"
+    page: 109
+    text: >-
+      With compression steel: Mu − Mu,lim = fsc Asc (d − d'), fsc at strain 0.0035 (xu,max − d') / xu,max;
+      Ast = Ast1 + Ast2, Ast2 = Asc fsc / (0.87 fy)
+    latex: 'M_u - M_{u,lim} = f_{sc} A_{sc}(d - d'');\quad \varepsilon_{sc} = 0.0035\frac{x_{u,max} - d''}{x_{u,max}};\quad A_{st2} = \frac{A_{sc} f_{sc}}{0.87 f_y}'
+    variables: {fsc: design stress in compression reinforcement, Asc: area of compression reinforcement, "d'": depth of compression reinforcement from compression face, Ast1: tension steel for Mu_lim of a singly reinforced section}
+
+  - id: is456_g_2_2_flanged
+    doc_id: IS456_2000
+    clause: "G-2.2"
+    page: 109
+    text: >-
+      Flanged section, Df/d ≤ 0.2: Mu = 0.36 (xu,max/d)(1 − 0.42 xu,max/d) fck bw d² + 0.45 fck (bf − bw) Df (d − Df/2)
+    latex: 'M_u = 0.36\frac{x_{u,max}}{d}\left(1 - 0.42\frac{x_{u,max}}{d}\right) f_{ck} b_w d^2 + 0.45 f_{ck}(b_f - b_w) D_f\left(d - \frac{D_f}{2}\right)'
+    variables: {bf: breadth of compression face/flange, bw: breadth of web, Df: thickness of flange}

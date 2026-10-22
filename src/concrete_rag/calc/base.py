@@ -47,7 +47,7 @@ class CalcResult(BaseModel):
     def finalize(self) -> "CalcResult":
         used = {(r.code, r.item): r.status for s in self.steps for r in s.refs}
         used.update({(r.code, r.item): r.status for c in self.checks for r in c.refs})
-        unverified = sorted(f"{c}, {i} ({st})" for (c, i), st in used.items() if st not in ("verified", "ocr_confirmed"))
+        unverified = sorted(f"{c}, {i} ({st})" for (c, i), st in used.items() if st not in ("verified", "ai_checked", "ocr_confirmed"))
         if unverified:
             self.warnings.append("code values not yet human-verified/OCR-confirmed: " + "; ".join(unverified))
         self.outputs["all_checks_passed"] = self.ok

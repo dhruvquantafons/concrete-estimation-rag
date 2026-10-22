@@ -1,0 +1,149 @@
+# Curated test-result formulas from IS 2386 (Parts 1-4) : 1963 (legacy scans). Same format and purpose as
+# is456_2000.yaml: read from the scanned page and added beside the clause's OCR text at chunking time.
+# page = PDF page (1-based) the formula was checked on.
+checked_by: "claude-vision (checked against scanned page)"
+checked_on: "2026-10-22"
+equations:
+  - id: is2386_p1_3_5_finer_75
+    doc_id: IS2386_P1_1963
+    clause: "3.5"
+    page: 15
+    text: "Material finer than 75-micron: A = (B − C) / B x 100"
+    latex: 'A = \frac{B - C}{B}\times 100'
+    variables: {A: percentage of material finer than 75-micron, B: original dry weight, C: dry weight after washing}
+
+  - id: is2386_p1_6_6_angularity
+    doc_id: IS2386_P1_1963
+    clause: "6.6"
+    page: 21
+    text: "Angularity number = 67 − 100 W / (C GA)"
+    latex: '\text{Angularity number} = 67 - \frac{100\,W}{C\,G_A}'
+    variables: {W: mean weight in g of the aggregate in the cylinder, C: weight of water in g required to fill the cylinder, GA: specific gravity of aggregate}
+
+  - id: is2386_p2_2_5_clay_lumps
+    doc_id: IS2386_P2_1963
+    clause: "2.5"
+    page: 11
+    text: "Clay lumps: L = (W − R) / W x 100, to the nearest 0.1 percent"
+    latex: 'L = \frac{W - R}{W}\times 100'
+    variables: {L: percentage of clay lumps, W: weight of sample, R: weight of sample after removal of clay lumps}
+
+  - id: is2386_p2_3_6_silt
+    doc_id: IS2386_P2_1963
+    clause: "3.6"
+    page: 14
+    text: "Clay and fine silt or fine dust (sedimentation) = (100 / W1) (1000 W2 / V − 0.8) percent"
+    latex: '\frac{100}{W_1}\left(\frac{1000\,W_2}{V} - 0.8\right)'
+    variables: {W1: weight in g of the original sample, W2: weight in g of the dried residue, V: volume in ml of the pipette, "0.8": weight in g of sodium oxalate in one litre of the diluted solution}
+
+  - id: is2386_p2_4_6_light_weight
+    doc_id: IS2386_P2_1963
+    clause: "4.6"
+    page: 17
+    text: "Light-weight pieces (coal and lignite): fine aggregate L = W1 / W2 x 100; coarse aggregate L = W1 / W3 x 100"
+    latex: 'L = \frac{W_1}{W_2}\times 100;\quad L = \frac{W_1}{W_3}\times 100'
+    variables: {L: percentage of light-weight pieces, W1: dry weight in g of decanted pieces, W2: dry weight in g of portion coarser than 300-micron IS Sieve, W3: dry weight in g of portion coarser than 4.75-mm IS Sieve}
+
+  - id: is2386_p3_2_2_4_sg_basket
+    doc_id: IS2386_P3_1963
+    clause: "2.2.4"
+    page: 10
+    text: >-
+      Method I (aggregate larger than 10 mm, wire basket): specific gravity = C / (B − A); apparent specific gravity =
+      C / (C − A); water absorption (percent of dry weight) = 100 (B − C) / C
+    latex: '\frac{C}{B - A};\quad \frac{C}{C - A};\quad \frac{100(B - C)}{C}'
+    variables: {A: weight in g of the saturated aggregate in water (A1 − A2), B: weight in g of the saturated surface-dry aggregate in air, C: weight in g of oven-dried aggregate in air}
+
+  - id: is2386_p3_2_3_4_sg_vessel
+    doc_id: IS2386_P3_1963
+    clause: "2.3.4"
+    page: 12
+    text: >-
+      Method II (aggregate 40 mm to 10 mm): specific gravity = D / (C − (A − B)); apparent specific gravity =
+      D / (D − (A − B)); water absorption = 100 (C − D) / D
+    latex: '\frac{D}{C - (A - B)};\quad \frac{D}{D - (A - B)};\quad \frac{100(C - D)}{D}'
+    variables: {A: weight in g of vessel containing sample and filled with distilled water, B: weight in g of vessel filled with distilled water only, C: weight in g of saturated surface-dry sample, D: weight in g of oven-dry sample}
+
+  - id: is2386_p3_2_4_3_sg_pycnometer
+    doc_id: IS2386_P3_1963
+    clause: "2.4.3"
+    page: 15
+    text: >-
+      Method III (aggregate smaller than 10 mm, pycnometer): specific gravity = D / (A − (B − C)); apparent specific
+      gravity = D / (D − (B − C)); water absorption = 100 (A − D) / D
+    latex: '\frac{D}{A - (B - C)};\quad \frac{D}{D - (B - C)};\quad \frac{100(A - D)}{D}'
+    variables: {A: weight in g of saturated surface-dry sample, B: weight in g of pycnometer or gas jar containing sample and filled with distilled water, C: weight in g of pycnometer or gas jar filled with distilled water only, D: weight in g of oven-dried sample}
+
+  - id: is2386_p3_3_5_voids
+    doc_id: IS2386_P3_1963
+    clause: "3.5"
+    page: 17
+    text: "Percentage of voids = (Gs − γ) / Gs x 100"
+    latex: '\frac{G_s - \gamma}{G_s}\times 100'
+    variables: {Gs: specific gravity of the aggregate, γ: bulk density in kg/litre}
+
+  - id: is2386_p3_4_3_2_2_bulking
+    doc_id: IS2386_P3_1963
+    clause: "4.3.2.2"
+    page: 18
+    text: "Bulking of sand (container method): percentage bulking = (h / h' − 1) x 100"
+    latex: '\left(\frac{h}{h''} - 1\right)\times 100'
+    variables: {h: height of loose damp sand in cm, "h'": height of the same sand inundated in water in cm}
+
+  - id: is2386_p3_4_3_3_bulking_cylinder
+    doc_id: IS2386_P3_1963
+    clause: "4.3.3"
+    page: 19
+    text: "Bulking of sand (250-ml cylinder method): percentage bulking = (200 / y − 1) x 100"
+    latex: '\left(\frac{200}{y} - 1\right)\times 100'
+    variables: {y: level in ml of the inundated sand (damp sand filled to the 200-ml mark)}
+
+  - id: is2386_p3_5_4_2_displaced_weight
+    doc_id: IS2386_P3_1963
+    clause: "5.4.2"
+    page: 20
+    text: "Surface moisture, by weight: water displaced Vs = Mc + Ms − M"
+    latex: 'V_s = M_c + M_s - M'
+    variables: {Vs: weight in g of water displaced by the sample, Mc: weight in g of container filled to the mark with water, Ms: weight in g of the sample, M: weight in g of sample and container filled to the mark with water}
+
+  - id: is2386_p3_5_4_3_displaced_volume
+    doc_id: IS2386_P3_1963
+    clause: "5.4.3"
+    page: 20
+    text: "Surface moisture, by volume: water displaced Vs = V2 − V1"
+    latex: 'V_s = V_2 - V_1'
+    variables: {Vs: volume in ml of water displaced by the sample, V2: combined volume in ml of the sample and water, V1: volume in ml of water required to cover the sample}
+
+  - id: is2386_p3_5_5_1_surface_moisture
+    doc_id: IS2386_P3_1963
+    clause: "5.5.1"
+    page: 20
+    text: >-
+      Surface moisture: P1 = (Vs − Vd) / (Ms − Vs) x 100 (in terms of saturated surface-dry fine aggregate);
+      P2 = (Vs − Vd) / (Ms − Vd) x 100 (in terms of wet fine aggregate)
+    latex: 'P_1 = \frac{V_s - V_d}{M_s - V_s}\times 100;\quad P_2 = \frac{V_s - V_d}{M_s - V_d}\times 100'
+    variables: {Vs: weight in g of water displaced, Vd: weight of the sample divided by its saturated surface-dry specific gravity, Ms: weight in g of the sample}
+
+  - id: is2386_p4_2_5_crushing
+    doc_id: IS2386_P4_1963
+    clause: "2.5"
+    page: 11
+    text: "Aggregate crushing value = B / A x 100, to the first decimal place"
+    latex: '\frac{B}{A}\times 100'
+    variables: {B: weight of fraction passing the appropriate sieve, A: weight of surface-dry sample}
+
+  - id: is2386_p4_3_5_ten_percent_fines
+    doc_id: IS2386_P4_1963
+    clause: "3.5"
+    page: 14
+    text: "Load required for 10 percent fines = 14 x / (y + 4)  (tonnes)"
+    latex: '\frac{14\,x}{y + 4}'
+    variables: {x: load in tonnes, y: mean percentage fines from two tests at x tonnes load}
+
+  - id: is2386_p4_4_5_impact
+    doc_id: IS2386_P4_1963
+    clause: "4.5"
+    page: 17
+    text: "Aggregate impact value = B / A x 100, to the first decimal place"
+    latex: '\frac{B}{A}\times 100'
+    variables: {B: weight of fraction passing 2.36-mm IS Sieve, A: weight of oven-dried sample}

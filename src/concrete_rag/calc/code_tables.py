@@ -2,7 +2,9 @@
 
 Calculators never read numbers from OCR text. They read these curated tables, and every value they
 use is returned with a `Ref` (code, table/clause, status). Status is:
-  verified          - a human compared the table with the licensed standard (verified_by set)
+  verified          - a human compared the table with the licensed standard (verified_by = their name)
+  ai_checked        - compared with the scanned page by AI vision (verified_by = "claude-vision ...");
+                      still needs a human sign-off
   ocr_confirmed     - every row was found in the OCR'd source table text (automatic cross-check)
   partially_confirmed / unconfirmed - some rows could not be matched -> human check required
 """
@@ -46,10 +48,20 @@ def _verification() -> dict[str, dict]:
         return {}
 
 
+AI_CHECKER = "claude-vision"
+
+
+def signed_status(verified_by: str | None) -> str | None:
+    """Status from a sign-off alone: a person's name -> verified; an AI vision check -> ai_checked."""
+    if not verified_by:
+        return None
+    return "ai_checked" if str(verified_by).strip().lower().startswith(AI_CHECKER) else "verified"
+
+
 def status(name: str) -> str:
     t = tables()[name]
     if t.get("verified_by"):
-        return "verified"
+        return signed_status(t["verified_by"])
     return _verification().get(name, {}).get("status", "unconfirmed")
 
 
@@ -123,7 +135,7 @@ def verify_all() -> dict[str, dict]:
         chunk_id = t.get("source", {}).get("chunk")
         rows = _rows_of(name, t)
         if not chunk_id or not rows:
-            report[name] = {"status": "verified" if t.get("verified_by") else "unconfirmed", "checked": 0,
+            report[name] = {"status": signed_status(t.get("verified_by")) or "unconfirmed", "checked": 0,
                             "matched": 0, "mismatches": ["no automatic check possible (figure/clause text)"]}
             continue
         ch = docstore.get_chunks([chunk_id]).get(chunk_id)
@@ -139,7 +151,7 @@ def verify_all() -> dict[str, dict]:
                 matched += 1
             else:
                 mism.append(" ".join(r))
-        st = "verified" if t.get("verified_by") else (
+        st = signed_status(t.get("verified_by")) or (
             "ocr_confirmed" if matched == len(rows) else "partially_confirmed" if matched else "unconfirmed")
         report[name] = {"status": st, "checked": len(rows), "matched": matched, "mismatches": mism}
     return report

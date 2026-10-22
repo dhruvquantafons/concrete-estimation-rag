@@ -19,6 +19,7 @@ from concrete_rag.schemas import PageText, Word
 
 WIDE_GAP = 12.0     # points; larger than normal word spacing, smaller than column gutter
 TABLE_GAP = 20.0    # gaps this wide (away from the gutter) only occur between table columns
+GUTTER_MIN = 8.0    # digital pages: a smaller gap at the gutter is word spacing in full-width text
 
 
 @dataclass
@@ -106,6 +107,7 @@ def page_lines(page: PageText, allow_columns: bool = True) -> list[Line]:
     words = [w if isinstance(w, Word) else Word(**w) for w in page.words]
     raw = _group_lines(words)
     gutter = find_gutter(raw, page.width) if allow_columns else None
+    exact = page.method == "text_layer"          # word boxes from a digital text layer, not OCR
     out: list[Line] = []
     band_l: list[Line] = []
     band_r: list[Line] = []
@@ -124,16 +126,24 @@ def page_lines(page: PageText, allow_columns: bool = True) -> list[Line]:
         if gutter is None:
             out.append(mk(ln, "single"))
             continue
-        crosses = any(w.x0 < gutter < w.x1 for w in ln)
-        gaps = [(ln[i + 1].x0 - ln[i].x1, (ln[i].x1 + ln[i + 1].x0) / 2) for i in range(len(ln) - 1)]
+        left = [w for w in ln if w.x1 <= gutter]
+        right = [w for w in ln if w.x0 >= gutter]
+        # a word spans the gutter, or (digital pages only) just word spacing sits on it: full-width prose.
+        # Digital gutters are >= 13 pt; OCR'd scans have column edges too ragged for this test.
+        crosses = any(w.x0 < gutter < w.x1 for w in ln) or bool(
+            exact and left and right and right[0].x0 - left[-1].x1 < GUTTER_MIN)
+        # the gap that spans the gutter is the gutter itself, never a table-cell gap: a column's last word
+        # beside a table row in the other column must not make the line look like a full-width table row
+        gaps = [(ln[i + 1].x0 - ln[i].x1, (ln[i].x1 + ln[i + 1].x0) / 2) for i in range(len(ln) - 1)
+                if not ln[i].x1 <= gutter <= ln[i + 1].x0]
         wide_off_gutter = [g for g in gaps if g[0] > TABLE_GAP and abs(g[1] - gutter) > 25]
         wide_left = [g for g in wide_off_gutter if g[1] < gutter]
         wide_right = [g for g in wide_off_gutter if g[1] > gutter]
-        left = [w for w in ln if w.x1 <= gutter]
-        right = [w for w in ln if w.x0 >= gutter]
         # full-width table row: table-style gaps on *both* sides of the gutter -> keep the row intact.
         # (a column-width table beside prose has gaps on one side only and must be split.)
-        if crosses or (wide_left and wide_right):
+        # Full-width "label : value" rows (IS 10262 worked-example data) stay together too.
+        kv_row = bool(left and right) and right[0].text.startswith(":")
+        if crosses or (wide_left and wide_right) or kv_row:
             flush()
             out.append(mk(ln, "full"))
         else:
