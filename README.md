@@ -97,6 +97,45 @@ The search index can be used by **one program at a time.** Stop `crag serve` bef
 
 ---
 
+## Tech stack
+
+Everything runs on your own computer. No document, question or answer is sent to an outside service.
+
+**Application**
+
+| Part | What it uses |
+|---|---|
+| Language | Python 3.12 |
+| API and web server | FastAPI + Uvicorn; API keys with scopes, rate limit (slowapi), audit log |
+| Web app | Plain HTML, CSS and JavaScript served by the API (no framework) |
+| Database | SQLite through SQLAlchemy (Postgres also works; see `docker-compose.yml`) |
+| Calculators | Plain Python with exact decimal rounding; `pint` for units |
+| Excel / PDF export | openpyxl (Excel keeps live formulas), reportlab (PDF) |
+| Command line | Typer + Rich (`crag …`) |
+| Tests | pytest |
+| Optional server setup | Docker Compose: Qdrant server, Postgres and the API |
+
+**RAG (search and answers)**
+
+| Step | What it uses |
+|---|---|
+| Read PDFs | PyMuPDF for digital PDFs. Tesseract 5 OCR for scans, run on the PDF's own embedded image. The DSR is read three times and the readings vote |
+| Reading order | Own two-column layout code (`ingest/layout.py`) that keeps full-width tables and captions together |
+| Split into chunks | One chunk per clause, table, annex clause, amendment or DSR item (6,927 chunks), tagged with code, clause, table, page, material, work item and more |
+| Checked additions | Equations (`config/equations/`) and table values (`config/code_tables/`), read from the pages, are added beside the OCR text |
+| Meaning search | `BAAI/bge-m3` embeddings (sentence-transformers, runs on the Mac's GPU) |
+| Keyword search | BM25 with its own tokenizer that keeps codes like `26.5.1.1`, `M25` and `5.33.2.1` whole |
+| Vector database | Qdrant (built-in local mode by default): meaning and keyword vectors in one collection |
+| Combining results | Exact-reference lookup first ("cl. 26.4.2", "Table 16", "DSR 5.33.2.1"), then reciprocal-rank fusion of the two searches (top 50 each) |
+| Re-ranking | `BAAI/bge-reranker-v2-m3` cross-encoder on the top 24 |
+| Answer writing | Local Qwen2.5-3B-Instruct (4-bit) through Ollama. Answers must cite sources [S1], [S2]…, and every number is checked against them |
+| Learning from ratings | Fusion weights tuned on rated questions; reranker fine-tuned with sentence-transformers. Each change is tested on the 50 test questions before it goes live |
+| Measuring quality | Own evaluation (`crag evaluate`): Recall, Hit, MRR and nDCG for search; expected fact, number check, refusals and an LLM judge for answers |
+
+More detail: [docs/technical.md](docs/technical.md) and [docs/scope.md](docs/scope.md) (why each choice was made).
+
+---
+
 ## Where things stand
 
 - **Data:** complete for this project: IS 456, IS 10262, IS 1200, IS 2386 and both DSR 2023 volumes. No more
