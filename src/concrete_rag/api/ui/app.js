@@ -41,6 +41,8 @@ function h(tag, props, ...kids) {
   return el;
 }
 const $ = (sel, root = document) => root.querySelector(sel);
+// replaceChildren() would print a skipped (null/false) section as text; fill() drops them and flattens arrays.
+const fill = (el, ...kids) => el.replaceChildren(...kids.flat(Infinity).filter((k) => k != null && k !== false));
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const inr = (v) => v == null ? "—" : "₹ " + Number(v).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const num = (v, d = 2) => v == null || v === "" ? "—" : (typeof v === "number" ? v.toLocaleString("en-IN", { maximumFractionDigits: d }) : String(v));
@@ -135,6 +137,36 @@ function showSourcePage(docId, page, title) {
   load();
 }
 
+// ------------------------------------------------------------------ pagination
+/* Pager bar: "Showing a–b of n", prev, page numbers (with gaps), next. go(page) is called with a 0-based page. */
+function pagerBar(page, pages, total, perPage, go, label = "items") {
+  const from = total ? page * perPage + 1 : 0, to = Math.min(total, (page + 1) * perPage);
+  const want = new Set([0, pages - 1, page - 1, page, page + 1].filter((p) => p >= 0 && p < pages));
+  const nums = []; let last = -1;
+  [...want].sort((a, b) => a - b).forEach((p) => {
+    if (p - last > 1) nums.push(h("span", { class: "gap" }, "…"));
+    nums.push(h("button", { class: "num-btn" + (p === page ? " on" : ""), "aria-current": p === page ? "page" : null, onclick: () => go(p) }, String(p + 1)));
+    last = p;
+  });
+  return h("div", { class: "pager" }, h("span", { class: "muted" }, `Showing ${from}–${to} of ${total.toLocaleString("en-IN")} ${label}`),
+    pages > 1 ? h("div", { class: "pages" },
+      h("button", { "aria-label": "Previous page", disabled: page === 0, onclick: () => go(page - 1) }, icon("left")), nums,
+      h("button", { "aria-label": "Next page", disabled: page >= pages - 1, onclick: () => go(page + 1) }, icon("right"))) : null);
+}
+/* Client-side pages over an already-fetched list. render(slice, offset) returns the element for one page. */
+function paginate(items, perPage, render, label) {
+  const wrap = h("div"); let page = 0;
+  const pages = Math.max(1, Math.ceil(items.length / perPage));
+  const draw = (scroll) => {
+    wrap.replaceChildren(...[render(items.slice(page * perPage, (page + 1) * perPage), page * perPage),
+      items.length > perPage ? pagerBar(page, pages, items.length, perPage, (p) => { page = p; draw(true); }, label) : null].filter(Boolean));
+    const top = wrap.getBoundingClientRect().top;
+    if (scroll && top < 130) window.scrollBy({ top: top - 140, behavior: "smooth" });
+  };
+  draw(false);
+  return wrap;
+}
+
 // ------------------------------------------------------------------ OpenAPI-driven forms
 function resolveRef(s) { return s && s.$ref ? S.oas.components.schemas[s.$ref.split("/").pop()] : s; }
 function unwrapNullable(s) {
@@ -220,7 +252,7 @@ function renderCalc(res) {
     (res.warnings || []).length ? h("div", { class: "alert warn" }, h("b", {}, "Warnings"), h("ul", {}, res.warnings.map((w) => h("li", {}, w)))) : null,
     h("div", { class: "grid cols-2" },
       simple.length ? h("div", { class: "card" }, h("h3", {}, "Key outputs"),
-        h("dl", { class: "kv" }, simple.flatMap(([k, v]) => [h("dt", {}, prettyLabel(k)), h("dd", {}, h("b", {}, num(v, 3)))]))) : null,
+        h("div", { class: "metrics" }, simple.map(([k, v]) => h("div", { class: "metric" }, h("span", { class: "l" }, prettyLabel(k)), h("b", { class: "v" }, num(v, 3)))))) : null,
       ...nested.map(([k, v]) => h("div", { class: "card" }, h("h3", {}, titleCase(k)), valueCell(v)))),
     checks.length ? h("div", { class: "card" }, h("h3", {}, "Code compliance checks"),
       checks.map((c) => h("div", { class: "check-row" }, h("span", { class: "badge " + (c.passed ? "ok" : "bad") }, c.passed ? "PASS" : "FAIL"),
@@ -260,6 +292,7 @@ const ICONS = {
   arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>', chev: '<path d="m6 9 6 6 6-6"/>', left: '<path d="m15 6-6 6 6 6"/>', right: '<path d="m9 6 6 6-6 6"/>',
   pause: '<path d="M9 5v14M15 5v14"/>', play: '<path d="M7 5l12 7-12 7z"/>', menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
   code: '<path d="m8 8-5 4 5 4M16 8l5 4-5 4"/>', out: '<path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h11"/>', help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6M12 17h.01"/>',
+  tick: '<circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/>', plus: '<path d="M12 5v14M5 12h14"/>',
 };
 function icon(name, cls = "i") {
   const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -284,42 +317,42 @@ const reviewCount = () => S.overview ? S.overview.review.sor_items + S.overview.
 
 function renderChrome() {
   const cur = location.hash.replace(/^#\/?/, "").split("?")[0];
-  // utility bar
+  // header: brand · search · rate location · review · account · CTA (the old utility bar is folded in here)
   const locs = (S.overview && S.overview.locations) || ["delhi"];
   const locSel = h("select", { "aria-label": "Rate location", onchange: (e) => { S.location = e.target.value; lsSet("crag_location", S.location); toast(`Rates now priced for ${titleCase(S.location)}`); } },
     locs.map((l) => h("option", { value: l, selected: l === S.location }, titleCase(l))));
-  $("#utility").replaceChildren(h("div", { class: "wrap" },
-    h("span", { class: "loc" }, icon("pin"), "Rates for", locSel, h("span", { class: "hide-sm" }, "· CPWD DSR 2023")),
-    h("span", { class: "spacer" }),
-    h("a", { class: "hide-sm", href: "/docs", target: "_blank" }, icon("code"), "API docs"),
-    h("a", { class: "hide-sm", href: "#/tables" }, icon("shield"), "Verification"),
-    h("a", { href: "#/" , class: "hide-sm" }, icon("help"), "Help")));
-  // header
+  $("#utility").replaceChildren();
   const scope = h("select", { "aria-label": "Source" }, SOURCES.map((c) => h("option", { value: c }, c || "All")));
-  const q = h("input", { type: "search", placeholder: "Search IS codes, clauses, tables and DSR items", "aria-label": "Search" });
+  const q = h("input", { type: "search", placeholder: "Search codes, clauses, DSR items…", "aria-label": "Search" });
   const go = (e) => { e.preventDefault(); if (q.value.trim()) location.hash = `#/search?q=${encodeURIComponent(q.value.trim())}&code=${encodeURIComponent(scope.value)}`; };
+  const avatar = () => h("span", { class: "avatar" }, (S.me.name || "?").trim().slice(0, 2));
   const menu = h("div", { class: "menu" },
-    h("div", { class: "who" }, h("b", {}, S.me.name), h("br"), h("small", {}, S.me.scopes.join(" · "))),
+    h("div", { class: "who" }, avatar(), h("div", {}, h("b", {}, S.me.name), h("br"), h("small", {}, S.me.scopes.join(" · ")))),
     h("a", { href: "#/estimate" }, icon("receipt"), "My estimates"),
     can("admin") ? h("a", { href: "#/review" }, icon("edit"), "Review queue") : null,
     can("admin") ? h("a", { href: "#/learning" }, icon("layers"), "Learning (feedback)") : null,
+    h("a", { href: "#/tables" }, icon("shield"), "Verification (code tables)"),
     h("a", { href: "/docs", target: "_blank" }, icon("code"), "API documentation"),
+    h("hr"),
     h("button", { onclick: logout }, icon("out"), "Sign out"));
   const acct = h("div", { style: { position: "relative" } },
-    h("button", { class: "hact", onclick: (e) => { e.stopPropagation(); menu.classList.toggle("open"); } }, icon("user"),
-      h("span", { class: "two lbl" }, h("small", {}, `Hello, ${S.me.name}`), h("b", {}, "Account ", icon("chev")))), menu);
+    h("button", { class: "hact", "aria-label": "Account", onclick: (e) => { e.stopPropagation(); menu.classList.toggle("open"); } }, avatar(),
+      h("span", { class: "two" }, h("small", {}, "Signed in"), h("b", {}, S.me.name, icon("chev")))), menu);
   document.onclick = () => menu.classList.remove("open");
   const rc = reviewCount();
   $("#site-header").replaceChildren(h("div", { class: "wrap" },
     h("a", { class: "brand", href: "#/" }, LOGO(), h("span", {}, "Concrete", h("b", {}, "Estimator"))),
     h("form", { class: "hsearch", onsubmit: go }, scope, q, h("button", { type: "submit", "aria-label": "Search" }, icon("search"))),
-    h("div", { class: "hacts" }, acct,
-      can("estimate") ? h("a", { class: "hact", href: "#/estimate" }, icon("receipt"), h("span", { class: "lbl" }, "Estimates")) : null,
-      can("admin") ? h("a", { class: "hact", href: "#/review", title: "Rows awaiting review" }, h("span", { class: "dot" + (rc ? " on" : "") }, rc > 999 ? "999+" : rc), icon("inbox"), h("span", { class: "lbl" }, "Review")) : null)));
-  // category bar
+    h("div", { class: "hacts" },
+      h("label", { class: "hloc", title: "CPWD DSR 2023 rates are priced for this location" }, icon("pin"), h("span", { class: "lbl" }, "Rates for"), locSel),
+      can("admin") ? h("a", { class: "hact", href: "#/review", title: "Rows awaiting review", "aria-label": "Review queue" }, icon("inbox"), h("span", { class: "dot" + (rc ? " on" : "") }, rc > 999 ? "999+" : rc)) : null,
+      acct,
+      can("estimate") ? h("a", { class: "btn primary hide-sm", href: "#/estimate" }, icon("plus"), "New estimate") : null)));
+  // tools nav
   $("#catbar").replaceChildren(h("div", { class: "wrap" },
-    h("a", { class: "all" + (cur === "" ? " active" : ""), href: "#/" }, icon("grid"), "All tools"),
-    PAGES.filter((p) => !["review", "learning"].includes(p.id) && (!p.scope || can(p.scope))).map((p) => h("a", { href: "#/" + p.id, class: cur === p.id ? "active" : "" }, p.label)),
+    h("a", { class: "all" + (cur === "" ? " active" : ""), href: "#/" }, icon("grid"), "Overview"),
+    h("span", { class: "sep" }),
+    PAGES.filter((p) => !["review", "learning"].includes(p.id) && (!p.scope || can(p.scope))).map((p) => h("a", { href: "#/" + p.id, class: cur === p.id ? "active" : "" }, icon(p.ico), p.label)),
     h("div", { class: "right" },
       h("a", { href: "#/search?code=CPWD%20DSR&q=design%20mix%20concrete", class: "" }, icon("book"), "Standards"),
       can("admin") ? h("a", { href: "#/review", class: "pill-amber" + (cur === "review" ? " active" : "") }, icon("edit"), `Review ${rc}`) : null)));
@@ -329,12 +362,12 @@ function renderChrome() {
     h("div", { class: "wrap top" },
       h("div", {}, h("a", { class: "brand", href: "#/" }, LOGO(), h("span", {}, "Concrete", h("b", {}, "Estimator"))),
         h("p", { class: "blurb" }, "Code-compliant mix design, RCC design and cost estimates for concrete works — every number cited to IS codes and the CPWD Delhi Schedule of Rates."),
-        h("div", { class: "boxed" }, h("b", { style: { color: "#fff" } }, "LLM: ", S.overview ? S.overview.llm_provider : "—"), h("br"),
+        h("div", { class: "boxed" }, h("b", {}, "LLM: ", S.overview ? S.overview.llm_provider : "—"), h("br"),
           S.overview && S.overview.llm_provider === "fake" ? "Running offline. Answers are extractive until an LLM is configured in .env." : "Answers are generated with citations and number checks.")),
       col("Tools", [["Search codes", "#/search"], ["Mix design", "#/mix"], ["RCC design (aid)", "#/design"], ["Estimate / BOQ", "#/estimate"]]),
       col("Standards", [["IS 456 : 2000", "#/search?code=IS%20456&q=scope"], ["IS 10262 : 2019", "#/search?code=IS%2010262&q=mix%20proportioning"], ["IS 1200 (Parts 1–22)", "#/search?code=IS%201200&q=method%20of%20measurement"], ["IS 2386 (Parts 1–8)", "#/search?code=IS%202386&q=methods%20of%20test"], ["CPWD DSR 2023", "#/rates"]]),
       col("Data quality", [["Review queue", "#/review"], ["Code tables", "#/tables"], ["DSR rates", "#/rates"]]),
-      col("Developers", [["API documentation", "/docs"], ["OpenAPI schema", "/openapi.json"], ["Health", "/health"]])),
+      col("Developers", [["API documentation", "/docs"], ["OpenAPI schema", "/openapi.json"], ["Health", "/health"], ["Help & overview", "#/"]])),
     h("div", { class: "mid" }, h("div", { class: "wrap" },
       h("div", {}, h("b", {}, icon("shield"), "Verified numbers"), "Rates are confirmed by up to three independent OCR readings; anything uncertain is flagged until a person checks it."),
       h("div", {}, h("b", {}, icon("calc"), "Deterministic calculators"), "Arithmetic is done by tested code using curated, signed-off code tables — never by the language model."),
@@ -351,7 +384,7 @@ async function route() {
   const main = $("#main");
   const page = PAGES.find((p) => p.id === id);
   const content = h("div");
-  main.replaceChildren(...[page ? h("div", { class: "crumb" }, h("a", { href: "#/" }, "Home"), "›", page.label) : null, content].filter(Boolean));
+  fill(main, ...[page ? h("div", { class: "crumb" }, h("a", { href: "#/" }, "Home"), h("span", { class: "sep", "aria-hidden": "true" }, "›"), h("span", {}, page.label)) : null, content].filter(Boolean));
   content.append(loading("Loading…"));
   const fn = ROUTES[id] || pageHome;
   try { await fn(content); } catch (e) { content.replaceChildren(errorBox(e)); }
@@ -368,34 +401,53 @@ const DOC_CARDS = [
   { code: "CPWD DSR", doc: "CPWD_DSR_2023_V1", page: 1, kicker: "Schedule of rates", title: "CPWD DSR 2023", href: "#/rates" },
 ];
 const TOOLS = [
-  ["search", "Search codes", "#/search"], ["flask", "Mix design", "#/mix"], ["beam", "Beam", "#/design?k=beam"], ["slab", "Slab", "#/design?k=slab"],
-  ["column", "Column", "#/design?k=column"], ["footing", "Footing", "#/design?k=footing"], ["rupee", "Estimate", "#/estimate"], ["list", "DSR rates", "#/rates"],
-  ["table", "Code tables", "#/tables"], ["edit", "Review", "#/review"],
+  ["search", "Search codes", "#/search", "Hybrid search and cited answers over IS 456, 10262, 1200, 2386 and the DSR."],
+  ["flask", "Mix design", "#/mix", "IS 10262 trial mix with every step and clause shown."],
+  ["beam", "Beam", "#/design?k=beam", "Flexure, shear and deflection checks to IS 456."],
+  ["slab", "Slab", "#/design?k=slab", "One-way slab thickness, steel and span/depth checks."],
+  ["column", "Column", "#/design?k=column", "Short axially loaded column, longitudinal and lateral ties."],
+  ["footing", "Footing", "#/design?k=footing", "Isolated footing sizing, bending and punching shear."],
+  ["rupee", "Estimate", "#/estimate", "Elements to IS 1200 quantities to a DSR-priced BOQ, with Excel and PDF."],
+  ["list", "DSR rates", "#/rates", "Look up any of the 2,955 CPWD DSR 2023 items by word or code."],
+  ["table", "Code tables", "#/tables", "The IS values the calculators use, compared with the scan."],
+  ["edit", "Review", "#/review", "Fix DSR rows the scanner was unsure about, beside the page."],
 ];
+const STEPS = [
+  ["Enter elements", "Footings, columns, beams and slabs with their sizes, numbers, grade and level."],
+  ["IS 1200 quantities", "Concrete, formwork and steel measured the way IS 1200 says, element by element."],
+  ["DSR-priced BOQ", "Each line priced from CPWD DSR 2023 for your location, cited to its page, ready to export."],
+];
+// Hero copy: key phrase of each title is rendered with the brand gradient.
+const gradTitle = (t, phrase) => { const i = t.indexOf(phrase); return i < 0 ? t : [t.slice(0, i), h("span", { class: "grad" }, phrase), t.slice(i + phrase.length)]; };
+const windowFrame = (label, mock) => h("div", { class: "window" }, h("div", { class: "wbar" }, h("i"), h("i"), h("i"), h("span", {}, label)), mock);
 let heroTimer = null;
 async function pageHome(main) {
   const o = S.overview = await api("/v1/overview");
   renderChrome();
   const docStats = (prefix) => o.documents.filter((d) => d.doc_id.startsWith(prefix));
   const slides = [
-    { kicker: "Built on IS 456 · IS 10262 · IS 1200 · CPWD DSR 2023", title: "Estimate concrete works, by the code.",
-      text: "Draw up elements, get IS 1200 quantities and a DSR-priced bill of quantities with every rate cited to its page.", cta: ["Build an estimate", "#/estimate"],
+    { kicker: "Built on IS 456 · IS 10262 · IS 1200 · CPWD DSR 2023", title: "Estimate concrete works, by the code.", grad: "by the code.", win: "estimate / boq",
+      text: "Draw up elements, get IS 1200 quantities and a DSR-priced bill of quantities with every rate cited to its page.", cta: ["Build an estimate", "#/estimate"], cta2: ["Browse DSR rates", "#/rates"],
       mock: h("div", { class: "mock float" }, h("div", { class: "mh" }, h("span", {}, "Example BOQ · G+1 frame"), h("span", { class: "badge ok" }, "rates confirmed")),
         [["5.33.2.1  RCC M25 design mix", "16.91 m³"], ["5.9.3  Shuttering – slabs", "80.00 m²"], ["5.22.6  TMT Fe-500D", "2,777.9 kg"], ["4.1.8  PCC 1:4:8", "2.59 m³"]].map(([a, b]) => h("div", { class: "ln" }, h("span", {}, a), h("b", {}, b))),
         h("div", { class: "ln" }, h("span", {}, "Grand total"), h("span", { class: "tot" }, "₹ 7,45,539.54"))) },
-    { kicker: "IS 10262 : 2019 · reproduces Annex A exactly", title: "Mix designs you can audit.",
-      text: "Target strength, w/c, water, cementitious and aggregate contents — every step shown with the clause it comes from.", cta: ["Design a mix", "#/mix"],
+    { kicker: "IS 10262 : 2019 · reproduces Annex A exactly", title: "Mix designs you can audit.", grad: "you can audit.", win: "mix design",
+      text: "Target strength, w/c, water, cementitious and aggregate contents — every step shown with the clause it comes from.", cta: ["Design a mix", "#/mix"], cta2: ["See code tables", "#/tables"],
       mock: h("div", { class: "mock float" }, h("div", { class: "mh" }, h("span", {}, "M40 · severe · 20 mm"), h("span", { class: "badge ok" }, "✓ 4 checks passed")),
         [["Cement", "412 kg/m³"], ["Water", "148 kg/m³"], ["Fine aggregate", "648.6 kg/m³"], ["Coarse aggregate", "1,234.6 kg/m³"], ["Free w/c", "0.36"]].map(([a, b]) => h("div", { class: "ln" }, h("span", {}, a), h("b", {}, b)))) },
-    { kicker: `${o.rates_vote_confirmed_pct}% of DSR rates confirmed by ≥2 OCR readings`, title: "Every answer, cited to the page.",
-      text: "Hybrid search over the standards and schedule of rates. Open the original scanned page behind any clause, table or rate.", cta: ["Search the codes", "#/search"],
+    { kicker: `${o.rates_vote_confirmed_pct}% of DSR rates confirmed by ≥2 OCR readings`, title: "Every answer, cited to the page.", grad: "cited to the page.", win: "search",
+      text: "Hybrid search over the standards and schedule of rates. Open the original scanned page behind any clause, table or rate.", cta: ["Search the codes", "#/search"], cta2: ["Browse DSR rates", "#/rates"],
       mock: h("div", { class: "mock float" }, h("div", { class: "mh" }, h("span", {}, "nominal cover, severe exposure"), h("span", { class: "badge accent" }, "8 results")),
         [["IS 456 : 2000, Table 16", "p.60"], ["IS 456 : 2000, cl. 26.4.2", "p.59"], ["IS 456 : 2000, Table 5", "p.33"], ["IS 456 : 2000, cl. 8.2.4.1", "p.31"]].map(([a, b]) => h("div", { class: "ln" }, h("span", {}, a), h("b", {}, b)))) },
   ];
   let cur = 0, playing = true;
   const slideEls = slides.map((s, i) => h("div", { class: "slide" + (i === 0 ? " on" : "") },
-    h("div", {}, h("span", { class: "kicker" }, s.kicker), h("h2", {}, s.title), h("p", {}, s.text),
-      h("a", { class: "btn-white", href: s.cta[1], style: { display: "inline-flex", gap: "8px", alignItems: "center" } }, s.cta[0], icon("arrow"))), s.mock));
+    h("div", {}, h("span", { class: "kicker" }, s.kicker), h("h2", {}, gradTitle(s.title, s.grad)), h("p", {}, s.text),
+      h("div", { class: "hero-cta" },
+        h("a", { class: "btn primary lg", href: s.cta[1] }, s.cta[0], icon("arrow")),
+        h("a", { class: "btn outline lg", href: s.cta2[1] }, s.cta2[0])),
+      h("div", { class: "ticks" }, ["Cited to the page", "Deterministic maths", "Runs on your machine"].map((t) => h("span", {}, icon("tick"), t)))),
+    windowFrame(s.win, s.mock)));
   const bars = h("span", { class: "bars" }, slides.map((_, i) => h("i", { class: i === 0 ? "on" : "" })));
   const show = (n) => { cur = (n + slides.length) % slides.length; slideEls.forEach((el, i) => el.classList.toggle("on", i === cur)); [...bars.children].forEach((b, i) => b.classList.toggle("on", i === cur)); };
   const playBtn = h("button", { "aria-label": "Pause", onclick: () => { playing = !playing; playBtn.replaceChildren(icon(playing ? "pause" : "play")); } }, icon("pause"));
@@ -413,24 +465,36 @@ async function pageHome(main) {
       h("div", { class: "ov" }, h("small", {}, d.kicker), h("b", {}, d.title), h("span", {}, `${docs.length > 1 ? docs.length + " parts · " : ""}${pages} pages · ${chunks.toLocaleString("en-IN")} chunks`)));
   });
   const tiles = TOOLS.filter(([, , href]) => { const p = PAGES.find((x) => href.startsWith("#/" + x.id)); return !p || !p.scope || can(p.scope); })
-    .map(([ic, label, href]) => h("a", { class: "tile", href }, h("span", { class: "sq" }, icon(ic)), label));
-  main.replaceChildren(hero,
-    h("section", { class: "section" }, h("div", { class: "sec-head" }, h("div", {}, h("h2", {}, "Browse the standards"), h("p", {}, "Every standard with its own clauses, tables and amendments")),
+    .map(([ic, label, href, desc]) => h("a", { class: "feature", href }, h("span", { class: "ic" }, icon(ic)), h("b", {}, label, icon("arrow")), h("p", {}, desc)));
+  const tablesTotal = Object.values(o.code_tables).reduce((a, v) => a + v, 0);
+  const statband = h("section", { class: "statband" },
+    [[o.counts.sor_items.toLocaleString("en-IN"), "DSR 2023 items priced"], [`${o.rates_vote_confirmed_pct}%`, "rates confirmed by ≥2 OCR readings"],
+      [String(o.documents.length), "standards & parts indexed"], [`${o.code_tables.verified || 0}/${tablesTotal}`, "code tables signed off"]]
+      .map(([n, l]) => h("div", {}, h("div", { class: "n" }, n), h("div", { class: "l" }, l))));
+  fill(main, hero, statband,
+    h("section", { class: "section" }, h("div", { class: "sec-head" }, h("div", {}, h("span", { class: "eyebrow" }, "Tools"), h("h2", {}, "Everything for concrete works, in one place"),
+      h("p", {}, "Search the standards, design mixes and RCC elements, and price a BOQ. Every number comes from the code, a checked table or a tested calculator."))),
+      h("div", { class: "features tools" }, tiles)),
+    can("estimate") ? h("section", { class: "section" }, h("div", { class: "sec-head" }, h("div", {}, h("span", { class: "eyebrow" }, "How an estimate works"), h("h2", {}, "From sizes to a priced BOQ in three steps")),
+      h("a", { href: "#/estimate" }, "Start an estimate ", icon("arrow"))),
+      h("div", { class: "steps" }, STEPS.map(([t, p], i) => h("div", { class: "step" }, h("span", { class: "num" }, String(i + 1).padStart(2, "0")), h("b", {}, t), h("p", {}, p))))) : null,
+    h("section", { class: "section" }, h("div", { class: "sec-head" }, h("div", {}, h("span", { class: "eyebrow" }, "Corpus"), h("h2", {}, "Browse the standards"), h("p", {}, "Every standard with its own clauses, tables and amendments")),
       h("a", { href: "#/search" }, "Search all ", icon("arrow"))), h("div", { class: "doc-cards" }, cards)),
-    h("section", { class: "section" }, h("div", { class: "sec-head" }, h("h2", {}, "Tools")), h("div", { class: "tiles" }, tiles)),
-    h("section", { class: "section" }, h("div", { class: "trust" },
-      trustItem("doc", "Cited to the page", "Every clause, table and rate links to the original scanned PDF page."),
-      trustItem("shield", "Three-way rate checks", `${o.rates_vote_confirmed_pct}% of ${o.counts.sor_items.toLocaleString("en-IN")} DSR rates confirmed by independent OCR readings.`),
-      trustItem("calc", "Deterministic maths", "Calculators reproduce the IS 10262 worked example; the LLM never does arithmetic."),
-      trustItem("edit", "Human sign-off", `${reviewCount()} rows and ${Object.entries(o.code_tables).filter(([k]) => k !== "verified").reduce((a, [, v]) => a + v, 0)} code tables await review.`))),
-    o.recent_estimates.length ? h("section", { class: "section" }, h("div", { class: "sec-head" }, h("div", {}, h("h2", {}, "Recent estimates"), h("p", {}, "Saved automatically — reopen, export or print")),
+    h("section", { class: "section" }, h("div", { class: "sec-head" }, h("div", {}, h("span", { class: "eyebrow" }, "Why trust it"), h("h2", {}, "Numbers you can check"), h("p", {}, "Every value can be traced back to its source and checked by a person."))),
+      h("div", { class: "features cols-4" },
+        trustItem("doc", "Cited to the page", "Every clause, table and rate links to the original scanned PDF page."),
+        trustItem("shield", "Three-way rate checks", `${o.rates_vote_confirmed_pct}% of ${o.counts.sor_items.toLocaleString("en-IN")} DSR rates confirmed by independent OCR readings.`),
+        trustItem("calc", "Deterministic maths", "Calculators reproduce the IS 10262 worked example; the LLM never does arithmetic."),
+        trustItem("edit", "Human sign-off", `${reviewCount()} rows and ${Object.entries(o.code_tables).filter(([k]) => k !== "verified").reduce((a, [, v]) => a + v, 0)} code tables await review.`))),
+    o.recent_estimates.length ? h("section", { class: "section" }, h("div", { class: "sec-head" }, h("div", {}, h("span", { class: "eyebrow" }, "Your work"), h("h2", {}, "Recent estimates"), h("p", {}, "Saved automatically — reopen, export or print")),
       h("a", { href: "#/estimate" }, "All estimates ", icon("arrow"))),
       h("div", { class: "grid cols-4" }, o.recent_estimates.slice(0, 4).map((e) => h("a", { class: "card", href: "#/estimate?id=" + e.id, style: { color: "inherit", textDecoration: "none" } },
         h("small", {}, `${e.created.slice(0, 16)} · ${titleCase(e.location || "")}`), h("div", { style: { fontWeight: 600, margin: "4px 0 10px" } }, e.project),
         h("div", { class: "big-num", style: { fontSize: "22px" } }, inr(e.grand_total)), h("small", {}, `${e.lines} BOQ lines`, e.warnings ? ` · ${e.warnings} to verify` : ""))))) : null,
     o.llm_provider === "fake" ? h("div", { class: "alert info section" }, h("b", {}, "No LLM configured. "), "Search, calculators and estimates work fully. “Ask” answers stay extractive until you set CRAG_LLM_PROVIDER in .env.") : null);
 }
-function trustItem(ic, title, text) { return h("div", {}, h("div", { class: "ic" }, icon(ic)), h("b", {}, title), h("p", {}, text)); }
+function trustItem(ic, title, text) { return h("div", { class: "feature" }, h("div", { class: "ic" }, icon(ic)), h("b", {}, title), h("p", {}, text)); }
+function pageHead(eyebrow, title, sub) { return h("div", { class: "page-head" }, h("span", { class: "eyebrow" }, eyebrow), h("h1", {}, title), sub ? h("p", { class: "sub" }, sub) : null); }
 
 function stat(v, l, s) { return h("div", { class: "card stat" }, h("div", { class: "v" }, v), h("div", { class: "l" }, l), h("div", { class: "s muted" }, s)); }
 
@@ -460,9 +524,8 @@ async function pageSearch(main) {
     } catch (e) { out.replaceChildren(errorBox(e)); }
   };
   q.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
-  main.replaceChildren(
-    h("h1", {}, "Search & Ask"),
-    h("p", { class: "sub" }, "Hybrid search (keyword + semantic + reranking) over IS 456, IS 10262, IS 1200, IS 2386 and CPWD DSR 2023. Every result links to the original scanned page."),
+  fill(main, 
+    pageHead("Standards & DSR", "Search & Ask", "Hybrid search (keyword + semantic + reranking) over IS 456, IS 10262, IS 1200, IS 2386 and CPWD DSR 2023. Every result links to the original scanned page."),
     h("div", { class: "card" }, h("div", { class: "row" }, h("div", { class: "seg" }, segBtns), h("div", { style: { flex: "1 1 320px" } }, q),
       h("div", { style: { width: "150px" } }, code), h("div", { style: { width: "120px" } }, k), h("button", { class: "primary", onclick: go }, "Go"))),
     h("div", { style: { marginTop: "16px" } }, out));
@@ -556,9 +619,8 @@ async function pageMix(main) {
     try { out.replaceChildren(renderMix(await api("/v1/mix-design", { method: "POST", body: form.value() }))); }
     catch (e) { out.replaceChildren(errorBox(e)); }
   };
-  main.replaceChildren(
-    h("h1", {}, "Concrete mix design"),
-    h("p", { class: "sub" }, "IS 10262 : 2019 (Section 2) with IS 456 Table 5 durability limits. Output is TRIAL MIX No. 1 — confirm by trial batches."),
+  fill(main, 
+    pageHead("IS 10262 : 2019", "Concrete mix design", "IS 10262 : 2019 (Section 2) with IS 456 Table 5 durability limits. Output is TRIAL MIX No. 1 — confirm by trial batches."),
     h("div", { class: "alert info", style: { marginBottom: "16px" } }, h("b", {}, "w/c ratio is required "),
       "until the IS 10262 Fig. 1 strength-vs-w/c curves are digitized (Code tables page). Use your trial data or read it from Fig. 1 for your cement."),
     h("div", { class: "card" }, form.el, h("div", { class: "row end", style: { marginTop: "14px" } },
@@ -603,9 +665,8 @@ async function pageDesign(main) {
         try { out.replaceChildren(renderCalc(await api(kd.ep, { method: "POST", body: form.value() }))); } catch (e) { out.replaceChildren(errorBox(e)); }
       } }, `Design ${kd.label.toLowerCase()}`))), out);
   };
-  main.replaceChildren(h("h1", {}, "RCC element design (Design aid only)"),
-    h("p", { class: "sub" }, "IS 456 : 2000 limit-state design aids with clause-referenced checks."),
-    h("div", { class: "alert warn section" }, h("b", {}, "Design aid only. "), "Not a checked structural design. Every result must be reviewed by a qualified structural engineer before use."),
+  fill(main, pageHead("IS 456 : 2000", "RCC element design (Design aid only)", "IS 456 : 2000 limit-state design aids with clause-referenced checks."),
+    h("div", { class: "alert warn", style: { marginBottom: "18px" } }, h("b", {}, "Design aid only. "), "Not a checked structural design. Every result must be reviewed by a qualified structural engineer before use."),
     tabs, body);
   show();
 }
@@ -630,9 +691,9 @@ async function pageEstimate(main) {
   const cont = h("input", { type: "number", value: 3, step: "0.5", min: 0 });
   const floorsV = h("input", { type: "number", value: 0, min: 0 });
   const tbody = h("tbody");
-  const cols = [["id", "ID", "text", 70], ["type", "Type", EL_TYPES, 130], ["length_m", "Length / height (m)", "number", 95], ["width_m", "Width (m)", "number", 85],
-    ["depth_m", "Depth / thk (m)", "number", 90], ["count", "Nos", "number", 60], ["grade", "Grade", "grade", 75], ["level", "Level", ["below_plinth", "above_plinth"], 120],
-    ["steel_kg_per_m3", "Steel kg/m³", "number", 85]];
+  const cols = [["id", "ID", "text", 56], ["type", "Type", EL_TYPES, 118], ["length_m", "Length / height (m)", "number", 80], ["width_m", "Width (m)", "number", 72],
+    ["depth_m", "Depth / thk (m)", "number", 76], ["count", "Nos", "number", 54], ["grade", "Grade", "grade", 64], ["level", "Level", ["below_plinth", "above_plinth"], 128],
+    ["steel_kg_per_m3", "Steel kg/m³", "number", 76]];
   const drawRows = () => tbody.replaceChildren(...rows.map((r, i) => h("tr", {},
     cols.map(([k, , type]) => h("td", {}, cellInput(r, k, type))),
     h("td", {}, h("button", { class: "ghost small", title: "Remove", onclick: () => { rows.splice(i, 1); drawRows(); } }, "✕")))));
@@ -655,18 +716,17 @@ async function pageEstimate(main) {
   const history = h("div");
   const refreshHistory = async () => {
     try {
-      const list = await api("/v1/estimates?limit=20");
-      history.replaceChildren(list.length ? h("table", { class: "t" }, h("tbody", {}, list.map((e) => h("tr", { class: "click", onclick: async () => {
+      const list = await api("/v1/estimates?limit=100");
+      history.replaceChildren(list.length ? paginate(list, 8, (rows) => h("table", { class: "t" }, h("tbody", {}, rows.map((e) => h("tr", { class: "click", onclick: async () => {
         out.replaceChildren(loading()); out.replaceChildren(renderEstimate(await api("/v1/estimate/" + e.id))); out.scrollIntoView({ behavior: "smooth" }); } },
-        h("td", {}, h("b", {}, e.project), h("br"), h("small", {}, `${e.created.slice(0, 16)} · ${e.location} · ${e.lines} lines`)), h("td", { class: "num" }, inr(e.grand_total))))))
+        h("td", {}, h("b", {}, e.project), h("br"), h("small", {}, `${e.created.slice(0, 16)} · ${e.location} · ${e.lines} lines`)), h("td", { class: "num" }, inr(e.grand_total)))))), "saved")
         : h("div", { class: "muted" }, "None yet."));
     } catch (e) { history.replaceChildren(errorBox(e)); }
   };
-  main.replaceChildren(
-    h("h1", {}, "Estimate / Bill of Quantities"),
-    h("p", { class: "sub" }, "Element geometry → IS 1200 quantities → CPWD DSR 2023 rates × location index → BOQ, cement statement, cost heads → Excel / PDF."),
+  fill(main, 
+    pageHead("IS 1200 · CPWD DSR 2023", "Estimate / Bill of Quantities", "Element geometry → IS 1200 quantities → CPWD DSR 2023 rates × location index → BOQ, cement statement, cost heads → Excel / PDF."),
     h("datalist", { id: "grades" }, ["M10", "M15", "M20", "M25", "M30", "M35", "M40", "M50"].map((g) => h("option", { value: g }))),
-    h("div", { class: "grid", style: { gridTemplateColumns: "minmax(0,3fr) minmax(240px,1fr)" } },
+    h("div", { class: "est-layout" },
       h("div", { class: "card" },
         h("div", { class: "form-grid" }, lab("Project", project), lab("Location (cost index)", location_), lab("Concrete", mix), lab("PCC mix", pcc),
           lab("Contingency %", cont), lab("Storeys above floor V", floorsV)),
@@ -745,19 +805,20 @@ async function pageRates(main) {
   const go = async () => {
     out.replaceChildren(loading("Searching DSR…"));
     try {
-      const list = await api(`/v1/rates?q=${encodeURIComponent(q.value)}&unit=${unit.value}&limit=100`);
+      const list = await api(`/v1/rates?q=${encodeURIComponent(q.value)}&unit=${unit.value}&limit=200`);
       if (!list.length) return out.replaceChildren(h("div", { class: "empty" }, "No DSR items match."));
-      out.replaceChildren(h("div", { class: "tbl-wrap" }, h("table", { class: "t" },
-        h("thead", {}, h("tr", {}, h("th", {}, "Item"), h("th", {}, "Description"), h("th", {}, "Unit"), h("th", { class: "num" }, "DSR rate"), h("th", {}, "Check"))),
-        h("tbody", {}, list.map((it) => h("tr", { class: "click" + (it.needs_review ? " flag" : ""), onclick: () => rateDetail(it, loc.value) },
-          h("td", { class: "mono" }, it.code), h("td", {}, h("div", { class: "clamp" }, it.full_description)), h("td", {}, unitLabel(it.unit) || it.unit_raw),
-          h("td", { class: "num" }, inr(it.rate)), h("td", {}, it.needs_review ? h("span", { class: "badge warn" }, "verify") : h("span", { class: "badge ok" }, "✓"))))))),
-        h("p", { class: "muted" }, `${list.length} items. Click a row for details, OCR readings and the source page.`));
+      out.replaceChildren(
+        h("p", { class: "muted", style: { margin: "0 0 10px" } }, list.length >= 200 ? "First 200 matches. Narrow the search to see others. " : "", "Click a row for details, OCR readings and the source page."),
+        paginate(list, 25, (rows) => h("div", { class: "tbl-wrap" }, h("table", { class: "t" },
+          h("thead", {}, h("tr", {}, h("th", {}, "Item"), h("th", {}, "Description"), h("th", {}, "Unit"), h("th", { class: "num" }, "DSR rate"), h("th", {}, "Check"))),
+          h("tbody", {}, rows.map((it) => h("tr", { class: "click" + (it.needs_review ? " flag" : ""), onclick: () => rateDetail(it, loc.value) },
+            h("td", { class: "mono" }, it.code), h("td", {}, h("div", { class: "clamp" }, it.full_description)), h("td", {}, unitLabel(it.unit) || it.unit_raw),
+            h("td", { class: "num" }, inr(it.rate)), h("td", {}, it.needs_review ? h("span", { class: "badge warn" }, "verify") : h("span", { class: "badge ok" }, "✓"))))))),
+          "items"));
     } catch (e) { out.replaceChildren(errorBox(e)); }
   };
   q.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
-  main.replaceChildren(h("h1", {}, "CPWD DSR 2023 rates"),
-    h("p", { class: "sub" }, "2,955 items parsed from the scanned Delhi Schedule of Rates (w.e.f. 16.10.2023). Item rates include materials, labour, T&P, water, CP&OH and GST @18%."),
+  fill(main, pageHead("Schedule of rates", "CPWD DSR 2023 rates", "2,955 items parsed from the scanned Delhi Schedule of Rates (w.e.f. 16.10.2023). Item rates include materials, labour, T&P, water, CP&OH and GST @18%."),
     h("div", { class: "card" }, h("div", { class: "row" }, h("div", { style: { flex: "1 1 300px" } }, q), h("div", { style: { width: "130px" } }, unit),
       h("span", { class: "muted" }, "Location"), loc, h("button", { class: "primary", onclick: go }, "Search"))), out);
   go();
@@ -779,7 +840,7 @@ async function rateDetail(it, location_) {
 
 // ---------- review queue
 async function pageReview(main) {
-  if (!can("admin")) { main.replaceChildren(h("div", { class: "alert warn" }, "The review queue needs an API key with the 'admin' scope.")); return; }
+  if (!can("admin")) { fill(main, h("div", { class: "alert warn" }, "The review queue needs an API key with the 'admin' scope.")); return; }
   const st = { tab: "sor", q: "", head: "", category: "", offset: 0, rows: [], total: 0, sel: -1 };
   const checker = h("input", { value: S.checker || (S.me && S.me.name) || "", placeholder: "your name", style: { width: "180px" },
     oninput: (e) => { S.checker = e.target.value; lsSet("crag_checker", e.target.value); } });
@@ -787,7 +848,7 @@ async function pageReview(main) {
   const filters = h("div", { class: "row", style: { marginBottom: "12px" } });
   const list = h("div", { class: "list tbl-wrap" });
   const detail = h("div", { class: "card" }, h("div", { class: "empty" }, "Select a row to review it against the scanned page."));
-  const pager = h("div", { class: "row", style: { marginTop: "8px" } });
+  const pager = h("div");
 
   const load = async () => {
     list.replaceChildren(loading());
@@ -813,10 +874,8 @@ async function pageReview(main) {
     filters.replaceChildren(h("div", { style: { flex: "1 1 240px" } }, q), h("div", { style: { width: "220px" } }, sel),
       h("span", { class: "muted" }, "Checked by"), checker);
   };
-  const drawPager = () => pager.replaceChildren(h("span", { class: "muted" }, `${st.total} rows need review · showing ${st.total ? st.offset + 1 : 0}–${st.offset + st.rows.length}`),
-    h("span", { class: "spacer" }),
-    h("button", { class: "small", disabled: st.offset === 0, onclick: () => { st.offset = Math.max(0, st.offset - 50); load(); } }, "‹ Prev"),
-    h("button", { class: "small", disabled: st.offset + 50 >= st.total, onclick: () => { st.offset += 50; load(); } }, "Next ›"));
+  const drawPager = () => pager.replaceChildren(pagerBar(Math.floor(st.offset / 50), Math.max(1, Math.ceil(st.total / 50)), st.total, 50,
+    (p) => { st.offset = p * 50; load(); }, "rows need review"));
   const drawList = () => {
     if (!st.rows.length) { list.replaceChildren(h("div", { class: "empty" }, "No rows.")); return; }
     list.replaceChildren(h("table", { class: "t" },
@@ -862,8 +921,7 @@ async function pageReview(main) {
     rate.focus(); rate.select();
     try { view.replaceChildren(h("img", { src: await pageImage(r.doc_id, r.page, 120), alt: "scanned page" })); } catch (e) { view.replaceChildren(errorBox(e)); }
   };
-  main.replaceChildren(h("h1", {}, "Review queue"),
-    h("p", { class: "sub" }, "Rows where the three OCR readings disagreed or the item code was uncertain. Compare with the scanned page, fix the value, save. Corrections are written to config/corrections/cpwd_dsr_2023.yaml (kept across re-ingest) and applied immediately."),
+  fill(main, pageHead("Admin · data quality", "Review queue", "Rows where the three OCR readings disagreed or the item code was uncertain. Compare with the scanned page, fix the value, save. Corrections are written to config/corrections/cpwd_dsr_2023.yaml (kept across re-ingest) and applied immediately."),
     tabs, filters, h("div", { class: "split" }, h("div", {}, list, pager), detail));
   drawTabs(); drawFilters(); load();
 }
@@ -878,7 +936,7 @@ function shortReason(rs) {
 
 // ---------- learning (admin)
 async function pageLearning(main) {
-  if (!can("admin")) { main.replaceChildren(h("div", { class: "alert warn" }, "The Learning page needs an API key with the 'admin' scope.")); return; }
+  if (!can("admin")) { fill(main, h("div", { class: "alert warn" }, "The Learning page needs an API key with the 'admin' scope.")); return; }
   const st = { status: "new", kind: "" };
   const status = await api("/v1/admin/learning");
   const checker = h("input", { value: S.checker || (S.me && S.me.name) || "", placeholder: "your name", style: { width: "180px" },
@@ -903,7 +961,7 @@ async function pageLearning(main) {
   };
   const drawList = (rows) => {
     if (!rows.length) { list.replaceChildren(h("div", { class: "empty" }, "No feedback here.")); return; }
-    list.replaceChildren(h("table", { class: "t" },
+    list.replaceChildren(paginate(rows, 20, (rows) => h("table", { class: "t" },
       h("thead", {}, h("tr", {}, h("th", {}, "When"), h("th", {}, "By"), h("th", {}, "Rating"), h("th", {}, "Question / rated item"), h("th", {}, "Status"), h("th", {}, ""))),
       h("tbody", {}, rows.map((f) => h("tr", {},
         h("td", { class: "mono" }, f.ts.slice(0, 16)), h("td", {}, f.key_name || "—"),
@@ -915,12 +973,11 @@ async function pageLearning(main) {
         h("td", {}, statusBadge(f.status === "approved" ? "verified" : f.status === "discarded" ? "unconfirmed" : "review"), f.reviewed_by ? h("small", { class: "muted" }, ` ${f.reviewed_by}`) : null),
         h("td", { style: { whiteSpace: "nowrap" } },
           f.status !== "approved" ? h("button", { class: "small primary", title: f.kind === "answer" ? "Use as an example for similar questions (and for fine-tuning)" : "Keep for training", onclick: () => review(f, "approved") }, "Approve") : null, " ",
-          f.status !== "discarded" ? h("button", { class: "small", title: "Wrong or careless feedback - never used for learning", onclick: () => review(f, "discarded") }, "Discard") : null))))));
+          f.status !== "discarded" ? h("button", { class: "small", title: "Wrong or careless feedback - never used for learning", onclick: () => review(f, "discarded") }, "Discard") : null))))), "ratings"));
   };
   const drawTabs = () => tabs.replaceChildren(...[["new", "To review"], ["approved", "Approved"], ["discarded", "Discarded"], ["", "All"]].map(([k, l]) =>
     h("button", { class: st.status === k ? "on" : "", onclick: () => { st.status = k; drawTabs(); load(); } }, l)));
-  main.replaceChildren(h("h1", {}, "Learning"),
-    h("p", { class: "sub" }, "The system improves from use: ratings on search results and answers, engineers' corrections and actual project costs. Every change is tested against the golden evaluation sets before it goes live, and can be rolled back. IS code values, DSR rates and calculator formulas never change here."),
+  fill(main, pageHead("Admin · feedback loop", "Learning", "The system improves from use: ratings on search results and answers, engineers' corrections and actual project costs. Every change is tested against the golden evaluation sets before it goes live, and can be rolled back. IS code values, DSR rates and calculator formulas never change here."),
     h("div", { class: "grid4", style: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px", marginBottom: "18px" } },
       stat(String(fb.queries_logged || 0), "Queries logged", "searches + questions"),
       stat(String(cnt("chunk", "new") + cnt("answer", "new")), "Ratings to review", `${cnt("chunk", "approved") + cnt("answer", "approved")} approved · ${cnt("chunk", "discarded") + cnt("answer", "discarded")} discarded`),
@@ -942,15 +999,14 @@ async function pageLearning(main) {
 async function pageTables(main) {
   const list = await api("/v1/admin/code-tables");
   const checker = S.checker || (S.me && S.me.name) || "";
-  main.replaceChildren(h("h1", {}, "Code tables"),
-    h("p", { class: "sub" }, "Values the calculators use. Each table is cross-checked automatically against the OCR text of the standard; sign it off after comparing with your licensed copy."),
+  fill(main, pageHead("Verification", "Code tables", "Values the calculators use. Each table is cross-checked automatically against the OCR text of the standard; sign it off after comparing with your licensed copy."),
     h("div", { class: "stack" }, list.map((t) => tableCard(t, checker))));
 }
 function tableCard(t, checker) {
   const v = t.verification || {};
   const status = v.status || (t.verified_by ? "verified" : "unconfirmed");
   const human = status === "verified";                  // ai_checked tables still need a person's sign-off
-  const name = h("input", { value: checker, placeholder: "your name", style: { width: "180px" } });
+  const name = h("input", { value: checker, placeholder: "your name", "aria-label": "Your name" });
   return h("div", { class: "card" },
     h("div", { class: "row" }, h("h2", { style: { margin: 0 } }, `${t.source.code} — ${t.source.table ? "Table " + t.source.table : t.source.figure ? "Fig. " + t.source.figure : "cl. " + (t.source.clause || (t.source.clauses || []).join(", "))}`),
       statusBadge(status), v.checked ? h("span", { class: "badge" }, `${v.matched}/${v.checked} rows found in OCR text`) : null,
@@ -960,15 +1016,14 @@ function tableCard(t, checker) {
     renderTableValues(t.values),
     (v.mismatches || []).length && !human ? h("div", { class: "alert warn", style: { marginTop: "10px" } }, h("b", {}, "Not found in the OCR text (check these against your copy):"),
       h("ul", {}, v.mismatches.map((m) => h("li", { class: "mono" }, m)))) : null,
-    h("div", { class: "row", style: { marginTop: "12px" } },
+    h("div", { class: "card-foot" },
       human ? h("span", { class: "badge ok" }, `Signed off by ${t.verified_by} on ${t.verified_on}`)
         : t.verified_by ? h("span", { class: "muted" }, `Checked by ${t.verified_by} on ${t.verified_on}. Not yet signed off by a person.`)
         : h("span", { class: "muted" }, "Not yet signed off."),
-      h("span", { class: "spacer" }),
-      can("admin") && !human ? [name, h("button", { class: "primary small", onclick: async () => {
+      can("admin") && !human ? h("div", { class: "signoff" }, name, h("button", { class: "primary small", onclick: async () => {
         if (name.value.trim().length < 2) return toast("Enter your name.", true);
         try { await api(`/v1/admin/code-tables/${t.name}/sign-off`, { method: "POST", body: { verified_by: name.value.trim() } }); toast("Signed off."); route(); }
-        catch (e) { toast(errText(e), true); } } }, "I compared this with the standard — sign off")] : null));
+        catch (e) { toast(errText(e), true); } } }, "I compared this with the standard — sign off")) : null));
 }
 function renderTableValues(v) {
   if (v.rows && v.columns) return h("div", { class: "tbl-wrap" }, h("table", { class: "t" }, h("thead", {}, h("tr", {}, v.columns.map((c) => h("th", {}, titleCase(c))))),
@@ -1004,9 +1059,10 @@ function showLogin(msg) {
   key.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
   login = h("div", { class: "login", id: "login" }, h("div", { class: "card stack" },
     h("div", { class: "brand" }, LOGO(), h("span", {}, "Concrete", h("b", {}, "Estimator"))),
-    h("h1", { style: { fontSize: "24px", marginTop: "10px" } }, "Sign in"),
-    h("p", { class: "muted", style: { margin: 0 } }, "Use your API key. Create one in the terminal:"),
-    h("code", { style: { display: "block", padding: "8px", background: "var(--panel-2)", borderRadius: "6px" } }, "crag apikey create <your-name> --scopes retrieve,generate,calc,estimate,admin"),
+    h("div", {}, h("h1", { style: { fontSize: "26px", marginTop: "14px" } }, "Welcome back"),
+      h("p", { class: "tagline" }, "Mix design, RCC design aids and DSR-priced estimates, every number cited to the code.")),
+    h("p", { class: "muted", style: { margin: "18px 0 0", fontSize: "13px" } }, "Sign in with your API key. Create one in the terminal:"),
+    h("code", { style: { display: "block", padding: "10px 12px", background: "var(--panel-2)", borderRadius: "10px" } }, "crag apikey create <your-name> --scopes retrieve,generate,calc,estimate,admin"),
     msg ? h("div", { class: "alert warn" }, msg) : null,
     h("label", { class: "f" }, h("span", {}, "API key"), key), err,
     h("button", { class: "primary", onclick: submit }, "Sign in")));

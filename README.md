@@ -265,6 +265,11 @@ More detail: [docs/data-notes.md](docs/data-notes.md) (what was read, fixed and 
 In order of priority. Only you can do or decide these.
 
 ### 1. Right now
+- [ ] **Look at the new web app design.** Restart `crag serve`, open `/ui` and hard-refresh (Cmd+Shift+R) so the
+      browser loads the new styles. The app is now blue and white only (no dark mode). Long lists (DSR rates,
+      saved estimates, learning feedback, review queue) have page numbers at the bottom. Click through each screen
+      and tell us if anything looks off. Only the look changed: every screen, button and number works as before.
+      The rate location picker is now in the header, and API docs and Verification are in the account menu.
 - [ ] **Restart `crag serve`** so it drops the removed `/v1/agent` endpoint. If a downstream system called it,
       switch it to the calculator and `/v1/estimate` endpoints. The Claude (`anthropic`) LLM option is gone too;
       local Ollama is the only LLM.
@@ -284,10 +289,20 @@ In order of priority. Only you can do or decide these.
 
 ### 3. Spot-check the automatic fixes
 Many fixes were made by reading the scans with AI vision and are tagged `claude-vision`.
-- [ ] Open **Code tables**. Every table now shows **AI-checked, needs human sign-off**. Press **Compare with
-      page**, and sign the ones you have compared in your own name. Only then do they count as verified.
-- [ ] Open `data/processed/fig1_overlay.png` and compare it with IS 10262 **Fig. 1** in your printed copy. The
-      coloured rings are the stored points; each should sit on its curve.
+- [x] ~~Sign off the IS code tables.~~ 10 of 13 signed off on 2026-10-23 (IS 10262 Tables 1–5; IS 456 Tables 5,
+      16, 19, 20 and bond stress cl. 26.2.1.1).
+- [ ] Sign off the last 3 on **Code tables**:
+  - **IS 456 cl. 38.1** (limiting xu,max/d): compare the three values with cl. 38.1 in your copy.
+  - **IS 456 detailing limits** (min/max steel, bar spacing, cover, span/depth): check each line against the
+    clause it lists (26.5.1.1, 26.5.1.5, 26.5.2.1, 26.5.3.1, 23.2.1, 25.4, 39.3, 36.4.2).
+  - **IS 10262 Fig. 1** (w/c vs strength curves): open `data/processed/fig1_overlay.png` and compare it with
+    Fig. 1 in your printed copy. The coloured rings are the stored points; each should sit on its curve.
+- [ ] **Commit `config/code_tables/`** after signing, so the sign-offs are kept and backed up. They are saved in
+      those YAML files, not in the database.
+- [ ] **When all sign-offs are done, refresh search** so results show "signed off" instead of "AI-checked" on
+      those tables. Stop `crag serve`, run `crag ingest --doc IS456_2000 --doc IS10262_2019` (uses the OCR cache,
+      so it's quick), then `crag index` (~4 min), then start `crag serve` again. The calculators already use the
+      signed-off values; this only changes the label shown in search.
 - [ ] Spot-check a few equations in `config/equations/is456_2000.yaml` against your copy of IS 456 (for example
       cl. 26.2.1, 39.3, 40.4 and Annex G).
 - [ ] Look through a few DSR fixes in `config/corrections/cpwd_dsr_2023.yaml` against the printed DSR.
