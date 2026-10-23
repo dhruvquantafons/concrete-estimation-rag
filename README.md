@@ -57,6 +57,113 @@ What you see depends on your key's permissions (scopes).
 
 ---
 
+## How it works
+
+There are two stages. **Preparing** happens once (and again whenever a document changes). **Using** happens
+every time someone searches, designs or estimates.
+
+```
+PREPARING (crag ingest, crag index)
+
+ PDFs ─▶ read text ─▶ fix reading order ─▶ split into clauses, ─▶ add checked ─▶ build the
+         (or OCR)     (two columns)        tables, DSR items      equations     search index
+                                           + tags                 and values
+
+USING (web app or API)
+
+ question ─▶ find the right sources ─▶ written answer with [S1] sources ─▶ 👍 / 👎
+ element sizes ─▶ quantities (IS 1200) ─▶ DSR rates ─▶ priced BOQ ─▶ Excel / PDF
+ grade, exposure ─▶ mix design (IS 10262 + IS 456 limits) ─▶ kg per m³
+```
+
+### 1. Preparing the documents
+
+1. **Register.** Every PDF is listed in `config/sources.yaml` with its edition and amendments. A fingerprint of
+   each file is stored, so a changed file is noticed.
+2. **Read the text.** Digital PDFs are read directly. Scanned pages are read with OCR (Tesseract), using the
+   picture already inside the PDF. Results are saved, so the slow OCR runs only once.
+3. **Read the DSR rates three times.** Each rate is read from the English page, read again digits-only, and
+   read from the Hindi page. The readings vote. A rate without at least two agreeing readings goes to the
+   **Review queue** for a person to check.
+4. **Fix the reading order.** IS codes are printed in two columns. The left column is read before the right,
+   and full-width tables, captions and "label : value" rows are kept whole.
+5. **Split into pieces ("chunks").** One chunk per clause, table, annex clause, amendment or DSR item. Each
+   chunk is tagged with its code, clause or table number, page, material, work item, concrete grade, and the
+   clauses it refers to.
+6. **Apply checked fixes.** About 770 checked corrections to DSR rows (`config/corrections/`) are applied. For
+   scanned codes whose printed formulas or tables OCR cannot read, the values checked against the page
+   (`config/equations/`, `config/code_tables/`) are added beside the OCR text.
+7. **Build the search index.** Each chunk gets a meaning vector (bge-m3) and a keyword vector (BM25), stored
+   in Qdrant. The original text and data stay in the database (`storage/docstore.db`).
+
+### 2. Searching and asking (Search & Ask)
+
+1. **Exact references first.** "cl. 26.4.2", "Table 16" or "DSR 5.33.2.1" are looked up directly.
+2. **Two searches.** A meaning search and a keyword search each return their best 50 chunks. The two lists are
+   combined.
+3. **Re-rank.** A second model reads the top 24 next to the question and puts the most useful first.
+4. **Add context.** Clauses a result refers to, and amendments that change it, are attached.
+5. **Show sources.** Every result shows its code, clause and page, a **View page** link to the scan, and a
+   warning if its OCR is unchecked.
+6. **Ask (written answer).** The top sources are numbered [S1], [S2]… and given to the local AI model with the
+   question. Answers approved by an admin for similar questions are shown to it as examples. The model must
+   answer only from the sources and cite them.
+7. **Number check.** Every number in the answer is searched for in the sources. Any number not found is flagged
+   as "ungrounded" and shown to you. It is never silently corrected.
+
+### 3. Mix design (IS 10262)
+
+1. **Target strength** = grade + 1.65 × standard deviation, or grade + X, whichever is higher (Tables 1 and 2).
+2. **Water-cement ratio** from the Fig. 1 curve for your cement, capped by the IS 456 Table 5 limit for the
+   exposure.
+3. **Water** from Table 4 for the aggregate size, adjusted for slump, aggregate shape and admixture.
+4. **Cement** = water ÷ water-cement ratio, then checked against the IS 456 minimum and the 450 kg/m³ maximum.
+5. **Coarse aggregate share** from Table 5 for the sand zone, corrected for the actual water-cement ratio.
+6. **Volumes to weights.** Air, cement, water and admixture volumes are subtracted from 1 m³, and the rest is
+   split into fine and coarse aggregate.
+
+Every step shows its formula, its value and the clause or table it came from.
+
+### 4. RCC design (design aid only)
+
+Size a beam, one-way slab, short column or isolated footing to IS 456. Each check (bending, shear, deflection,
+minimum and maximum steel, spacing, cover) shows pass or fail with its clause. Every result is labelled
+**Design aid only**: a qualified structural engineer must review it.
+
+### 5. Estimate / BOQ
+
+1. **Enter elements.** Type, sizes in metres, count, concrete grade, and below or above plinth.
+2. **Quantities (IS 1200).**
+   - Concrete volume: dimensions rounded as the standard says, and openings up to 0.1 m² not deducted.
+   - Formwork contact area: openings up to 0.4 m² not deducted.
+   - Steel weight: concrete volume × a kg-per-m³ figure. You can give your own; otherwise the learned value
+     (once approved) or the default from `config/cost/estimation_defaults.yaml` is used, and it is listed in the
+     estimate's assumptions. (A bar bending schedule can be worked out separately with `/v1/bbs`. It is not yet
+     fed into the estimate.)
+3. **Match DSR items.** Each quantity is mapped to its DSR 2023 item (`config/cost/boq_mapping.yaml`). For
+   example, M25 design mix above plinth maps to 5.33.2.1, and slab formwork to 5.9.3.
+4. **Price.** Quantity × DSR rate × location index (Delhi = 100; other cities are refused until their index is
+   added). A rate the OCR check could not confirm is flagged.
+5. **Totals.** Subtotal + contingency (3% by default) = grand total. DSR rates already include contractor's
+   profit, overheads and GST.
+6. **Extras.** A cement consumption statement from the DSR coefficients, and a rough split into materials
+   versus labour, equipment and overheads.
+7. **Save and export.** Every estimate is saved, with its assumptions and warnings, and can be downloaded as
+   Excel (with working formulas) or PDF.
+
+### 6. Keeping it correct
+
+- **Review queue:** DSR rows the scanner was unsure about. A person fixes them next to the scanned page, and the
+  fix is re-applied on every ingest.
+- **Code tables:** the IS values the calculators use. Each is compared with the scanned page, and a person
+  signs it off.
+- **Learning:** 👍 / 👎 on results and answers. An admin can discard careless ratings, which are then never used.
+  A learned change goes live only if it scores better on the 50 test questions (see below).
+- **Tests and scores:** `pytest -q` checks the code, and `crag evaluate` scores search, answers and
+  calculators. Results are in [docs/technical.md](docs/technical.md).
+
+---
+
 ## How it keeps learning
 
 Every search result and answer has **👍 / 👎** buttons. 👎 on an answer lets you type the correct answer.
