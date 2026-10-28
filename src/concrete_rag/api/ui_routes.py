@@ -35,7 +35,8 @@ def overview(p: dict = Depends(principal)):
         "me": p,
         "counts": counts,
         "index": vector.collection_info(),
-        "review": {"sor_items": len(q["sor_items"]), "basic_rates": len(q["basic_rates"]), "is_chunks": len(q["chunks"])},
+        "review": {"sor_items": len(q["sor_items"]), "basic_rates": len(q["basic_rates"]), "is_chunks": len(q["chunks"]),
+                   "dar_dsr": review.list_dar_differences(limit=0)["total"]},
         "items_clean_pct": round(100 * (counts["sor_items"] - len(q["sor_items"])) / items_total, 1),
         "rates_vote_confirmed_pct": _vote_pct(),
         "code_tables": st,
@@ -107,6 +108,24 @@ def review_sor(q: str | None = None, head: int | None = None, offset: int = 0, l
 def review_basic(q: str | None = None, category: str | None = None, offset: int = 0, limit: int = 50,
                  _=Depends(require("admin"))):
     return review.list_basic_review(q, category, offset, min(limit, 200))
+
+
+@router.get("/admin/review/dar-dsr", tags=["admin"])
+def review_dar_dsr(q: str | None = None, offset: int = 0, limit: int = 50, _=Depends(require("admin"))):
+    return review.list_dar_differences(q, offset, min(limit, 200))
+
+
+class DarDecision(BaseModel):
+    key: str
+    decision: str = Field(..., pattern="^(dar|dsr|other)$")
+    checked_by: str = Field(..., min_length=2, max_length=80)
+    rate: float | None = Field(None, ge=0)
+    note: str | None = Field(None, max_length=300)
+
+
+@router.post("/admin/review/dar-dsr", tags=["admin"])
+def resolve_dar_dsr(body: DarDecision, _=Depends(require("admin"))):
+    return review.resolve_dar_difference(body.key, body.decision, body.checked_by, body.rate, body.note)
 
 
 class Correction(BaseModel):

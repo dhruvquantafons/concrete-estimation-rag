@@ -18,6 +18,8 @@ def citation_for(ch: dict[str, Any]) -> Citation:
     label = m.get("code_label") or m.get("code_no")
     if t in ("sor_item",):
         ref = f"CPWD DSR {m.get('sor_year')}, item {m.get('item_code')}"
+    elif t == "dar_analysis":
+        ref = f"CPWD DAR {m.get('sor_year')}, analysis of item {m.get('item_code')}"
     elif t == "basic_rate":
         ref = f"CPWD DSR {m.get('sor_year')}, basic rate {m.get('item_code', '').replace('BR:', 'code ')}"
     elif t == "table":
@@ -61,7 +63,8 @@ def exact_hits(pq: ParsedQuery) -> list[dict]:
         if hits and not pq.code_no:
             break
     for it in pq.items:
-        rows = docstore.get_chunks([f"CPWD_DSR_2023_V1:item:{it}", f"CPWD_DSR_2023_V2:item:{it}"])
+        rows = docstore.get_chunks([f"CPWD_DSR_2023_V1:item:{it}", f"CPWD_DSR_2023_V2:item:{it}",
+                                    f"CPWD_DAR_2023_V1:dar:{it}", f"CPWD_DAR_2023_V2:dar:{it}"])
         hits += list(rows.values())
     seen, out = set(), []
     for h in hits:

@@ -82,8 +82,10 @@ USING (web app or API)
    each file is stored, so a changed file is noticed.
 2. **Read the text.** Digital PDFs are read directly. Scanned pages are read with OCR (Tesseract), using the
    picture already inside the PDF. Results are saved, so the slow OCR runs only once.
-3. **Read the DSR rates three times.** Each rate is read from the English page, read again digits-only, and
-   read from the Hindi page. The readings vote. A rate without at least two agreeing readings goes to the
+3. **Read the DSR from the clean copy, check it against the scan.** The clean copy (`data/CPWD SOR HQ`) is read
+   for every item, basic rate, unit and description; what it prints is used. The scan's English pages are read
+   twice (normal and digits-only) as a cross-check; its Hindi pages are ignored. A rate that no second source
+   (a scan reading or the DAR analysis) confirms, or a scan row the clean copy does not have, goes to the
    **Review queue** for a person to check.
 4. **Fix the reading order.** IS codes are printed in two columns. The left column is read before the right,
    and full-width tables, captions and "label : value" rows are kept whole.
@@ -122,7 +124,16 @@ USING (web app or API)
 6. **Volumes to weights.** Air, cement, water and admixture volumes are subtracted from 1 m³, and the rest is
    split into fine and coarse aggregate.
 
-Every step shows its formula, its value and the clause or table it came from.
+Every step shows its formula, its value and the clause or table it came from, with the code edition
+(e.g. "IS 456 : 2000 (incl. Amd 1-3), Table 5"). The result also lists the code versions used and a
+**confidence score** (high / medium / low, 0-1) with the factors behind it: how well each code value was
+checked, where the w/c ratio came from, and whether every code check passed. A failed check always makes it low.
+
+**Concrete-mix report (`POST /v1/concrete-mix`).** Give the mix inputs and your elements, and get everything in one
+result: a mix design for each grade used (the most severe exposure among its elements), element volumes (IS 1200),
+reinforcement per element and in total, wastage factors, materials per m³ and to procure (cement bags, sand and
+aggregate in m³, admixture in litres), IS clause citations, code versions and a confidence score. Wastage comes
+from `config/cost/wastage.yaml`; see [Wastage: where each value comes from](#wastage-where-each-value-comes-from).
 
 ### 4. RCC design (design aid only)
 
@@ -141,15 +152,69 @@ minimum and maximum steel, spacing, cover) shows pass or fail with its clause. E
      estimate's assumptions. (A bar bending schedule can be worked out separately with `/v1/bbs`. It is not yet
      fed into the estimate.)
 3. **Match DSR items.** Each quantity is mapped to its DSR 2023 item (`config/cost/boq_mapping.yaml`). For
-   example, M25 design mix above plinth maps to 5.33.2.1, and slab formwork to 5.9.3.
+   example, M25 design mix above plinth maps to 5.33.2.1, and slab formwork to 5.9.3. Work with no mapped item
+   (for example M20 design mix, which DSR 2023 does not have) is matched by search over the DSR. The line is
+   marked **searched**, with alternatives, and you should confirm it. Quantities are converted to the item's unit
+   (e.g. m² to "per 10 m²").
 4. **Price.** Quantity × DSR rate × location index (Delhi = 100; other cities are refused until their index is
-   added). A rate the OCR check could not confirm is flagged.
+   added). Each DSR rate is checked against its CPWD DAR 2023 analysis (a digital PDF): "✓ DAR" means they are
+   equal. A rate the DAR disagrees with, or the OCR check could not confirm, is flagged.
 5. **Totals.** Subtotal + contingency (3% by default) = grand total. DSR rates already include contractor's
    profit, overheads and GST.
-6. **Extras.** A cement consumption statement from the DSR coefficients, and a rough split into materials
-   versus labour, equipment and overheads.
-7. **Save and export.** Every estimate is saved, with its assumptions and warnings, and can be downloaded as
+6. **Extras.** A cement consumption statement from the DSR coefficients, and the **cost heads** of every line from
+   its DAR analysis: material, labour, equipment (hire and running of plant), carriage, sundries, water charges
+   (1%), GST (factor 0.2127), contractor's profit and overheads (15%) and cess (1%). BOQ quantities stay net,
+   because IS 1200 measures net work and DAR quantities already allow for wastage.
+7. **Confidence.** A score from how the rates were confirmed (equal to DAR is best), how items were chosen, where
+   the steel figures came from and the location index. A searched item limits it to medium.
+
+**DAR analyses (`GET /v1/rates/{code}/analysis`, `POST /v1/rates/{code}/reprice`).** See how CPWD built any DSR
+rate (every material, labour and hire row with quantity × rate), or re-price it with other basic rates, such as
+market rates: same quantities and the same build-up, new rate.
+8. **Save and export.** Every estimate is saved, with its assumptions and warnings, and can be downloaded as
    Excel (with working formulas) or PDF.
+
+#### Rates: DSR, cost index and market rates
+
+**Market rates are not needed for CPWD-method estimates for Delhi.**
+
+- **DSR 2023 is still the current civil schedule.** CPWD's 2025 releases were the E&M and the Horticulture &
+  Landscaping schedules. No civil DSR 2025 was found (checked 2026-10-27).
+- **Old rates are brought up to date with a cost index, not market rates.** CPWD (and e.g. Indian Railways,
+  Railway Board letter of 03.07.2025) applies DSR 2023 everywhere through a *building cost index*:
+  rate = DSR rate × index / 100. The index goes in `config/cost/cost_indices.yaml` (only Delhi = 100, the DSR base,
+  is filled in).
+- **The number worth getting is the current CPWD cost index for Delhi** over the DSR 2023 base, with its office
+  memorandum number and date, from cpwd.gov.in. It is one number per location.
+- **Market rates are only needed for real current prices**, e.g. a contractor's bid or items not in the DSR.
+  - Materials: written quotes from local suppliers (cement dealer, RMC plant, TMT stockist, sand and aggregate
+    suppliers).
+  - Labour: DSR 2023 uses Delhi wages w.e.f. 01.04.2023; the Delhi Government's later minimum-wage notifications
+    are the official update.
+  - How they are used: give them as basic-rate codes to `POST /v1/rates/{code}/reprice`. The item's DAR analysis
+    is re-priced with the same quantities and the same build-up (water 1 %, GST factor 0.2127, CPOH 15 %,
+    cess 1 %).
+
+#### Wastage: where each value comes from
+
+IS 456, IS 10262 and IS 1200 do not prescribe wastage. Each value in `config/cost/wastage.yaml` records its source:
+
+| Material | Wastage | Source |
+|---|---|---|
+| Cement | 2 % | CPWD: ±2 % permissible variation over theoretical cement consumption (works above ₹25 lakh) |
+| Steel reinforcement | 5 % | CPWD DAR 2023 item 5.22.6: 1.05 quintal of bars per quintal of reinforcement |
+| Fly ash | 2 % | taken equal to cement |
+| Sand (fine aggregate) | 5 % | site practice: handling, bulking and spillage; no CPWD figure |
+| Coarse aggregate | 3 % | site practice; no CPWD figure |
+| Admixture | 1 % | site practice |
+| Binding wire | 5 % | site practice (DAR 5.22.6 prices binding wire as a lump sum) |
+| Water | 0 % | mix water only; curing water is separate |
+
+- **What wastage changes:** only the "materials to buy" figures of the concrete-mix report.
+- **What it never changes:** BOQ quantities or costs. IS 1200 measures net work, and DSR / DAR rates already
+  allow for wastage, so adding it there would count it twice.
+- **Effect on confidence:** CPWD-sourced values score higher than site-practice ones. When a site engineer or QS
+  confirms the file and writes their name in `approved_by`, the wastage factor counts as fully confirmed.
 
 ### 6. Keeping it correct
 
@@ -245,14 +310,51 @@ More detail: [docs/technical.md](docs/technical.md) and [docs/scope.md](docs/sco
 
 ## Where things stand
 
-- **Data:** complete for this project: IS 456, IS 10262, IS 1200, IS 2386 and both DSR 2023 volumes. No more
-  documents are planned. The review queue is empty, and about 770 scanner errors were checked against the scanned
-  pages and fixed. Rates are for **Delhi** (DSR base); other locations are refused rather than guessed.
+- **DSR = the clean copy (full comparison 2026-10-28):** `data/CPWD SOR HQ` is a clean copy of the *original*
+  DSR 2023 printing (Aug 2023); `data/CPWD SOR` is a 96-dpi scan of the corrected edition. By your decision
+  **whatever the clean copy prints is used** (code, description, unit, rate), for items and basic rates; the scan's
+  Hindi pages are no longer read. Every DSR item and basic rate in the database now equals the clean copy
+  (checked code by code). Compared on every ingest; per-row list in `data/processed/dsr_scan_vs_clean.csv`:
+  - **Items (3,200):** 2,905 agree with the scan; 278 only the clean copy has (the scan's OCR missed them or
+    misread their codes); 17 differ, the scan misread (in 15 its own digit re-read agrees with the clean copy;
+    the rest checked on the page). 315 scan codes were misread and renamed (e.g. "13.10.0.1" is 13.100.1); 31
+    duplicate scan rows were dropped.
+  - **Basic rates (2,478):** now read from the clean copy too: 2,334 agree with the scan, 92 the scan missed, 52
+    the scan misread (DAR confirms the clean copy every time). Carriage codes 2200-2399 are 0.00 as the
+    clean copy's materials list (and DAR) print them; their 5 km carriage rate is in the description.
+  - **Carriage (sub-head 1):** the rotated lead tables are typed in from the clean copy in
+    `config/sor/cpwd_dsr_2023_carriage.yaml` (73 items; rate = first lead column, all leads in the description).
+  - Reader fixes found by the comparison: codes printed "4.9 A" / "26.42.1 A" / "2.25(a)" / 5th-level
+    (9.27.2.1.1), rates at the end of a "Note:-" inside an item (24.2, 25.2, 26.52), units printed on several
+    lines ("per cm depth per cm width per metre length").
+  - Corrections checked before 2026-10-28 were read off the scan: where they disagree with the clean copy, the
+    clean copy wins (listed in `data/processed/ingest_report.json`). Corrections dated 2026-10-28 or later win.
+  DAR vs DSR (reviewed 2026-10-28): 2,966 DAR analyses equal their DSR rate; only 13.67.1 differs (below). The 27
+  other differences were DAR reading errors, now fixed: an analysis without a "Say" line is the cost rounded to
+  0.05 as the DSR prints it (9.123: 696.02 -> 696.00); codes printed "9.147.A1.2", "2.25(a)", "4.9 A", "17.75,",
+  "Sub A/R - 2"; a heading wrapped onto a line starting "7.5"; OCR marks after scanned numbers ("81.70]"). DAR
+  9.134.1.2.2 prints Say 3764.55 against its own cost 3964.53 (a DAR misprint, recorded in
+  `config/corrections/cpwd_dar_2023.yaml`). 10.3 / 10.4, detached on 2026-10-27 when the scan misread them, match
+  again and are re-attached. Backups: `storage/docstore.backup-2026-10-28-before-dar-review.db`,
+  `storage/docstore.backup-2026-10-28.db` (before this comparison),
+  `storage/docstore.backup-2026-10-28-before-clean-priority.db`, `storage/docstore.backup-2026-10-27-before-clean-copy.db`.
+- **Data:** IS 456, IS 10262, IS 1200, IS 2386, both DSR 2023 volumes and both DAR 2023 volumes are in. Delhi PWD
+  uses the CPWD DSR, so for Delhi there is no separate State PWD SOR. DAR: 2,993 analyses read; 2,966 equal their
+  DSR rate exactly, 1 disagrees (13.67.1), and 171 are flagged for arithmetic the OCR could not check (mostly the
+  scanned sanitary sub-head 17; their rates still equal the DSR). Re-pricing reproduces the DAR rate for 2,619 of 2,620 clean analyses. Market rates are not needed
+  for CPWD-method estimates (see [Rates](#rates-dsr-cost-index-and-market-rates)). The DSR and basic-rate review
+  queues are empty. Rates are for **Delhi** (DSR base); other locations are refused rather than guessed.
 - **Search quality:** the right source is in the top 8 results for 49 of 50 test questions, and first for most of
   them. The one miss still finds the worked examples that quote the right table.
-- **Calculators:** reproduce the IS 10262 worked example exactly. All IS 456 values were checked against the
+- **Formula check (2026-10-28):** every formula and code value was checked against IS 10262, IS 456, IS 1200,
+  IS 2386 and CPWD DAR. Fixed: wet-aggregate field adjustment now as IS 10262 Annex B (SSD x (1 + free
+  moisture)); compression-steel stress in doubly reinforced beams from IS 456 Fig. 23A (was elastic-plastic,
+  slightly unsafe); continuous one-way slabs use Table 12 / 13 (support next to end support, 0.6 wL shear;
+  was wL2/10, 0.5 wL); the DSR "extra above floor V" item counts each storey above floor V once per four floors
+  (was all above-plinth concrete x ceil(n/4)); counted units convert (25 each = 2.5 x 10 Nos).
+- **Calculators:** reproduce the IS 10262 worked examples (Annex A, and Annex B's wet-aggregate adjustment) exactly. All IS 456 values were checked against the
   scanned pages.
-- **Tests:** 40 pass.
+- **Tests:** 62 pass.
 - **Not measured yet:** how close estimates are to real costs (needs your project data).
 
 More detail: [docs/data-notes.md](docs/data-notes.md) (what was read, fixed and still known to be wrong) and
@@ -265,6 +367,45 @@ More detail: [docs/data-notes.md](docs/data-notes.md) (what was read, fixed and 
 In order of priority. Only you can do or decide these.
 
 ### 1. Right now
+- [ ] **Start `crag serve`** in your own terminal (the server run from the Claude session was stopped on
+      2026-10-27), then hard-refresh `/ui`.
+- [ ] **Wastage (optional):** cement 2 % and steel 5 % come from CPWD; sand, aggregate, admixture and binding wire
+      are site practice (table under [Wastage](#wastage-where-each-value-comes-from)). When convenient, ask a site
+      engineer / QS to look over `config/cost/wastage.yaml` and write their name in `approved_by`.
+- [ ] **Confirm any "searched" BOQ lines.** When an estimate shows a line marked *searched*, check the item in the
+      DSR and add the right code to `config/cost/boq_mapping.yaml`, so it is mapped next time.
+- [x] ~~Restart, rebuild the search index, refresh saved estimates~~ (done 2026-10-27: all 34 saved estimates were
+      re-priced with DAR cost heads and confidence; quantities unchanged; backup in
+      `data/processed/estimates_backup_2026-10-27.json`).
+- [ ] **Stop `crag serve`, run `crag index`, start `crag serve` again** (about 7 minutes). The rates are already
+      live; this refreshes the search text after the full clean-copy comparison of 2026-10-28 (about 280 items
+      added, units and descriptions now as printed in the clean copy, 73 carriage items).
+- [x] ~~Compare the whole DSR scan with the clean copy~~ (done 2026-10-28, see *Where things stand*).
+- [x] ~~Check the DSR rates where the clean copy differs from the scan~~ (done 2026-10-28, `claude-vision`: every
+      row checked on the clean copy and signed off at its printed rate; **Review → DSR items** is empty). Almost
+      all scan readings were the neighbouring row's rate (OCR row shift), not correction slips.
+- [ ] **Decide 13.67.1** (glue sizing with copal varnish): the clean copy prints **233.80** (now used), but the scan
+      of the corrected edition clearly prints **236.10** and DAR agrees, so a correction slip probably changed it.
+      To use 236.10, change `rate: 233.8` to `236.1` on its line in `config/corrections/cpwd_dsr_2023.yaml` and
+      re-ingest the DSR (`crag ingest --doc CPWD_DSR_2023_V1 --doc CPWD_DSR_2023_V2`, about 20 s).
+      (26.42.1 / 26.42.1 A differ too: clean copy and DAR 3580.65 / 2821.65, scan 3903.35 / 2901.80. DAR agrees
+      with the clean copy there, so the clean copy stays unless you have a slip issued after Sep 2023.)
+- [ ] **Optional:** CPWD's correction slips for DSR 2023 issued between Aug and 10.11.2023 (cpwd.gov.in), or a
+      clean copy of the corrected edition. Put it in `data/` and tell me.
+- [x] ~~Check the DSR rates that disagree with DAR~~ (done 2026-10-28: 27 of 28 were DAR reading errors, fixed;
+      **Review → DAR vs DSR** now lists only 13.67.1, decided in the step above). Note *DAR is right* on that tab
+      overrides the printed clean-copy rate (a correction dated after 2026-10-28); use it only for a deliberate
+      change.
+- [ ] **Get the current CPWD cost index for Delhi** (over the DSR 2023 base) with its office memorandum number
+      and date from cpwd.gov.in, and add it to `config/cost/cost_indices.yaml`. This is what brings DSR 2023 rates
+      to today; market rates are not needed (see [Rates](#rates-dsr-cost-index-and-market-rates)).
+- [ ] **Only if you want real current prices** (a bid, or items not in the DSR): a sheet with `basic_rate_code,
+      description, unit, rate, location, date, source`, using the DAR/DSR basic-rate codes (e.g. 0367 OPC-43
+      cement per tonne, 0982 coarse sand per m³, 0295 20 mm aggregate per m³, 1005 TMT Fe-500D per quintal, 0114
+      Beldar per day). Each DSR item can then be re-priced from its DAR analysis (`/v1/rates/{code}/reprice`).
+- [ ] **Optional: the 304 flagged DAR analyses** are listed in `data/processed/dar_analyses.csv` (`needs_review`).
+      Only 5 are in sub-heads 3 to 5 (5.1.3A, 5.9.15, 5.13A, 5.26, 5.27). The rest are mostly the scanned
+      sanitary pages, which concrete estimates do not use.
 - [ ] **Look at the new web app design.** Restart `crag serve`, open `/ui` and hard-refresh (Cmd+Shift+R) so the
       browser loads the new styles. The app is now blue and white only (no dark mode). Long lists (DSR rates,
       saved estimates, learning feedback, review queue) have page numbers at the bottom. Click through each screen

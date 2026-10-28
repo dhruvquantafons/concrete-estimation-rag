@@ -1,0 +1,30 @@
+# Material wastage allowances: % added to NET material quantities to get the quantities to procure.
+#
+# IS 456, IS 10262 and IS 1200 do not prescribe wastage. Each value below says where it comes from:
+#   cpwd     - taken from a CPWD document (DAR 2023 analysis, or CPWD's permissible variation in consumption)
+#   practice - common Indian site practice; no CPWD figure exists. Replace with your company / contract value.
+# A person (e.g. your site engineer / QS) can confirm the whole set by writing their name in approved_by.
+#
+# Where they are used: the concrete-mix report (/v1/concrete-mix): materials to procure per m3 and in total.
+# Where they are NOT used: BOQ quantities and costs. IS 1200 measures net work, and CPWD DSR / DAR rates already
+# allow for wastage, so adding it there would count it twice.
+approved_by: null
+approved_on: null
+percent:
+  cement: 2.0
+  fly_ash: 2.0
+  fine_aggregate: 5.0        # sand: handling, bulking and spillage
+  coarse_aggregate: 3.0
+  water: 0.0                 # curing water is not included in the mix quantities
+  admixture: 1.0
+  steel: 5.0                 # cutting / end pieces (BBS lengths are net)
+  binding_wire: 5.0
+sources:
+  cement: {basis: cpwd, ref: "CPWD: +/-2 % permissible variation over theoretical cement consumption (works above Rs 25 lakh)"}
+  fly_ash: {basis: practice, ref: "taken equal to cement"}
+  fine_aggregate: {basis: practice, ref: "site practice: handling, bulking and spillage"}
+  coarse_aggregate: {basis: practice, ref: "site practice"}
+  water: {basis: practice, ref: "mix water only; curing water is separate"}
+  admixture: {basis: practice, ref: "site practice"}
+  steel: {basis: cpwd, ref: "CPWD DAR 2023 item 5.22.6: 1.05 quintal of bars per quintal of reinforcement (5 %)"}
+  binding_wire: {basis: practice, ref: "site practice (DAR 5.22.6 prices binding wire as a lump sum)"}

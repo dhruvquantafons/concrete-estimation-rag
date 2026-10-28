@@ -1,0 +1,116 @@
+# CPWD DSR 2023 Vol. 1, sub-head 1.0 CARRIAGE OF MATERIALS, transcribed from the clean copy
+# (data/CPWD SOR HQ/Schedule_of_Rates_Vol_1_Civil.pdf, PDF pages 94-99 = printed pages 83-88).
+# 1.1 and 1.2 are rotated lead tables the column reader cannot read, so the clean-copy reader takes this whole
+# sub-head from here. Checked against the page images by claude-vision on 2026-10-28.
+#
+# Each item has one SOR rate: the first lead column (1.1: 1 km; 1.2: first 50 m incl. loading, unloading and
+# stacking). The other lead columns are kept in `leads` and written into the item's description.
+# Codes are as printed: CPWD skips 1.1.16.4 and 1.2.16.4, and prints 1.2.16.5 as "2.16.5".
+doc_id: CPWD_DSR_2023_HQ_V1
+note: "These rates are inclusive of GST on work contract, Contractor's profit and over heads, Cess etc."
+groups:
+  "1.1":
+    description: By Mechanical Transport including loading, unloading and stacking
+    page: 94
+    lead_columns: ["1 km", "2 km", "3 km", "4 km", "5 km", "beyond 5 km upto 10 km, per km",
+                   "beyond 10 km upto 20 km, per km", "beyond 20 km, per additional km"]
+    remarks: >-
+      The rates will be applicable to net quantities after deduction of prescribed percentage for voids mentioned
+      in the specification under subhead "Carriage of Materials"
+  "1.2":
+    description: By Manual Labour including loading, unloading and stacking for lead less than 0.50 KM
+    page: 97
+    lead_columns: ["first 50 metres, including loading, unloading & stacking",
+                   "every additional lead of 50 metre or part thereof beyond 1st 50 metre, upto 9 such additional lead"]
+    remarks: >-
+      The rates will be applicable to net quantities after deduction of prescribed percentage for voids mentioned
+      in the specification under subhead "Carriage of Materials"
+  "1.1.16": {description: S.W. pipe, remarks: The length of S.W. pipes will be measured exclusive of the internal depth of sockets.}
+  "1.1.17": {description: "R.C.C. pipe, A.C. pipes, steel cylinder, R.C. pipes, S.C.I. pipes, C.I. pipes and unreinforced cement pipes"}
+  "1.2.16": {description: S.W. pipe, remarks: The length of S.W. pipes will be measured exclusive of the internal depth of sockets.}
+  "1.2.17":
+    description: R.C.C. pipes, Steel cylinder, R.C. pipes, C.I. pipes and unreinforced cement pipes
+    remarks: >-
+      The length of the flanged or plain ended concrete, R.C.C. pipes, Steel cylinders, R.C. pipes and C.I. pipes
+      shall be measured overall. The length of socketed pipes shall be measured exclusive of internal depth of
+      sockets.
+  "1.4": {description: "Loading in or unloading from the railway wagons as per direction of Engineer-in-charge :"}
+items:
+  # code: [description, unit as printed, page, [lead rates...]]
+  "1.1.1": ["Lime, moorum, building rubbish", cum, 94, [174.04, 196.66, 219.03, 240.51, 261.35, 18.53, 15.08, 12.14]]
+  "1.1.2": [Earth, cum, 94, [217.55, 245.82, 273.79, 300.64, 326.68, 23.16, 18.85, 15.17]]
+  "1.1.3": [Manure or sludge, cum, 94, [189.17, 213.76, 238.08, 261.42, 284.07, 20.14, 16.40, 13.19]]
+  "1.1.4": [Excavated rock, cum, 94, [348.08, 393.32, 438.07, 481.02, 522.70, 37.06, 30.17, 24.27]]
+  "1.1.5": ["Sand, stone aggregate below 40 mm nominal size", cum, 94, [174.04, 196.66, 219.03, 240.51, 261.35, 18.53, 15.08, 12.14]]
+  "1.1.6": [Stone aggregate 40 mm nominal size and above, cum, 94, [189.17, 213.76, 238.08, 261.42, 284.07, 20.14, 16.40, 13.19]]
+  "1.1.7": [Soling stone, cum, 94, [204.75, 231.36, 257.69, 282.95, 307.47, 21.80, 17.75, 14.28]]
+  "1.1.8": [Bricks, 1000 Nos, 94, [464.11, 524.42, 584.09, 641.36, 696.93, 49.41, 40.22, 32.36]]
+  "1.1.9": [Brick Tiles, 1000 Nos, 94, [278.46, 314.65, 350.45, 384.81, 418.16, 29.65, 24.13, 19.42]]
+  "1.1.10": ["Cement, stone blocks, G.I., C.I., A.C., & C.C. pipes below 100 mm dia and other heavy materials", tonne, 94, [154.70, 174.81, 194.70, 213.79, 232.31, 16.47, 13.41, 10.79]]
+  "1.1.11": [Steel, tonne, 95, [154.70, 174.81, 194.70, 213.79, 232.31, 16.47, 13.41, 10.79]]
+  "1.1.12": [Timber, cum, 95, [198.90, 224.75, 250.32, 274.87, 298.68, 21.18, 17.24, 13.87]]
+  "1.1.13": [Tar Bitumen, tonne, 95, [174.04, 196.66, 219.03, 240.51, 261.35, 18.53, 15.08, 12.14]]
+  "1.1.14": ["Solvent, diesel", qtl, 95, [17.40, 19.67, 21.90, 24.05, 26.13, 1.85, 1.51, 1.21]]
+  "1.1.15": [Steam coal, tonne, 95, [198.90, 224.75, 250.32, 274.87, 298.68, 21.18, 17.24, 13.87]]
+  "1.1.16.1": [100 mm dia, 100 m, 95, [232.05, 262.21, 292.04, 320.68, 348.46, 24.71, 20.11, 16.18]]
+  "1.1.16.2": [150 mm dia, 100 m, 95, [464.11, 524.42, 584.09, 641.36, 696.93, 49.41, 40.22, 32.36]]
+  "1.1.16.3": [200 mm dia, 100 m, 95, [773.51, 874.04, 973.48, 1068.93, 1161.55, 82.35, 67.04, 53.94]]
+  "1.1.16.5": [250 mm dia, 100 m, 95, [1326.02, 1498.35, 1668.82, 1832.44, 1991.22, 141.18, 114.92, 92.47]]
+  "1.1.16.6": [300 mm dia, 100 m, 95, [1657.53, 1872.94, 2086.03, 2290.56, 2489.03, 176.47, 143.66, 115.59]]
+  "1.1.16.7": [350 mm dia, 100 m, 95, [2320.54, 2622.11, 2920.44, 3206.78, 3484.64, 247.06, 201.12, 161.82]]
+  "1.1.16.8": [400 mm dia, 100 m, 95, [3315.06, 3745.87, 4172.06, 4581.11, 4978.05, 352.94, 287.31, 231.17]]
+  "1.1.16.9": [450 mm dia, 100 m, 95, [4219.17, 4767.48, 5309.90, 5830.50, 6335.71, 449.20, 365.67, 294.22]]
+  "1.1.16.10": [500 mm dia, 100 m, 95, [4641.08, 5244.22, 5840.89, 6413.56, 6969.28, 494.12, 402.24, 323.64]]
+  "1.1.16.11": [600 mm dia, 100 m, 95, [5801.35, 6555.28, 7301.11, 8016.94, 8711.59, 617.65, 502.79, 404.55]]
+  "1.1.17.1": [100 mm dia, 100 m, 96, [380.42, 429.85, 478.76, 525.70, 571.25, 40.50, 32.97, 26.53]]
+  "1.1.17.2": [125 mm dia, 100 m, 96, [508.15, 574.19, 639.51, 702.21, 763.06, 54.10, 44.04, 35.43]]
+  "1.1.17.3": [150 mm dia, 100 m, 96, [634.03, 716.42, 797.94, 876.17, 952.09, 67.50, 54.95, 44.21]]
+  "1.1.17.4": [200 mm dia, 100 m, 96, [1031.35, 1165.38, 1297.97, 1425.23, 1548.73, 109.80, 89.39, 71.92]]
+  "1.1.17.5": [250 mm dia, 100 m, 96, [1465.60, 1656.07, 1844.49, 2025.33, 2200.82, 156.04, 127.02, 102.20]]
+  "1.1.17.6": [300 mm dia, 100 m, 96, [1811.51, 2046.93, 2279.81, 2503.34, 2720.25, 192.86, 157.00, 126.32]]
+  "1.1.17.7": [350 mm dia, 100 m, 96, [2536.11, 2865.70, 3191.74, 3504.68, 3808.35, 270.01, 219.80, 176.85]]
+  "1.1.17.8": [400 mm dia, 100 m, 96, [3458.33, 3907.77, 4352.37, 4779.10, 5193.20, 368.20, 299.73, 241.16]]
+  "1.1.17.9": ["450 mm & 500 mm dia", 100 m, 96, [4226.85, 4776.16, 5319.57, 5841.13, 6347.25, 450.02, 366.33, 294.75]]
+  "1.1.17.10": ["600, 700, 750 & 800 mm dia", 100 m, 96, [6340.28, 7164.24, 7979.35, 8761.69, 9520.87, 675.03, 549.50, 442.13]]
+  "1.1.17.11": [900 mm dia, 100 m, 96, [9510.41, 10746.36, 11969.03, 13142.53, 14281.30, 1012.54, 824.25, 663.19]]
+  "1.1.17.12": ["1000, 1100 & 1200 mm dia", 100 m, 96, [12680.55, 14328.48, 15958.70, 17523.38, 19041.74, 1350.05, 1099.00, 884.26]]
+  "1.1.18": ["Disposal of moorum/building rubbish/ malba/ similar unserviceable, dismantled or waste material by mechanical transport including loading, transporting, unloading to approved municipal dumping ground for lead upto 10 km for all lifts, complete as per directions of Engineer-in-charge. Note - item to be applicable in urban areas having directions for restricted hours for movement/ plying of load carrying motor vehicle of 3.5 cum or more.", cum, 96, [494.10]]
+  "1.2.1": ["Lime, moorum, building rubbish", cum, 97, [227.18, 49.47]]
+  "1.2.2": [Earth, cum, 97, [283.98, 61.83]]
+  "1.2.3": [Manure or sludge, cum, 97, [246.94, 53.77]]
+  "1.2.4": [Excavated rock, cum, 97, [454.37, 98.93]]
+  "1.2.5": ["Sand, stone aggregate below 40 mm nominal size", cum, 97, [283.98, 61.83]]
+  "1.2.6": [Stone aggregate 40 mm nominal size and above, cum, 97, [307.01, 66.84]]
+  "1.2.7": [Soling stone, cum, 97, [334.09, 72.74]]
+  "1.2.8": [Bricks, 1000 Nos, 97, [530.10, 115.42]]
+  "1.2.9": [Brick Tiles, 1000 Nos, 97, [331.31, 72.14]]
+  "1.2.10": [Steam Coal, tonne, 97, [265.05, 57.71]]
+  "1.2.11": ["Stone blocks, G.I., C.I. Stainless Steel pipes below 100 mm dia and other heavy material", tonne, 97, [207.34, 30.42]]
+  "1.2.12": [Cement, tonne, 97, [164.47, 24.13]]
+  "1.2.13": [Steel, tonne, 97, [353.24, 51.83]]
+  "1.2.14": [Timber, cum, 97, [227.09, 33.32]]
+  "1.2.15": ["Tar, bitumen etc.", tonne, 97, [207.34, 30.42]]
+  "1.2.16.1": [100 mm dia, 100 m, 97, [415.04, 60.90]]
+  "1.2.16.2": [150 mm dia, 100 m, 97, [682.23, 100.11]]
+  "1.2.16.3": [200 mm dia, 100 m, 97, [954.71, 140.09]]
+  "1.2.16.5": [250 mm dia, 100 m, 97, [1589.60, 233.26]]     # printed "2.16.5"
+  "1.2.16.6": [300 mm dia, 100 m, 98, [2270.85, 333.22]]
+  "1.2.16.7": [350 mm dia, 100 m, 98, [3179.19, 466.51]]
+  "1.2.16.8": [400 mm dia, 100 m, 98, [3973.99, 583.14]]
+  "1.2.16.9": [450 mm dia, 100 m, 98, [4816.96, 706.84]]
+  "1.2.16.10": [500 mm dia, 100 m, 98, [5887.40, 863.91]]
+  "1.2.16.11": [600 mm dia, 100 m, 98, [7225.44, 1060.25]]
+  "1.2.17.1": [100 mm dia, 100 m, 98, [560.37, 82.23]]
+  "1.2.17.2": [125 mm dia, 100 m, 98, [685.66, 100.61]]
+  "1.2.17.3": [150 mm dia, 100 m, 98, [789.53, 115.86]]
+  "1.2.17.4": [200 mm dia, 100 m, 98, [1184.79, 173.86]]
+  "1.2.17.5": [250 mm dia, 100 m, 98, [2082.44, 305.58]]
+  "1.2.17.6": [300 mm dia, 100 m, 98, [2605.90, 382.39]]
+  "1.2.17.7": [350 mm dia, 100 m, 98, [3725.62, 546.69]]
+  "1.2.17.8": [400 mm dia, 100 m, 98, [4335.26, 636.15]]
+  "1.2.17.9": ["450 mm & 500 mm dia", 100 m, 98, [5780.35, 848.20]]
+  "1.2.17.10": ["600, 700, 750 & 800 mm dia", 100 m, 98, [6358.39, 933.02]]
+  "1.3": ["Loading in or unloading cement from the railway wagons at siding and carrying the same from or into godowns adjacent to the siding, including stacking the same properly in rows upto any height as per direction of Engineer-in-charge, sweeping the wagons and screening the swept cement and filling in bags complete.", tonne, 99, [169.40]]
+  "1.4.1": [Steel, tonne, 99, [251.15], "The rates will be applicable in all cases whether materials are unloaded or loaded from Railway siding or directly unloaded on or loaded from transport."]
+  "1.4.2": ["G.I., C.I., R.C.C. or C.C. pipes upto 500 mm dia and similar heavy materials", tonne, 99, [148.80]]
+  "1.4.3": ["Heavy materials where each piece or bundle, crate or case weighs more than one tonne and R.C.C., C.I. and concrete pipes above 500 mm dia.", tonne, 99, [263.15], "No deduction shall be made from carriage rates for direct unloading or loading."]

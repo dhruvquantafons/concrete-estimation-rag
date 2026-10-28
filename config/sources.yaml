@@ -1,7 +1,7 @@
 # Source registry: one entry per document in data/.
 # Paths are relative to the project root. Add new documents here, then run `crag ingest`.
 #
-#   doc_type : is_code | is_amendment | sor
+#   doc_type : is_code | is_amendment | sor | dar (CPWD analysis of rates) | sor_reference (clean earlier printing)
 #   ocr      : auto (score the text layer per page; re-OCR garbled/empty pages)
 #              force (OCR every page - use for poor scans)  | never
 #   amends   : for amendment slips, the doc_id they modify
@@ -117,3 +117,46 @@ documents:
     region: Delhi
     cost_index_base: 100
     ocr: force
+
+  # Clean copy of the ORIGINAL DSR 2023 printing (July/Aug 2023, before the correction slips the scans above include).
+  # It has PRIORITY over the scans (owner's decision, 2026-10-28): codes, descriptions, units, cement coefficients and
+  # rates come from it wherever it has the item. Where its rate differs from the scan's, the row is listed for review.
+  # The scans still supply items the clean copy does not have.
+  - doc_id: CPWD_DSR_2023_HQ_V1
+    path: data/CPWD SOR HQ/Schedule_of_Rates_Vol_1_Civil.pdf
+    doc_type: sor_reference
+    reference_for: CPWD_DSR_2023_V1
+    code_no: CPWD DSR
+    title: CPWD Delhi Schedule of Rates 2023 (Civil) Vol. 1 - original printing (Aug 2023), clean copy
+    revision_year: 2023
+    sor_name: CPWD-DSR
+    region: Delhi
+  - doc_id: CPWD_DSR_2023_HQ_V2
+    path: data/CPWD SOR HQ/Schedule_of_Rates_Vol_2_Civil.pdf
+    doc_type: sor_reference
+    reference_for: CPWD_DSR_2023_V2
+    code_no: CPWD DSR
+    title: CPWD Delhi Schedule of Rates 2023 (Civil) Vol. 2 - original printing (Aug 2023), clean copy
+    revision_year: 2023
+    sor_name: CPWD-DSR
+    region: Delhi
+
+  # ---------------- CPWD Delhi Analysis of Rates ----------------
+  # Digital PDFs (text layer). Vol II sub-head 17 (Sanitary installations, pp. 353-471) is image-only and is
+  # OCR'd automatically (ocr: auto). Every analysis is cross-checked against its DSR 2023 item rate.
+  - doc_id: CPWD_DAR_2023_V1
+    path: data/CPWD DAR/CPWD_DAR_Vol_I_14092023-Civil_unlocked.pdf
+    doc_type: dar
+    code_no: CPWD DAR
+    title: CPWD Delhi Analysis of Rates 2023 (Civil) Vol. I - 14.09.2023, includes all correction slips issued so far
+    revision_year: 2023
+    sor_name: CPWD-DAR
+    region: Delhi
+  - doc_id: CPWD_DAR_2023_V2
+    path: data/CPWD DAR/CPWD_DAR_Vol_II_14092023_Civil_unlocked.pdf
+    doc_type: dar
+    code_no: CPWD DAR
+    title: CPWD Delhi Analysis of Rates 2023 (Civil) Vol. II - 14.09.2023, includes all correction slips issued so far
+    revision_year: 2023
+    sor_name: CPWD-DAR
+    region: Delhi

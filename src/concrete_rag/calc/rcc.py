@@ -41,6 +41,25 @@ def xu_max_ratio(fy: float) -> tuple[float, ct.Ref]:
     return v, ct.ref("flexure_38_1", v)
 
 
+# IS 456 Fig. 23A (cold-worked / HYSD bars): stress as a fraction of the design yield 0.87 fy at a given inelastic
+# strain, linear in between; elastic (Es = 200 000) below 0.8 x 0.87 fy. Same points as SP 16 Table A.
+HYSD_CURVE = [(0.80, 0.0), (0.85, 0.0001), (0.90, 0.0003), (0.95, 0.0007), (0.975, 0.0010), (1.00, 0.0020)]
+ES = 200000.0
+
+
+def steel_stress(strain: float, fy: float) -> float:
+    """Design stress in reinforcement at `strain` (IS 456 Fig. 23B for mild steel, Fig. 23A for HYSD bars)."""
+    fyd = 0.87 * fy
+    if fy <= 250:
+        return min(ES * strain, fyd)
+    pts = [(f * fyd / ES + e, f * fyd) for f, e in HYSD_CURVE]
+    if strain <= pts[0][0]:
+        return ES * strain
+    if strain >= pts[-1][0]:
+        return fyd
+    return ct.interp(strain, [x for x, _ in pts], [y for _, y in pts])
+
+
 def mu_lim(fck: float, fy: float, b: float, d: float) -> tuple[float, float, ct.Ref]:
     k, ref = xu_max_ratio(fy)
     xu = k * d
@@ -139,16 +158,16 @@ def design_beam(inp: BeamInput) -> CalcResult:
         asc = 0.0
         res.step("Ast required (singly reinforced)", r2(ast, 0), "mm2", "Annex G-1.1(b)", [_R("Annex G-1.1(b)")])
     else:
-        # doubly reinforced: fsc approximated as 0.87 fy x min(1, strain ratio) (SP 16 Table F gives exact values)
+        # doubly reinforced (Annex G-1.2): fsc from the strain at the compression steel on the Fig. 23 curve
         ast1 = 0.36 * fck * b * k * d / (0.87 * fy)
         d_c = inp.clear_cover_mm + inp.stirrup_dia_mm + inp.main_bar_dia_mm / 2
         xu = k * d
         esc = 0.0035 * (xu - d_c) / xu
-        fsc = min(0.87 * fy, esc * 200000)
+        fsc = steel_stress(esc, fy)
         asc = (mu - mlim) / ((fsc - 0.446 * fck) * (d - d_c))
         ast = ast1 + asc * fsc / (0.87 * fy)
-        res.warnings.append("Mu > Mu,lim: doubly reinforced; fsc from strain compatibility (elastic-perfectly-plastic) "
-                            "- check against SP 16 Table F for HYSD bars")
+        res.step("stress in compression steel fsc", r2(fsc, 1), "N/mm2",
+                 f"strain 0.0035 (xu,max - d')/xu,max = {esc:.5f} on IS 456 Fig. 23", [_R("cl. 38.1 / Fig. 23")])
         res.step("Asc required", r2(asc, 0), "mm2", refs=[_R("Annex G-1.2")])
         res.step("Ast required (doubly reinforced)", r2(ast, 0), "mm2", refs=[_R("Annex G-1.2")])
     ast_min = 0.85 * b * d / fy
@@ -229,14 +248,26 @@ def design_slab_one_way(inp: SlabInput) -> CalcResult:
         D = math.ceil((d_trial + inp.clear_cover_mm + inp.bar_dia_mm / 2) / 5) * 5
         res.warnings.append(f"D not given: trial D = {D} mm from span/(basic x 1.4); verify deflection with Fig. 4")
     d = res.step("effective depth d", D - inp.clear_cover_mm - inp.bar_dia_mm / 2, "mm")
-    w = 1.5 * (inp.concrete_unit_weight_kN_m3 * D / 1000 + inp.floor_finish_kN_m2 + inp.live_load_kN_m2)
+    w_dead = 1.5 * (inp.concrete_unit_weight_kN_m3 * D / 1000 + inp.floor_finish_kN_m2)
+    w_live = 1.5 * inp.live_load_kN_m2
+    w = w_dead + w_live
     res.step("factored load wu (per m width)", r2(w, 3), "kN/m2", "1.5 (self weight + FF + LL)",
              [_R("Table 18")])
     L = inp.span_m
-    coef = {"simply_supported": 1 / 8, "cantilever": 1 / 2, "continuous": 1 / 10}[inp.support]
-    Mu = res.step("Mu per m width", r2(w * L * L * coef, 3), "kNm/m",
-                  f"wu L2 x {coef:.3f}" + (" (approx. Table 12 coefficient)" if inp.support == "continuous" else ""))
-    Vu = w * L * (1.0 if inp.support == "cantilever" else 0.5)
+    if inp.support == "continuous":
+        # Table 12: the support next to the end support governs (dead -1/10, imposed -1/9; end span +1/12, +1/10);
+        # Table 13: largest shear 0.6 w L at its outer side. Valid for spans differing by <= 15 % (cl. 22.5.1)
+        Mu = res.step("Mu per m width (support next to end support)", r2((w_dead / 10 + w_live / 9) * L * L, 3),
+                      "kNm/m", f"({w_dead:.2f}/10 + {w_live:.2f}/9) L2", [_R("cl. 22.5.1 / Table 12")])
+        Vu = 0.6 * w * L
+        res.step("Vu per m width (outer side of support next to end support)", r2(Vu, 3), "kN/m", "0.6 wu L",
+                 [_R("Table 13")])
+        res.warnings.append("Continuous slab: Table 12/13 coefficients assume at least 3 spans differing by no more "
+                            "than 15 % of the longest, under uniform load (cl. 22.5.1)")
+    else:
+        coef = {"simply_supported": 1 / 8, "cantilever": 1 / 2}[inp.support]
+        Mu = res.step("Mu per m width", r2(w * L * L * coef, 3), "kNm/m", f"wu L2 x {coef:.3f}")
+        Vu = w * L * (1.0 if inp.support == "cantilever" else 0.5)
     mlim, _, kref = mu_lim(fck, fy, 1000, d)
     res.check("Mu <= Mu,lim", Mu * 1e6 <= mlim, f"{Mu:.2f} <= {mlim / 1e6:.2f} kNm/m", [kref])
     ast = ast_singly(min(Mu * 1e6, mlim), fck, fy, 1000, d)

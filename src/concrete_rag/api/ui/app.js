@@ -15,8 +15,8 @@ const S = {
 const UNIT_LABELS = {
   m3: "cum", m2: "sqm", m: "metre", kg: "kg", t: "tonne", quintal: "quintal", l: "litre", ml: "ml", "750_ml": "750 ml", kl: "kilolitre",
   each: "each", each_set: "each set", one_set: "one set", pair: "pair", "10_nos": "10 Nos", "100_nos": "100 Nos", "1000_nos": "1000 Nos", set: "set", "10_sets": "10 sets", "1000_l": "1000 litre", bag: "bag (50 kg)",
-  cm: "cm", cm_per_m: "cm per metre", letter_cm_height: "per letter per cm height", wheel: "per wheel", bundle: "bundle", roll: "roll", cartridge: "cartridge", dm3: "cudm", "10_dm3": "10 cudm", each_hole: "each hole", test: "per test", joint: "joint", each_cut: "each cut", m_per_m_height: "metre per metre height", m3_per_m_span: "cum per metre span", m_per_m_span: "metre per metre span", m_cm_girth: "per metre per cm girth (60 cm deep)", each_job: "each job", day: "day", hour: "hour", month: "month", km: "km", job: "job (L.S.)", point: "point", score: "score",
-  "10m2": "10 sqm", "100m2": "100 sqm", sqm_per_coat: "sqm per coat", "100m": "100 m", m3_km: "cum per km",
+  cm: "cm", cm_per_m: "cm per metre", letter_cm_height: "per letter per cm height", wheel: "per wheel", bundle: "bundle", roll: "roll", cartridge: "cartridge", dm3: "cudm", "10_dm3": "10 cudm", each_hole: "each hole", test: "per test", joint: "joint", each_cut: "each cut", m_per_m_height: "metre per metre height", m2_per_m_height: "sqm per metre height", kg_per_m_span: "kg per metre span", kg_per_m_height: "kg per metre height", m3_per_m_span: "cum per metre span", m_per_m_span: "metre per metre span", m_cm_girth: "per metre per cm girth (60 cm deep)", each_job: "each job", day: "day", hour: "hour", month: "month", km: "km", job: "job (L.S.)", point: "point", score: "score",
+  "10m2": "10 sqm", "100m2": "100 sqm", sqm_per_coat: "sqm per coat", "100m": "100 m", m3_km: "km/cum", t_km: "tonne km",
   m_depth: "metre depth", m3_m_depth: "cum per metre depth", cm_depth_100m: "per cm depth per 100 m", cm_depth_cm_width_m: "per cm depth per cm width per metre length",
 };
 const unitLabel = (u) => (u ? UNIT_LABELS[u] || u : "");
@@ -313,7 +313,7 @@ const PAGES = [
   { id: "learning", label: "Learning", ico: "layers", scope: "admin" },
 ];
 const SOURCES = ["", "IS 456", "IS 10262", "IS 1200", "IS 2386", "CPWD DSR"];
-const reviewCount = () => S.overview ? S.overview.review.sor_items + S.overview.review.basic_rates : 0;
+const reviewCount = () => S.overview ? S.overview.review.sor_items + S.overview.review.basic_rates + (S.overview.review.dar_dsr || 0) : 0;
 
 function renderChrome() {
   const cur = location.hash.replace(/^#\/?/, "").split("?")[0];
@@ -498,6 +498,18 @@ function pageHead(eyebrow, title, sub) { return h("div", { class: "page-head" },
 
 function stat(v, l, s) { return h("div", { class: "card stat" }, h("div", { class: "v" }, v), h("div", { class: "l" }, l), h("div", { class: "s muted" }, s)); }
 
+// confidence score (calc/confidence.py): level badge + the factors behind it
+function confidenceCard(c, versions) {
+  if (!c) return null;
+  const cls = { high: "ok", medium: "warn", low: "bad" }[c.level] || "info";
+  return h("div", { class: "card" },
+    h("div", { class: "row" }, h("h2", { style: { margin: 0 } }, "Confidence"), h("span", { class: `badge ${cls}` }, `${c.level} · ${num(c.score)}`),
+      c.capped_by ? h("small", { class: "muted" }, "limited by ", c.capped_by.join(", ")) : null),
+    h("table", { class: "t" }, h("tbody", {}, c.factors.map((f) => h("tr", {}, h("td", {}, f.name), h("td", { class: "num" }, num(f.score)), h("td", {}, h("small", {}, f.detail)))))),
+    versions && versions.length ? h("p", { class: "muted", style: { marginBottom: 0 } }, "Code versions: ", versions.join(" · ")) : null,
+    h("p", { class: "muted", style: { marginBottom: 0 } }, h("small", {}, c.basis)));
+}
+
 const ROUTES = { "": pageHome, search: pageSearch, mix: pageMix, design: pageDesign, estimate: pageEstimate,
   rates: pageRates, review: pageReview, tables: pageTables, learning: pageLearning };
 
@@ -639,6 +651,7 @@ function renderMix(res) {
     h("div", { class: "card" }, h("h2", {}, "Quantities per m³ of concrete"),
       h("table", { class: "t" }, h("thead", {}, h("tr", {}, h("th", {}, "Material"), h("th", { class: "num" }, "SSD condition (kg)"), h("th", { class: "num" }, "Field, dry aggregates (kg)"))),
         h("tbody", {}, rows.filter(([, a]) => ssd[a] || field[a]).map(([n, a, b]) => h("tr", {}, h("td", {}, n), h("td", { class: "num" }, num(ssd[a], 1)), h("td", { class: "num" }, num(field[b || a], 1))))))),
+    confidenceCard(o.confidence, o.code_versions),
     renderCalc({ ...res, outputs: {} }));
 }
 
@@ -750,6 +763,22 @@ async function download(id, fmt) {
     document.body.append(a); a.click(); a.remove();
   } catch (e) { toast(errText(e), true); }
 }
+const HEAD_LABELS = { material: "Material", labour: "Labour", equipment: "Equipment (hire & running)", carriage: "Carriage",
+  sundries: "Sundries", other: "Other", water_charges: "Water charges (1%)", gst: "GST (factor 0.2127)", cpoh: "Contractor's profit & overheads (15%)", cess: "Cess (1%)" };
+
+// DAR split of the BOQ (estimate.cost_heads); estimates saved before DAR was added carry the old two-way split
+function renderCostHeads(ch) {
+  if (!ch || ch.error) return h("div", { class: "muted" }, ch ? ch.error : "not computed");
+  if (!ch.heads) return h("dl", { class: "kv" },
+    h("dt", {}, "Materials (basic cost)"), h("dd", {}, h("b", {}, inr(ch.materials_basic_cost)), ` (${ch.materials_share_percent}%)`),
+    h("dt", {}, "Labour + T&P + formwork + overheads + GST"), h("dd", {}, h("b", {}, inr(ch.labour_equipment_overheads_gst_formwork))));
+  return h("div", {},
+    h("table", { class: "t" }, h("tbody", {}, Object.entries(ch.heads).map(([k, v]) => h("tr", {}, h("td", {}, HEAD_LABELS[k] || titleCase(k)),
+      h("td", { class: "num" }, inr(v)), h("td", { class: "num" }, `${num(ch.share_percent[k])}%`))))),
+    ch.not_analysed_items && ch.not_analysed_items.length ? h("p", { class: "muted" }, `No DAR analysis for ${ch.not_analysed_items.join(", ")} (${inr(ch.not_analysed_amount)} not split).`) : null,
+    h("p", { class: "muted" }, h("small", {}, ch.basis)));
+}
+
 function renderEstimate(est) {
   const s = est.summary, q = est.quantities;
   const ch = est.cost_heads;
@@ -768,12 +797,14 @@ function renderEstimate(est) {
           h("td", {}, l.sl), h("td", { class: "mono" }, l.item_code),
           h("td", {}, h("div", { class: "clamp", title: l.description }, l.description), h("small", {}, l.citation, " · from ", l.derived_from.join(", "))),
           h("td", {}, unitLabel(l.unit)), h("td", { class: "num" }, num(l.quantity)), h("td", { class: "num" }, inr(l.rate)), h("td", { class: "num" }, inr(l.amount)),
-          h("td", {}, l.rate_confirmed ? h("span", { class: "badge ok" }, "✓") : h("span", { class: "badge warn" }, "verify"))))),
+          h("td", {}, l.rate_confirmed ? h("span", { class: "badge ok", title: l.dar_match ? "Equal to its CPWD DAR analysis" : "Confirmed by OCR cross-check" }, l.dar_match ? "✓ DAR" : "✓") : h("span", { class: "badge warn" }, "verify"),
+            l.matched_by === "search" ? h("span", { class: "badge info", title: "Item chosen by search - confirm it" }, "searched") : null)))),
         h("tfoot", {},
           h("tr", {}, h("td", { colspan: 6 }, "Sub-total"), h("td", { class: "num" }, inr(s.subtotal)), h("td")),
           h("tr", {}, h("td", { colspan: 6 }, `Contingency @ ${s.contingency_percent}%`), h("td", { class: "num" }, inr(s.contingency)), h("td")),
           h("tr", {}, h("td", { colspan: 6 }, "Grand total"), h("td", { class: "num" }, inr(s.grand_total)), h("td"))))),
       h("p", { class: "muted", style: { marginBottom: 0 } }, s.note)),
+    confidenceCard(est.confidence, est.code_versions),
     h("div", { class: "grid cols-2" },
       h("div", { class: "card" }, h("h2", {}, "Quantities (IS 1200)"),
         h("div", { class: "tbl-wrap" }, h("table", { class: "t" },
@@ -782,11 +813,7 @@ function renderEstimate(est) {
             h("td", { class: "num" }, num(r.concrete_m3)), h("td", { class: "num" }, num(r.formwork_m2)), h("td", { class: "num" }, num(r.steel_kg, 1))))),
           h("tfoot", {}, h("tr", {}, h("td", { colspan: 3 }, "Total"), h("td", { class: "num" }, num(q.totals.concrete_m3)), h("td", { class: "num" }, num(q.totals.formwork_m2)),
             h("td", { class: "num" }, num(q.totals.steel_kg, 1))))))),
-      h("div", { class: "card" }, h("h2", {}, "Cost heads (indicative)"),
-        ch && !ch.error ? h("div", {}, h("dl", { class: "kv" },
-          h("dt", {}, "Materials (basic cost)"), h("dd", {}, h("b", {}, inr(ch.materials_basic_cost)), ` (${ch.materials_share_percent}%)`),
-          h("dt", {}, "Labour + T&P + formwork + overheads + GST"), h("dd", {}, h("b", {}, inr(ch.labour_equipment_overheads_gst_formwork)))),
-          h("p", { class: "muted" }, ch.basis)) : h("div", { class: "muted" }, ch ? ch.error : "not computed"),
+      h("div", { class: "card" }, h("h2", {}, "Cost heads (CPWD DAR 2023)"), renderCostHeads(ch),
         est.cement_statement && est.cement_statement.length ? h("div", {}, h("h3", { style: { marginTop: "14px" } }, "Cement consumption (DSR coefficients)"),
           h("table", { class: "t" }, h("tbody", {}, est.cement_statement.map((c) => h("tr", {}, h("td", { class: "mono" }, c.item_code),
             h("td", { class: "num" }, `${num(c.quantity)} ${unitLabel(c.unit)} ×${c.coefficient_qtl_per_unit} qtl`), h("td", { class: "num" }, h("b", {}, `${num(c.cement_qtl)} qtl`))))),
@@ -833,7 +860,7 @@ async function rateDetail(it, location_) {
       h("dt", {}, "Unit"), h("dd", {}, `${unitLabel(it.unit) || "—"} (OCR read: ${it.unit_raw || "—"})`),
       h("dt", {}, "DSR rate (Delhi)"), h("dd", {}, h("b", {}, inr(it.rate))),
       h("dt", {}, `Rate at ${location_}`), h("dd", {}, priced.error ? h("span", { class: "badge warn" }, priced.error) : `${inr(priced.rate)} (cost index ${priced.cost_index})`),
-      h("dt", {}, "OCR readings"), h("dd", { class: "mono" }, (it.rate_readings || []).map((r) => r || "—").join("  /  "), ` · ${it.rate_votes}/3 agree`),
+      h("dt", {}, "Readings"), h("dd", { class: "mono", title: "scan English page / scan digit re-read / clean copy" }, (it.rate_readings || []).map((r) => r || "—").join("  /  "), ` · ${it.rate_votes}/3 agree`),
       h("dt", {}, "Status"), h("dd", {}, it.needs_review ? h("span", { class: "badge warn" }, "needs review: " + (it.review_reasons || []).join("; ")) : h("span", { class: "badge ok" }, it.corrected_by ? `verified by ${it.corrected_by}` : "confirmed")),
       h("dt", {}, "Source"), h("dd", {}, h("button", { class: "small", onclick: () => showSourcePage(it.doc_id, it.page, `DSR item ${it.code}`) }, `View PDF page ${it.page} ↗`)))));
 }
@@ -857,17 +884,18 @@ async function pageReview(main) {
     if (st.tab === "sor" && st.head) p.set("head", st.head);
     if (st.tab === "basic" && st.category) p.set("category", st.category);
     try {
-      const r = await api(`/v1/admin/review/${st.tab}?${p}`);
+      const r = await api(`/v1/admin/review/${st.tab === "dar" ? "dar-dsr" : st.tab}?${p}`);
       st.rows = r.rows; st.total = r.total; st.sel = -1;
       drawList(); drawPager();
-      detail.replaceChildren(h("div", { class: "empty" }, st.rows.length ? "Select a row to review it against the scanned page." : "Nothing left to review here. 🎉"));
+      detail.replaceChildren(h("div", { class: "empty" }, st.rows.length ? (st.tab === "dar" ? "Select an item to compare the DSR rate with its DAR analysis." : "Select a row to review it against the scanned page.") : "Nothing left to review here. 🎉"));
     } catch (e) { list.replaceChildren(errorBox(e)); }
   };
-  const drawTabs = () => tabs.replaceChildren(...[["sor", "DSR items"], ["basic", "Basic rates"]].map(([k, l]) =>
+  const drawTabs = () => tabs.replaceChildren(...[["sor", "DSR items"], ["basic", "Basic rates"], ["dar", "DAR vs DSR"]].map(([k, l]) =>
     h("button", { class: st.tab === k ? "on" : "", onclick: () => { st.tab = k; st.offset = 0; drawTabs(); drawFilters(); load(); } }, l)));
   const drawFilters = () => {
     const q = h("input", { type: "search", placeholder: "search description / code", value: st.q, onkeydown: (e) => { if (e.key === "Enter") { st.q = e.target.value; st.offset = 0; load(); } } });
-    const sel = st.tab === "sor"
+    const sel = st.tab === "dar" ? h("span", { class: "muted" }, "DSR rate ≠ its DAR analysis")
+      : st.tab === "sor"
       ? h("select", { onchange: (e) => { st.head = e.target.value; st.offset = 0; load(); } }, h("option", { value: "" }, "All sub-heads"),
         Array.from({ length: 26 }, (_, i) => h("option", { value: i + 1, selected: String(i + 1) === String(st.head) }, `Sub-head ${i + 1}${[4, 5].includes(i + 1) ? " (concrete/RCC)" : ""}`)))
       : h("select", { onchange: (e) => { st.category = e.target.value; st.offset = 0; load(); } }, ["", "labour", "materials", "hire_charges"].map((c) => h("option", { value: c, selected: c === st.category }, c ? titleCase(c) : "All categories")));
@@ -878,11 +906,63 @@ async function pageReview(main) {
     (p) => { st.offset = p * 50; load(); }, "rows need review"));
   const drawList = () => {
     if (!st.rows.length) { list.replaceChildren(h("div", { class: "empty" }, "No rows.")); return; }
+    if (st.tab === "dar") {
+      list.replaceChildren(h("table", { class: "t" },
+        h("thead", {}, h("tr", {}, h("th", {}, "Item"), h("th", {}, "Description"), h("th", { class: "num" }, "DSR"), h("th", { class: "num" }, "DAR"))),
+        h("tbody", {}, st.rows.map((r, i) => h("tr", { class: "click" + (i === st.sel ? " sel" : ""), onclick: () => selectDar(i) },
+          h("td", { class: "mono" }, r.code), h("td", {}, h("div", { class: "clamp" }, r.description)),
+          h("td", { class: "num" }, num(r.dsr_rate)), h("td", { class: "num" }, num(r.dar_rate), r.dar_flagged ? h("div", {}, h("small", { class: "muted" }, "DAR flagged")) : null))))));
+      return;
+    }
     list.replaceChildren(h("table", { class: "t" },
       h("thead", {}, h("tr", {}, h("th", {}, "Page"), h("th", {}, st.tab === "sor" ? "Item" : "Code"), h("th", {}, "Description"), h("th", { class: "num" }, "Rate"), h("th", {}, "Issue"))),
       h("tbody", {}, st.rows.map((r, i) => h("tr", { class: "click" + (i === st.sel ? " sel" : ""), onclick: () => select(i) },
         h("td", { class: "num" }, r.page), h("td", { class: "mono" }, r.code), h("td", {}, h("div", { class: "clamp" }, r.description)),
         h("td", { class: "num" }, num(r.rate)), h("td", {}, h("small", {}, shortReason(r.review_reasons))))))));
+  };
+  // DAR vs DSR: the DSR scan page and the DAR page side by side; three ways to resolve
+  const selectDar = async (i) => {
+    st.sel = i; drawList();
+    const r = st.rows[i];
+    const rate = h("input", { type: "number", step: "0.05", placeholder: "correct rate (₹)" });
+    const note = h("input", { placeholder: "optional note" });
+    const dsrView = h("div", { class: "page-view" }, loading("Loading DSR page…"));
+    const darView = h("div", { class: "page-view" }, loading("Loading DAR page…"));
+    const decide = async (decision) => {
+      if ((S.checker || "").trim().length < 2) { toast("Enter your name in “Checked by” first.", true); return; }
+      if (decision === "other" && rate.value === "") { toast("Type the correct rate first.", true); rate.focus(); return; }
+      try {
+        const out = await api("/v1/admin/review/dar-dsr", { method: "POST", body: { key: r.key, decision, checked_by: S.checker.trim(),
+          rate: rate.value === "" ? null : Number(rate.value), note: note.value || null } });
+        toast(`${r.code}: DSR rate is now ₹${num(out.dsr_rate)} - written to config/corrections and applied.`);
+        st.rows.splice(i, 1); st.total -= 1; drawPager();
+        if (S.overview) { S.overview.review.dar_dsr -= 1; renderChrome(); }
+        if (st.rows.length) selectDar(Math.min(i, st.rows.length - 1)); else load();
+      } catch (e) { toast(errText(e), true); }
+    };
+    rate.addEventListener("keydown", (e) => { if (e.key === "Enter") decide("other"); });
+    const darPage = r.dar_pages[1];
+    detail.replaceChildren(h("div", { class: "stack" },
+      h("div", { class: "row" }, h("b", { class: "mono" }, r.code), h("span", { class: "muted" }, `DSR p.${r.dsr_page} · DAR ${r.dar_doc_id.slice(-2)} p.${r.dar_pages[0]}${r.dar_pages[1] !== r.dar_pages[0] ? "–" + r.dar_pages[1] : ""}`)),
+      h("div", {}, h("div", { class: "clamp" }, r.description)),
+      h("div", { class: "grid cols-2" },
+        h("div", { class: "card" }, h("small", { class: "muted" }, "DSR (scanned, OCR)"), h("div", { class: "big-num" }, `₹${num(r.dsr_rate)}`), h("small", {}, `per ${r.dsr_unit || "?"}`),
+          r.dsr_readings.length ? h("div", {}, h("small", { class: "muted" }, "OCR readings: "), r.dsr_readings.map((x) => h("span", { class: "chip" + (x ? "" : " muted") }, x || "—"))) : null),
+        h("div", { class: "card" }, h("small", { class: "muted" }, "DAR (digital, worked out)"), h("div", { class: "big-num" }, `₹${num(r.dar_rate)}`), h("small", {}, `per ${r.dar_unit || "?"}`),
+          h("div", {}, h("small", { class: "muted" }, r.dar_steps.map((s) => `${s.label} ${num(s.amount)}`).join(" · "))))),
+      r.dar_flagged ? h("div", { class: "alert warn" }, "The DAR analysis itself failed a check: ", r.dar_reasons.join("; ")) : null,
+      h("div", { class: "row end" },
+        r.dar_rate != null ? h("button", { class: "primary", title: "Override the printed DSR rate with the DAR rate", onclick: () => decide("dar") }, `DAR is right → ₹${num(r.dar_rate)}`) : null,
+        h("button", { title: "The DSR rate is right; this DAR analysis belongs to another item", onclick: () => decide("dsr") }, `DSR is right (₹${num(r.dsr_rate)})`)),
+      h("div", { class: "form-grid" }, lab("Both wrong: correct rate (₹)", rate), lab("Note", note)),
+      h("div", { class: "row end" }, h("button", { onclick: () => decide("other") }, "Save correct rate ⏎")),
+      h("div", { class: "grid cols-2" },
+        h("div", {}, h("div", { class: "row" }, h("small", { class: "muted" }, `DSR page ${r.dsr_page}`), h("span", { class: "spacer" }),
+          h("button", { class: "small", onclick: () => showSourcePage(r.dsr_doc_id, r.dsr_page, `DSR ${r.code}`) }, "Open large ↗")), dsrView),
+        h("div", {}, h("div", { class: "row" }, h("small", { class: "muted" }, `DAR page ${darPage}`), h("span", { class: "spacer" }),
+          h("button", { class: "small", onclick: () => showSourcePage(r.dar_doc_id, darPage, `DAR ${r.code}`) }, "Open large ↗")), darView))));
+    try { dsrView.replaceChildren(h("img", { src: await pageImage(r.dsr_doc_id, r.dsr_page, 120), alt: "DSR page" })); } catch (e) { dsrView.replaceChildren(errorBox(e)); }
+    try { darView.replaceChildren(h("img", { src: await pageImage(r.dar_doc_id, darPage, 120), alt: "DAR page" })); } catch (e) { darView.replaceChildren(errorBox(e)); }
   };
   const select = async (i) => {
     st.sel = i; drawList();
@@ -893,6 +973,7 @@ async function pageReview(main) {
     const code = h("input", { value: r.code });
     const note = h("input", { placeholder: "optional note" });
     const view = h("div", { class: "page-view" }, loading("Loading scanned page…"));
+    const pageDoc = r.source === "clean" ? r.clean_doc_id : r.doc_id;      // added from the clean copy: its page is there
     const save = async (exclude = false) => {
       if ((S.checker || "").trim().length < 2) { toast("Enter your name in “Checked by” first.", true); return; }
       if (exclude && !confirm(`Remove row ${r.code} as "not an item"? It is recorded in the corrections file and can be undone there.`)) return;
@@ -907,21 +988,37 @@ async function pageReview(main) {
     };
     [rate, code, note].forEach((x) => x.addEventListener("keydown", (e) => { if (e.key === "Enter") save(); }));
     detail.replaceChildren(h("div", { class: "stack" },
-      h("div", { class: "row" }, h("b", { class: "mono" }, r.code), h("span", { class: "muted" }, `${r.doc_id} · PDF page ${r.page}`), h("span", { class: "spacer" }),
-        h("button", { class: "small", onclick: () => showSourcePage(r.doc_id, r.page, `${r.code}`) }, "Open large ↗")),
+      h("div", { class: "row" }, h("b", { class: "mono" }, r.code), h("span", { class: "muted" }, `${pageDoc} · PDF page ${r.page}`), h("span", { class: "spacer" }),
+        h("button", { class: "small", onclick: () => showSourcePage(pageDoc, r.page, `${r.code}`) }, "Open large ↗")),
       h("div", {}, r.full_description || r.description),
       h("div", { class: "alert warn" }, (r.review_reasons || []).join("; ") || "flagged"),
-      r.rate_readings && r.rate_readings.length ? h("div", {}, h("small", { class: "muted" }, "OCR readings (English page / digit re-read / Hindi page) — click to use: "),
-        h("div", { class: "chips", style: { marginTop: "4px" } }, r.rate_readings.map((x) => x ? h("span", { class: "chip", onclick: () => { rate.value = x; rate.focus(); } }, x) : h("span", { class: "chip muted" }, "—")))) : null,
+      r.rate_readings && r.rate_readings.length ? h("div", {}, h("small", { class: "muted" }, "Readings (scan English page / scan digit re-read / clean copy) — click to use: "),
+        h("div", { class: "chips", style: { marginTop: "4px" } }, r.rate_readings.slice(0, 3).map((x) => x ? h("span", { class: "chip", onclick: () => { rate.value = x; rate.focus(); } }, x) : h("span", { class: "chip muted" }, "—")))) : null,
+      r.clean_rate != null || r.dar_rate != null ? h("div", {}, h("small", { class: "muted" }, "Other printings — click to use: "),
+        h("div", { class: "chips", style: { marginTop: "4px" } },
+          r.clean_rate != null ? h("span", { class: "chip", title: "Clean copy of the original printing (Aug 2023), before later correction slips", onclick: () => { rate.value = r.clean_rate; rate.focus(); } }, `Clean copy (Aug 2023): ${r.clean_rate}`) : null,
+          r.dar_rate != null ? h("span", { class: "chip", title: "CPWD DAR 2023 analysis (Sep 2023)", onclick: () => { rate.value = r.dar_rate; rate.focus(); } }, `DAR (Sep 2023): ${r.dar_rate}`) : null),
+        h("small", { class: "muted" }, r.source === "clean_over_scan"
+          ? `The clean copy's rate is used. The scan (corrected edition, to 10.11.2023) reads ${r.scan_rate}: if that is read correctly, a correction slip changed it - type it in to use it.`
+          : "Clean copy and DAR readings, for comparison.")) : null,
       h("div", { class: "form-grid" }, lab("Item code", code), lab("Unit", unit), lab("Correct rate (₹)", rate), lab("Note", note)),
       h("div", { class: "row end" },
         h("button", { title: "Row is an OCR artefact (table header, note fragment) - remove it from the rates", onclick: () => save(true) }, "Not an item — remove"),
         h("button", { class: "primary", onclick: () => save() }, "Save & mark verified ⏎")),
       view));
     rate.focus(); rate.select();
-    try { view.replaceChildren(h("img", { src: await pageImage(r.doc_id, r.page, 120), alt: "scanned page" })); } catch (e) { view.replaceChildren(errorBox(e)); }
+    try {
+      const scan = h("img", { src: await pageImage(pageDoc, r.page, 120), alt: "scanned page" });
+      if (st.tab === "sor" && r.clean_doc_id && r.clean_page && r.source !== "clean") {
+        const clean = h("img", { src: await pageImage(r.clean_doc_id, r.clean_page, 120), alt: "clean copy page" });
+        view.replaceChildren(h("div", { class: "grid cols-2" },
+          h("div", {}, h("small", { class: "muted" }, `Scan, corrected edition · p.${r.page}`), scan),
+          h("div", {}, h("div", { class: "row" }, h("small", { class: "muted" }, `Clean copy, Aug 2023 · p.${r.clean_page}`), h("span", { class: "spacer" }),
+            h("button", { class: "small", onclick: () => showSourcePage(r.clean_doc_id, r.clean_page, `${r.code} (clean copy)`) }, "Open large ↗")), clean)));
+      } else view.replaceChildren(scan);
+    } catch (e) { view.replaceChildren(errorBox(e)); }
   };
-  fill(main, pageHead("Admin · data quality", "Review queue", "Rows where the three OCR readings disagreed or the item code was uncertain. Compare with the scanned page, fix the value, save. Corrections are written to config/corrections/cpwd_dsr_2023.yaml (kept across re-ingest) and applied immediately."),
+  fill(main, pageHead("Admin · data quality", "Review queue", "DSR rows the clean copy (HQ) does not confirm or does not have, and DSR rates that differ from their CPWD DAR analysis. Compare with the page, fix the value, save. Corrections are written to config/corrections/ (kept across re-ingest) and applied immediately."),
     tabs, filters, h("div", { class: "split" }, h("div", {}, list, pager), detail));
   drawTabs(); drawFilters(); load();
 }

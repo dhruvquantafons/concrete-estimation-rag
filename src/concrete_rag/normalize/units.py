@@ -10,7 +10,8 @@ import pint
 # canonical symbol -> aliases (lower-case, punctuation stripped)
 UNIT_ALIASES: dict[str, list[str]] = {
     "m3": ["cum", "cu m", "cum.", "cu.m", "cubic metre", "cubic meter", "m3", "m³", "cmt"],
-    "m2": ["sqm", "sq m", "sq.m", "sq. m", "square metre", "square meter", "m2", "m²", "smt"],
+    "m2": ["sqm", "sq m", "sq.m", "sq. m", "square metre", "square meter", "m2", "m²", "smt",
+           "sqm of door area", "sq m of door area"],                   # basic rates 0752-0757 (block board doors)
     "m": ["metre", "meter", "m", "rm", "rmt", "running metre", "rm.", "mtr", "metres", "meters", "lm"],
     "kg": ["kg", "kgs", "kilogram", "kilograms"],
     "t": ["tonne", "tonnes", "mt", "metric tonne", "ton", "tons", "t"],
@@ -29,8 +30,12 @@ UNIT_ALIASES: dict[str, list[str]] = {
     "hour": ["hour", "hr", "hrs", "per hour"],
     "month": ["month", "per month"],
     "km": ["km", "kilometre"],
+    "m3_km": ["km/cum", "cum km", "cum per km", "per cum per km"],   # basic rate 0029 transit mixer: per cum per km
+    "t_km": ["tonne km", "tonne-km", "tonne/km", "tkm"],            # basic rates 0053 / 0071 tipper, truck
+    "score": ["score", "scores"],                                   # basic rate 0305 bamboo (1 score = 20 pieces)
     "cm": ["cm", "centimetre"],                     # DSR 10.22 welding, per cm of weld
-    "bag": ["bag", "bags"],               # cement bag = 50 kg
+    "bag": ["bag", "bags", "bag of 50kg cement used in the mix", "bag of 50kg cement used",
+            "bag of 50 kg of cement", "bag of 50kg of cement"],      # DSR 4.12 / 4.18 / 13.21 / 13.79: per bag used
     "job": ["job", "ls", "lump sum", "l.s."],
     "point": ["point", "points"],
     "sqm_per_coat": ["sqm per coat"],
@@ -46,7 +51,7 @@ UNIT_ALIASES: dict[str, list[str]] = {
     "cm_depth_cm_width_m": ["cm depth cm width metre length"],   # DSR 16.45 pre-moulded joint filler   # DSR 5.28 fibre board in expansion joints
     "kl": ["kl", "kilolitre", "kilo litre"],
     "cm_per_m": ["cm metre"],                       # DSR 13.28-13.30 mortar bands: per cm (width) per metre
-    "letter_cm_height": ["letter cm height"],       # DSR 13.71/13.105 lettering: per letter per cm height
+    "letter_cm_height": ["letter cm height", "cm height letter"],   # DSR 13.71/13.105, 16.21 lettering
     "wheel": ["wheel"],
     "bundle": ["bundle", "bundles"],                # basic rate 8691 concertina coil
     "roll": ["roll", "each roll"],                  # basic rates 7018 / 7026 joint tape
@@ -58,6 +63,10 @@ UNIT_ALIASES: dict[str, list[str]] = {
     "joint": ["joint", "joints"],                   # DSR 18.70.x push-on joints
     "each_cut": ["each cut", "eachcut"],            # DSR 18.83.x cutting C.I. pipes
     "m_per_m_height": ["metre metre height"],       # DSR 15.16.2 extra per metre height
+    "m3_per_m_height": ["cum metre height"],        # DSR 15.16.1
+    "m2_per_m_height": ["sqm metre height"],        # DSR 12.33
+    "kg_per_m_span": ["kg metre span"],             # DSR 15.20
+    "kg_per_m_height": ["kg metre height"],         # DSR 15.21
     "m3_per_m_span": ["cum metre span"],            # DSR 15.15.1
     "m_per_m_span": ["metre metre span"],           # DSR 15.15.2
     "m_cm_girth": ["metre cm girth (60cm deep)", "metre cm girth"],   # DSR 7.22 mouldings in cornices
@@ -101,5 +110,27 @@ def convert(value: float, from_unit: str, to_unit: str) -> float:
     """Convert between canonical units (e.g. 'kg' -> 't', 'm3' -> 'l')."""
     u = ureg()
     canon = {"m3": "meter**3", "m2": "meter**2", "m": "meter", "t": "tonne", "l": "liter", "ml": "milliliter",
-             "kl": "kiloliter"}
+             "kl": "kiloliter", "dm3": "decimeter**3"}
     return (value * u(canon.get(from_unit, from_unit))).to(canon.get(to_unit, to_unit)).magnitude
+
+
+# SOR units that are a multiple of a physical unit ("per 10 sqm"): canonical -> (base unit, factor)
+SCALED_UNITS: dict[str, tuple[str, float]] = {
+    "10m2": ("m2", 10), "100m2": ("m2", 100), "100m": ("m", 100), "10_dm3": ("dm3", 10), "1000_l": ("l", 1000),
+    "10_nos": ("each", 10), "100_nos": ("each", 100), "1000_nos": ("each", 1000),
+}
+
+
+def convert_quantity(value: float, from_unit: str, to_unit: str) -> float:
+    """Convert a measured quantity into an SOR item's unit, including scaled units ('m2' -> '10m2').
+    Raises ValueError when the units are not dimensionally compatible (e.g. m3 -> kg)."""
+    if from_unit == to_unit:
+        return value
+    fb, ff = SCALED_UNITS.get(from_unit, (from_unit, 1))
+    tb, tf = SCALED_UNITS.get(to_unit, (to_unit, 1))
+    if fb == tb:                                  # same base unit, incl. counts: 25 each = 2.5 x 10 Nos
+        return value * ff / tf
+    try:
+        return convert(value * ff, fb, tb) / tf
+    except (pint.errors.PintError, AttributeError) as ex:
+        raise ValueError(f"cannot convert {from_unit} to {to_unit}") from ex

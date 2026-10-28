@@ -15,7 +15,7 @@ from sqlalchemy import func, select, update
 
 from concrete_rag.config import get_settings
 from concrete_rag.store import docstore
-from concrete_rag.store.docstore import basic_rates, chunks, engine, sor_items
+from concrete_rag.store.docstore import basic_rates, chunks, dar_analyses, engine, sor_items
 
 
 # ------------------------------------------------------------------ review queue
@@ -31,7 +31,12 @@ def list_sor_review(q: str | None = None, head: int | None = None, offset: int =
         total = c.execute(select(func.count()).select_from(sor_items).where(*cond)).scalar_one()
         rows = c.execute(select(sor_items).where(*cond).order_by(sor_items.c.doc_id, sor_items.c.page)
                          .offset(offset).limit(limit)).all()
-    return {"total": total, "rows": [dict(r.data) for r in rows]}
+    out = []
+    for r in rows:
+        d = dict(r.data)
+        a = docstore.get_dar_analysis(d["code"], d["sor_year"])
+        out.append({**d, "dar_rate": a.get("rate") if a else None})   # a third reading to compare with
+    return {"total": total, "rows": out}
 
 
 def list_basic_review(q: str | None = None, category: str | None = None, offset: int = 0, limit: int = 50) -> dict:
@@ -45,6 +50,68 @@ def list_basic_review(q: str | None = None, category: str | None = None, offset:
         total = c.execute(select(func.count()).select_from(basic_rates).where(*cond)).scalar_one()
         rows = c.execute(select(basic_rates).where(*cond).order_by(basic_rates.c.code).offset(offset).limit(limit)).all()
     return {"total": total, "rows": [{**dict(r.data), "db_key": r.key} for r in rows]}
+
+
+def list_dar_differences(q: str | None = None, offset: int = 0, limit: int = 50) -> dict:
+    """DSR items whose rate (read from the DSR scan) differs from the 'Say' rate of their DAR analysis."""
+    with engine().connect() as c:
+        rows = [dict(r.data) for r in c.execute(select(dar_analyses).where(dar_analyses.c.dsr_match.is_(False))
+                                                .order_by(dar_analyses.c.doc_id, dar_analyses.c.key))]
+    rows = [a for a in rows if not a.get("not_for_dsr")]
+    if q:
+        for w in q.lower().split():
+            rows = [a for a in rows if w in a["full_description"].lower() or a["code"].startswith(w)]
+    out = []
+    for a in rows[offset:offset + limit]:
+        it = docstore.get_sor_item(a["code"], year=a["sor_year"]) or {}
+        out.append({"key": a["key"], "code": a["code"], "description": a["full_description"], "dar_rate": a.get("rate"),
+                    "dar_doc_id": a["doc_id"], "dar_pages": [a["page_start"], a["page_end"]], "dar_unit": a.get("unit_raw"),
+                    "dar_flagged": a["needs_review"], "dar_reasons": a["review_reasons"],
+                    "dar_steps": [s for s in a["steps"] if s.get("amount") is not None][-4:],
+                    "dar_lines": len(a["lines"]), "dsr_rate": it.get("rate"), "dsr_item_key": it.get("item_key"),
+                    "dsr_doc_id": it.get("doc_id"), "dsr_page": it.get("page"), "dsr_unit": it.get("unit_raw"),
+                    "dsr_readings": it.get("rate_readings") or []})
+    return {"total": len(rows), "rows": out}
+
+
+def resolve_dar_difference(dar_key: str, decision: str, checked_by: str, rate: float | None = None,
+                           note: str | None = None) -> dict:
+    """decision: 'dar' - the DAR rate is right, correct the DSR rate to it; 'dsr' - the DSR rate is right and this
+    DAR analysis is not the one behind the item (detach it); 'other' - both are wrong: set the DSR rate to `rate`
+    and detach the DAR analysis. DSR corrections go to cpwd_dsr_2023.yaml, DAR decisions to cpwd_dar_2023.yaml."""
+    with engine().connect() as c:
+        row = c.execute(select(dar_analyses).where(dar_analyses.c.key == dar_key)).first()
+    if not row:
+        raise KeyError(f"DAR analysis {dar_key} not found")
+    a = dict(row.data)
+    it = docstore.get_sor_item(a["code"], year=a["sor_year"])
+    if not it:
+        raise KeyError(f"DSR item {a['code']} not found")
+    today = dt.date.today().isoformat()
+    if decision == "dar" and a.get("rate") is None:
+        raise ValueError(f"DAR analysis {dar_key} has no rate; enter the correct rate instead")
+    if decision == "dar":
+        apply_sor_correction(it["item_key"], checked_by, rate=a["rate"],
+                             note=note or f"rate taken from CPWD DAR {a['sor_year']} analysis ({a['doc_id']} p.{a['page_end']})")
+        a.update({"dsr_rate": a["rate"], "dsr_match": True})
+    elif decision in ("dsr", "other"):
+        if decision == "other":
+            if rate is None:
+                raise ValueError("enter the correct rate")
+            apply_sor_correction(it["item_key"], checked_by, rate=rate, note=note or "checked against DSR and DAR")
+        else:
+            apply_sor_correction(it["item_key"], checked_by, rate=it["rate"],
+                                 note=note or "DSR rate confirmed; the DAR analysis of this code is another item")
+        entry = {"not_for_dsr": True, "dar_rate": a["rate"], "checked_by": checked_by, "checked_on": today}
+        if note:
+            entry["note"] = note
+        _write_correction(dar_key, entry, corrections_path(a["sor_name"], a["sor_year"]))
+        a.update({"not_for_dsr": True, "checked_by": checked_by, "dsr_match": None})
+    else:
+        raise ValueError("decision must be dar, dsr or other")
+    with engine().begin() as c:
+        c.execute(update(dar_analyses).where(dar_analyses.c.key == dar_key).values(dsr_match=a.get("dsr_match"), data=a))
+    return {"key": dar_key, "code": a["code"], "decision": decision, "dsr_rate": docstore.get_sor_item(a["code"])["rate"]}
 
 
 # ------------------------------------------------------------------ corrections file

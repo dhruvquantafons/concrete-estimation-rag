@@ -11,17 +11,21 @@ For the overview, see the [README](../README.md).
 | IS 10262 : 2019 (digital PDF) | 81 clauses, 94 annex clauses (worked examples A–F), 15 tables |
 | IS 1200 Parts 1, 2, 5, 8, 22 | 207 clauses (+ Part 8 Amendment 1) |
 | IS 2386 Parts 1–8 + 2 amendment slips | 447 clauses, 15 tables, 29 amendment entries |
-| CPWD DSR 2023 Volumes 1 and 2 (804 pages, 96-dpi scan, English and Hindi pages) | 2,955 items, 2,439 basic rates (labour, materials, hire), 346 cement-consumption coefficients |
+| CPWD DSR 2023 Volumes 1 and 2: clean copy of the Aug 2023 printing (used) + 96-dpi scan of the corrected edition (cross-check, English pages only) | 3,200 items, 2,478 basic rates (labour, materials, hire, carriage codes), 360 cement-consumption coefficients |
 | Search index | 6,927 chunks |
 
-The review queue is empty. `config/corrections/cpwd_dsr_2023.yaml` holds about 770 checked fixes, which are
-re-applied every time the DSR is ingested.
+The review queue is empty. `config/corrections/cpwd_dsr_2023.yaml` holds the checked fixes, re-applied every time
+the DSR is ingested. Fixes checked before 2026-10-28 were read off the scan and give way to the clean copy where
+they disagree; fixes dated 2026-10-28 or later win over it.
 
 ## How the scans are checked
 
-- **Every DSR rate is read three times:** from the English page, by a digits-only re-read of the rate cell, and
-  from the matching Hindi page. The three readings vote. About 95% of rates have at least two readings that agree.
-  The rest go to the **Review queue** in the web app.
+- **The DSR is read from the clean copy** (`data/CPWD SOR HQ`, text layer or 300-dpi OCR of sharp vector pages)
+  and compared, code by code, with the scan (English page, plus a digits-only re-read of each rate cell; the
+  Hindi pages are not read). The clean copy's code, description, unit and rate are used. A rate no scan reading
+  or DAR analysis confirms, and any scan row the clean copy lacks, goes to the **Review queue** in the web app.
+  The rotated carriage tables of sub-head 1 are typed in from the clean copy
+  (`config/sor/cpwd_dsr_2023_carriage.yaml`).
 - **Item codes are decoded as a sequence.** OCR often loses dots ("414" for 4.1.4). Codes in a sub-head run
   almost in order, so the parser picks the most likely reading of the whole sequence. Uncertain codes are flagged.
 - **Units are shown as printed** in the DSR (cum, sqm, 10 Nos, each set …). A leading count ("10 Nos",

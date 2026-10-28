@@ -5,13 +5,14 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-ChunkType = Literal["clause", "table", "annex_clause", "amendment", "sor_item", "basic_rate", "sor_note", "text"]
+ChunkType = Literal["clause", "table", "annex_clause", "amendment", "sor_item", "basic_rate", "sor_note", "dar_analysis",
+                    "text"]
 
 
 class SourceDoc(BaseModel):
     doc_id: str
     path: str
-    doc_type: Literal["is_code", "is_amendment", "sor"]
+    doc_type: Literal["is_code", "is_amendment", "sor", "dar", "sor_reference"]
     code_no: str
     title: str
     revision_year: int
@@ -24,6 +25,7 @@ class SourceDoc(BaseModel):
     cost_index_base: float | None = None
     ocr: Literal["auto", "force", "never"] = "auto"
     is_current: bool = True
+    reference_for: str | None = None   # sor_reference: the SOR doc_id this clean (earlier) printing cross-checks
     sha256: str | None = None
 
     @property
@@ -121,8 +123,16 @@ class SorItem(BaseModel):
     rate_raw: str | None = None
     page: int
     region: str | None = None
+    revision: str | None = None    # "w.e.f. 16.10.2023, corrections to 10.11.2023"
+    source: str = "scan"           # scan | scan+clean (agree) | clean (only in the clean copy) | clean_over_scan (differ:
+                                   # the clean copy's rate is used, owner's decision 2026-10-28)
+    clean_rate: float | None = None     # rate in the clean, earlier printing (data/CPWD SOR HQ)
+    scan_rate: float | None = None      # the scan's rate where it differs from the clean copy
+    clean_doc_id: str | None = None
+    clean_page: int | None = None
+    material: list[str] = Field(default_factory=list)   # material tags (config/vocab/enrichment.yaml)
     min_conf: float | None = None
-    rate_votes: int = 0            # how many independent OCR readings agree on the rate (max 3)
+    rate_votes: int = 0            # independent readings that agree on the rate (3 OCR readings + the clean copy)
     rate_readings: list[str | None] = Field(default_factory=list)
     needs_review: bool = False
     review_reasons: list[str] = Field(default_factory=list)
@@ -142,6 +152,63 @@ class BasicRate(BaseModel):
     rate_raw: str | None = None
     page: int
     doc_id: str
+    region: str | None = None
+    revision: str | None = None
+    source: str = "scan"                # scan | scan+clean | clean | clean_over_scan, as for SorItem
+    scan_rate: float | None = None      # the scan's rate where it differs from the clean copy
+    clean_doc_id: str | None = None
+    clean_page: int | None = None
+    needs_review: bool = False
+    review_reasons: list[str] = Field(default_factory=list)
+
+
+class DarLine(BaseModel):
+    """One row of a CPWD DAR analysis: a basic rate (material / labour / hire), a sub-analysis
+    ("Rate as per Item Number 3.8"), sundries (9999) or an uncoded extra ("= 100% of P")."""
+    code: str | None = None
+    description: str
+    unit: str | None = None
+    unit_raw: str | None = None
+    quantity: float | None = None
+    rate: float | None = None
+    amount: float
+    group: str | None = None            # heading above the row in the analysis: MATERIAL / LABOUR / ...
+    category: Literal["material", "labour", "equipment", "carriage", "sundries", "sub_analysis", "other"] = "other"
+    marker: str | None = None           # letter after the amount (e.g. "P"), referred to by later rows
+    note: str | None = None             # e.g. "(0.70 cum - 7.5% for voids i.e. 0.05 = 0.65 cum)"
+
+
+class DarAnalysis(BaseModel):
+    """CPWD Delhi Analysis of Rates: the build-up of one DSR item rate from basic rates."""
+    key: str                            # "CPWD-DAR-2023:5.33.2.1"
+    sor_name: str
+    sor_year: int
+    doc_id: str
+    code: str
+    description: str
+    full_description: str
+    parent_code: str | None = None
+    sub_head: str | None = None
+    per_quantity: float = 1.0           # "Details of cost for 10 sqm" -> 10
+    per_unit: str | None = None
+    unit: str | None = None             # unit of the final rate ("Cost of 1.00 sqm" / "Say")
+    unit_raw: str | None = None
+    lines: list[DarLine] = Field(default_factory=list)
+    steps: list[dict[str, Any]] = Field(default_factory=list)   # TOTAL W, Add water, ..., Say: {label, amount, marker}
+    base_total: float | None = None     # W = sum of lines
+    water_percent: float | None = None
+    gst_factor: float | None = None
+    cpoh_percent: float | None = None
+    cess_percent: float | None = None
+    rate: float | None = None           # "Say" = the DSR item rate
+    region: str | None = None
+    revision: str | None = None
+    page_start: int
+    page_end: int
+    dsr_rate: float | None = None       # DSR item rate parsed from the DSR scans, for cross-checking
+    dsr_match: bool | None = None
+    not_for_dsr: bool = False           # a reviewer found this analysis is not the one behind the DSR item
+    checked_by: str | None = None
     needs_review: bool = False
     review_reasons: list[str] = Field(default_factory=list)
 

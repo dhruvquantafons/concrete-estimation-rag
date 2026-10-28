@@ -24,6 +24,7 @@ from concrete_rag.calc.quantities import Element, takeoff
 from concrete_rag.calc.steel import BarMark, bbs
 from concrete_rag.config import get_settings
 from concrete_rag.estimate.boq import EstimateRequest, build_estimate
+from concrete_rag.estimate.concrete_mix import ConcreteMixRequest, concrete_mix_report
 from concrete_rag.estimate.export import to_excel, to_pdf
 from concrete_rag.store import docstore
 
@@ -181,6 +182,13 @@ def mix_ep(body: MixDesignInput, _=Depends(require("calc"))):
     return design_mix(body).model_dump()
 
 
+@v1.post("/concrete-mix", tags=["calculators"])
+def concrete_mix_ep(body: ConcreteMixRequest, _=Depends(require("calc"))):
+    """Mix per grade + element volumes + reinforcement + wastage, with IS citations, code editions and a
+    confidence score, in one result."""
+    return concrete_mix_report(body)
+
+
 @v1.post("/design/beam", tags=["calculators"])
 def beam_ep(body: rcc.BeamInput, _=Depends(require("calc"))):
     return rcc.design_beam(body).model_dump()
@@ -228,6 +236,27 @@ def tables_ep(_=Depends(require("calc"))):
 @v1.get("/rates/{item_code}", tags=["estimation"])
 def rate_ep(item_code: str, location: str = "delhi", _=Depends(require("estimate"))):
     return rates.sor_rate(item_code, location=location)
+
+
+@v1.get("/rates/{item_code}/analysis", tags=["estimation"])
+def rate_analysis_dar_ep(item_code: str, _=Depends(require("estimate"))):
+    """The CPWD DAR 2023 analysis behind a DSR item rate: every material / labour / hire row with quantity, rate
+    and amount, the build-up (water, GST, CPOH, cess), the cost-head split and the check against the DSR rate."""
+    a = docstore.get_dar_analysis(item_code)
+    if not a:
+        raise HTTPException(404, f"no DAR analysis for item {item_code}")
+    return {**a, "breakdown": rates.dar_breakdown(item_code)}
+
+
+class RepriceRequest(BaseModel):
+    basic_rates: dict[str, float] = Field(..., description="basic-rate code -> rate, e.g. {'0367': 5500} for cement "
+                                                           "per tonne (codes as in DAR / DSR basic rates)")
+
+
+@v1.post("/rates/{item_code}/reprice", tags=["estimation"])
+def reprice_ep(item_code: str, body: RepriceRequest, _=Depends(require("estimate"))):
+    """Rebuild a DSR item rate from its DAR analysis with other basic rates (e.g. current market rates)."""
+    return rates.reprice(item_code, body.basic_rates)
 
 
 @v1.get("/rates", tags=["estimation"])

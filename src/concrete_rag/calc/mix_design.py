@@ -8,6 +8,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from concrete_rag.calc import code_tables as ct
+from concrete_rag.calc import confidence as cf
 from concrete_rag.calc.base import CalcResult, r2
 
 ZONES = {"IV": 0, "III": 1, "II": 2, "I": 3}
@@ -43,8 +44,8 @@ class MixDesignInput(BaseModel):
     ca_reduction_percent: float = 0.0     # cl. 5.5.2, up to 10 % for pumping / congested reinforcement
     water_absorption_coarse_percent: float = 0.5
     water_absorption_fine_percent: float = 1.0
-    surface_moisture_coarse_percent: float = 0.0
-    surface_moisture_fine_percent: float = 0.0
+    surface_moisture_coarse_percent: float = 0.0    # free (surface) moisture = total moisture - absorption
+    surface_moisture_fine_percent: float = 0.0      # (Annex B-2 j); 0 = dry aggregate as in Annex A
     max_cement_content: float = 450.0     # IS 456 cl. 8.2.4.2 (excluding fly ash / GGBS)
     round_like_annex_a: bool = True       # round water & cement up to whole kg as in IS 10262 Annex A
 
@@ -57,6 +58,15 @@ def _fig1_wc(target: float, cement_type: str) -> tuple[float | None, ct.Ref]:
         return None, ct.ref("fig_1_wc_vs_strength", None, f"{curve} not digitized")
     xs, ys = [p[0] for p in pts], [p[1] for p in pts]
     return ct.interp(target, xs, ys), ct.ref("fig_1_wc_vs_strength", None, curve)
+
+
+def field_mass(ssd: float, absorption_percent: float, free_moisture_percent: float) -> float:
+    """Mass of aggregate to batch for `ssd` kg in SSD condition. Wet (free surface moisture > 0, Annex B-11):
+    SSD x (1 + free / 100). Otherwise dry, as in Annex A ("moisture: Nil", A-10): SSD / (1 + absorption / 100).
+    The mixing water changes by (SSD - field mass)."""
+    if free_moisture_percent > 0:
+        return ssd * (1 + free_moisture_percent / 100)
+    return ssd / (1 + absorption_percent / 100)
 
 
 def design_mix(inp: MixDesignInput) -> CalcResult:
@@ -85,14 +95,19 @@ def design_mix(inp: MixDesignInput) -> CalcResult:
     max_wc = dur[f"{pre}_max_wc"]
     dref = ct.ref("table_5_durability", dur)
     wc = inp.w_c_ratio
+    wc_factor = cf.Factor(name="w/c ratio", score=1.0, weight=2, detail="input (from Fig. 1 / trials)")
     if wc is None:
         wc, fref = _fig1_wc(target, inp.cement_type)
         if wc is None:
             raise ValueError("w_c_ratio is required: IS 10262 Fig. 1 curves are not digitized in "
                              "config/code_tables/is10262_2019.yaml (see README 'Your next steps').")
         res.step("free w/c from Fig. 1", r2(wc, 3), None, refs=[fref])
+        wc_factor = cf.Factor(name="w/c ratio", score=cf.STATUS_SCORE.get(fref.status, 0.3), weight=2,
+                              detail=f"read from digitized Fig. 1 ({fref.status.replace('_', ' ')})")
         lo, hi = ct.fig1_range(inp.cement_type)
         if not lo <= target <= hi:
+            wc_factor = cf.Factor(name="w/c ratio", score=0.5, weight=2,
+                                  detail="target strength outside Fig. 1; w/c taken at the end of the curve")
             res.warnings.append(f"target strength {target} N/mm2 is outside IS 10262 Fig. 1 ({fref.note}: "
                                 f"{lo}-{hi} N/mm2); w/c taken at the end of the curve - establish w/c by trials")
     else:
@@ -176,16 +191,14 @@ def design_mix(inp: MixDesignInput) -> CalcResult:
     res.step("coarse aggregate (SSD)", r2(ca_ssd, 1), "kg/m3")
     res.step("fine aggregate (SSD)", r2(fa_ssd, 1), "kg/m3")
 
-    # --- field adjustment (Annex A-11)
-    ca_dry = ca_ssd / (1 + inp.water_absorption_coarse_percent / 100)
-    fa_dry = fa_ssd / (1 + inp.water_absorption_fine_percent / 100)
-    ca_field = ca_dry * (1 + (inp.water_absorption_coarse_percent + inp.surface_moisture_coarse_percent) / 100) \
-        if inp.surface_moisture_coarse_percent else ca_dry
-    fa_field = fa_dry * (1 + (inp.water_absorption_fine_percent + inp.surface_moisture_fine_percent) / 100) \
-        if inp.surface_moisture_fine_percent else fa_dry
+    # --- field adjustment (Annex A-10 dry aggregate / Annex B-11 wet aggregate)
+    ca_field = field_mass(ca_ssd, inp.water_absorption_coarse_percent, inp.surface_moisture_coarse_percent)
+    fa_field = field_mass(fa_ssd, inp.water_absorption_fine_percent, inp.surface_moisture_fine_percent)
     water_field = water + (ca_ssd - ca_field) + (fa_ssd - fa_field)
 
+    refs = [r for st in res.steps for r in st.refs] + [r for c in res.checks for r in c.refs]
     res.outputs = {
+        "mix_grade": f"M{fck}",
         "per_m3_ssd": {"cement_kg": cement, "fly_ash_kg": fly_ash, "water_kg": water, "fine_aggregate_kg": r2(fa_ssd, 1),
                        "coarse_aggregate_kg": r2(ca_ssd, 1), "admixture_kg": adm_mass},
         "per_m3_field": {"cement_kg": cement, "fly_ash_kg": fly_ash, "water_to_add_kg": r2(water_field, 1),
@@ -196,6 +209,12 @@ def design_mix(inp: MixDesignInput) -> CalcResult:
         "ratio_by_mass": f"1 : {fa_ssd / cm:.2f} : {ca_ssd / cm:.2f} (w/cm {wcm:.2f})",
         "cement_bags_per_m3": r2(cement / 50, 2),
         "ca_volume_fraction": ca,
+        "code_versions": ct.editions_used(refs),
+        "confidence": cf.combine([
+            cf.refs_factor(refs), wc_factor,
+            cf.Factor(name="standard deviation", score=1.0 if inp.known_std_dev else 0.8, weight=1,
+                      detail="site data (>= 30 results)" if inp.known_std_dev else "assumed from IS 10262 Table 2"),
+            cf.checks_factor(res.checks)]),
     }
     res.warnings.append("Proportions are for TRIAL MIX No. 1; confirm by trial batches (IS 10262 cl. 5.8).")
     return res.finalize()

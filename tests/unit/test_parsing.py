@@ -63,7 +63,8 @@ def test_checked_equations_attach_to_clause_chunks():
 def test_checked_table_values_added_to_garbled_table_chunk():
     from concrete_rag.chunking.equations import table_blocks
     blk = table_blocks()["IS456_2000:table:20"]
-    assert "M30: 3.5" in blk and "M40 and above: 4.0" in blk and "AI-checked" in blk
+    assert "M30: 3.5" in blk and "M40 and above: 4.0" in blk
+    assert "AI-checked" in blk or "signed off by" in blk          # label follows the table's sign-off status
     assert "M25: 1.4" in table_blocks()["IS456_2000:cl:26.2.1.1"]
 
 

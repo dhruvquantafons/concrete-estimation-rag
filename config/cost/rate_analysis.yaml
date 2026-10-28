@@ -1,14 +1,22 @@
-# Rate-analysis settings (CPWD DAR-style build-up). The CPWD Delhi Analysis of Rates (DAR) 2023 is NOT
-# in the corpus yet, so these percentages are the usual CPWD conventions and MUST be checked against
-# DAR 2023 before use (set verified_by). DSR *item* rates already include all of these.
-verified_by: null
-water_charges_percent: 1.0          # on (material + labour + T&P)
+# Rate build-up exactly as in CPWD Delhi Analysis of Rates (DAR) 2023. The parser read these from the
+# analyses: 2,604 of them use this build-up (mortars have none: they are priced at cost):
+#   W = material + labour + hire + carriage + sundries
+#   X = W + water charges (1 % of W)
+#   Y = X + GST (X x multiplying factor 0.2127)
+#   Z = Y + contractor's profit & overheads (15 % of Y)
+#   rate = Z + labour cess (1 % of Z), "Say" rounded to Rs 0.05
+# DSR item rates already include all of these. For an existing DSR item, prefer GET /v1/rates/{code}/analysis
+# (the DAR analysis itself) and POST /v1/rates/{code}/reprice (same analysis, other basic rates).
+source: "CPWD DAR 2023 (14.09.2023), every analysis"
+verified_by: "CPWD DAR 2023 (read from the analyses)"
+water_charges_percent: 1.0
+gst_factor: 0.2127
 contractor_profit_overheads_percent: 15.0
-gst_percent: 18.0                   # GST on works contract (DSR 2023 preface: incorporated in all items)
+cess_percent: 1.0
 
-# Optional user templates: coefficients per unit of item, priced from DSR basic rates (01/02/03 codes).
-# Coefficients must come from DAR 2023 or your own analysis. Templates with status 'example' are refused
-# by the API unless allow_example=true.
+# Optional user templates for work that has no DAR analysis: coefficients per unit of item, priced from basic
+# rates (01 hire / 02 labour / 03 materials codes; DAR's digital copy is used first). Templates with status
+# 'example' are refused by the API unless allow_example=true.
 templates:
   example_rcc_design_mix_m25_per_m3:
     status: example

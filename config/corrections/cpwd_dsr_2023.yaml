@@ -12,7 +12,7 @@ code_tokens:   # codes OCR read as letters, checked against the printed page: "D
   "CPWD_DSR_2023_V1:116:T7174": "7774" # basic rates p.53 (stone 10x10x7.50 cm, each 10.00; was merged into 7773, which then showed 10.00)
 items:
   "CPWD-DSR-2023:5.33.2.4": {rate: 10313.3, checked_by: claude-vision, checked_on: '2026-10-20', note: confirmed in print DSR p.112}
-  "CPWD-DSR-2023:1.2": {rate: 0.5, unit: km, checked_by: admin, checked_on: '2026-10-16'}
+  "CPWD-DSR-2023:1.2": {exclude: true, checked_by: claude-vision, checked_on: '2026-10-28', note: 'not an item: the heading ''1.2 By Manual Labour ... for lead less than 0.50 KM'' (clean copy Vol 1 p.97)'}
   "CPWD-DSR-2023:1": {exclude: true, checked_by: admin, checked_on: '2026-10-16'}
   "CPWD-DSR-2023:BR:0027": {rate: 33500.0, unit: day, checked_by: admin, checked_on: '2026-10-16'}
   "CPWD-DSR-2023:BR:0039": {rate: 1350.0, unit: day, checked_by: admin, checked_on: '2026-10-16'}
@@ -162,7 +162,7 @@ items:
   "CPWD-DSR-2023:9.147.A1.3": {rate: 9628.6, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:9.147.421": {rate: 7860.35, unit: m2, code: 9.147.A2.1, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:9.147.42.2": {rate: 8579.55, unit: m2, code: 9.147.A2.2, checked_by: claude-vision, checked_on: '2026-10-20'}
-  "CPWD-DSR-2023:9.147.431": {rate: 9933.4, unit: m2, code: 9.147.A3.1, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:9.147.431": {rate: 9873.05, unit: m2, code: 9.147.A3.1, checked_by: claude-vision, checked_on: '2026-10-28', note: clean copy Vol 1 p.181 prints 9873.05 (used); the scan reads 9933.40}
   "CPWD-DSR-2023:9.147.832": {rate: 9968.7, unit: m2, code: 9.147.A3.2, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:9.147.441": {rate: 10993.55, unit: m2, code: 9.147.A4.1, checked_by: claude-vision, checked_on: '2026-10-20', note: was 1093.55 (OCR dropped a digit); printed 10993.55}
   "CPWD-DSR-2023:9.147.A42": {rate: 10874.2, unit: m2, code: 9.147.A4.2, checked_by: claude-vision, checked_on: '2026-10-20'}
@@ -366,7 +366,7 @@ items:
   "CPWD-DSR-2023:18.7.2.17": {rate: 2478.1, unit: m, code: 18.72.17, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:18.7.2.27": {rate: 18891.2, unit: m, code: 18.72.27, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:1872A1": {rate: 1870.75, unit: m, code: 18.72A.1, checked_by: claude-vision, checked_on: '2026-10-20'}
-  "CPWD-DSR-2023:18.72.3": {rate: 3260.55, unit: m, code: 18.72A.3, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:18.72.3": {rate: 2328.15, unit: m, code: 18.72.3, description: 200 mm dia Ductile Iron Class K-7 pipes, checked_by: claude-vision, checked_on: '2026-10-28', note: 'clean copy p.89 and DAR: 18.72.3 = 2328.15; the 2026-10-20 recode to 18.72A.3 was wrong (18.72A.3 is its own row)'}
   "CPWD-DSR-2023:1872A5": {rate: 5452.95, unit: m, code: 18.72A.5, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:18.72.4.8": {rate: 9861.2, unit: m, code: 18.72A.8, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:1872A11": {rate: 19217.15, unit: m, code: 18.72A.11, checked_by: claude-vision, checked_on: '2026-10-20'}
@@ -557,7 +557,7 @@ items:
   "CPWD-DSR-2023:26.35.3": {rate: 553.4, unit: kg, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:26.37": {rate: 382.4, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:26.41": {rate: 285.9, unit: kg, checked_by: claude-vision, checked_on: '2026-10-20', note: rate printed on DSR p.330}
-  "CPWD-DSR-2023:26.42.1A": {rate: 2901.8, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
+  "CPWD-DSR-2023:26.42.1A": {rate: 2821.65, unit: m2, checked_by: claude-vision, checked_on: '2026-10-28', note: 'clean copy Vol 2 p.162 prints 2821.65 (used); the scan of the corrected edition prints 2901.80 (and 3903.35 for 26.42.1 vs 3580.65): likely a correction slip'}
   "CPWD-DSR-2023:26.44": {rate: 298.75, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:26.46": {rate: 4347.15, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:26.47": {rate: 4701.6, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
@@ -777,3 +777,54 @@ items:
   "CPWD-DSR-2023:18.8.0.4": {rate: 3593.85, unit: 100m, code: 18.80.4, checked_by: claude-vision, checked_on: '2026-10-20', note: code was decoded as 18.8.0.4; printed 18.80.4 (DSR p.152)}
   "CPWD-DSR-2023:18.93.4.13": {rate: 2496.75, unit: each, code: 18.93A.13, checked_by: claude-vision, checked_on: '2026-10-20', note: code was decoded as 18.93.4.13; printed 18.93A.13 (DSR p.277)}
   "CPWD-DSR-2023:11.1.1.1": {rate: 1110.75, unit: m2, code: 11.11.1, checked_by: claude-vision, checked_on: '2026-10-20', note: code was decoded as 11.1.1.1; printed 11.11.1 (DSR p.362)}
+  "CPWD-DSR-2023:10.1": {rate: 117.35, checked_by: admin, checked_on: '2026-10-27', note: rate taken from CPWD DAR 2023 analysis (CPWD_DAR_2023_V1 p.748)}
+  "CPWD-DSR-2023:10.3": {rate: 11439.6, checked_by: admin, checked_on: '2026-10-27', note: DSR rate confirmed; the DAR analysis of this code is another item}
+  "CPWD-DSR-2023:10.4": {rate: 6566.2, checked_by: admin, checked_on: '2026-10-27', note: DSR rate confirmed; the DAR analysis of this code is another item}
+  "CPWD-DSR-2023:2.25": {rate: 196.0, checked_by: admin, checked_on: '2026-10-27', note: rate taken from CPWD DAR 2023 analysis (CPWD_DAR_2023_V1 p.139)}
+  "CPWD-DSR-2023:2.33.3": {rate: 11020.15, checked_by: admin, checked_on: '2026-10-27', note: rate taken from CPWD DAR 2023 analysis (CPWD_DAR_2023_V1 p.146)}
+  "CPWD-DSR-2023:4.10A": {rate: 402.5, checked_by: admin, checked_on: '2026-10-27', note: rate taken from CPWD DAR 2023 analysis (CPWD_DAR_2023_V1 p.200)}
+  "CPWD-DSR-2023:4.16": {rate: 467.55, checked_by: admin, checked_on: '2026-10-27', note: rate taken from CPWD DAR 2023 analysis (CPWD_DAR_2023_V1 p.204)}
+  "CPWD-DSR-2023:5.16A": {rate: 20185.0, checked_by: admin, checked_on: '2026-10-27', note: rate taken from CPWD DAR 2023 analysis (CPWD_DAR_2023_V1 p.275)}
+  "CPWD-DSR-2023:5.6A": {rate: 10954.4, checked_by: admin, checked_on: '2026-10-27', note: rate taken from CPWD DAR 2023 analysis (CPWD_DAR_2023_V1 p.235)}
+  "CPWD-DSR-2023:6.44": {rate: 59.45, checked_by: admin, checked_on: '2026-10-27', note: rate taken from CPWD DAR 2023 analysis (CPWD_DAR_2023_V1 p.367)}
+  "CPWD-DSR-2023:7.10.2": {rate: 2874.2, checked_by: admin, checked_on: '2026-10-27', note: rate taken from CPWD DAR 2023 analysis (CPWD_DAR_2023_V1 p.378)}
+  "CPWD-DSR-2023:6.40": {rate: 1023.6, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 1 PDF p.141; scan read 181.15 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:7.16": {rate: 169.45, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 1 PDF p.145; scan read 2896.0 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:8.30.2": {rate: 2463.1, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 1 PDF p.154; scan read 1267.95 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:9.27.1.1.2": {rate: 3599.2, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 1 PDF p.162; scan read 4568.5 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:11.41A.3.1": {rate: 1464.85, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 1 PDF p.206; scan read 1797.3 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:12.13.1": {rate: 428.5, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 1 PDF p.213; scan read 345.05 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:13.67.1": {rate: 236.1, note: rate taken from CPWD DAR 2023 analysis (CPWD_DAR_2023_V2 p.61), checked_by: admin, checked_on: '2026-10-28'}
+  "CPWD-DSR-2023:13.97.1": {rate: 41.2, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.21; scan read 44.2 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:13.114": {rate: 1192.3, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.22; scan read 138.1 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:13.116": {rate: 3049.85, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.23; scan read 1360.45 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:15.16.1": {rate: 857.0, unit: m3_per_m_height, checked_by: claude-vision, checked_on: '2026-10-28', note: 'HQ clean copy Vol 2 PDF p.37: 857.00, unit printed ''cum per metre height'''}
+  "CPWD-DSR-2023:14.78": {rate: 422.7, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.31; scan read 84.85 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:15.14.1": {rate: 4459.1, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.37; scan read 17.85 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:16.54.1": {rate: 11129.55, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.51; scan read 1129.55 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:17.10.1.2": {rate: 7514.65, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.64; scan read 7159.0 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:17.10.2.1": {rate: 4940.8, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.64; scan read 3873.8 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:17.60.1.1": {rate: 1996.5, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.71; scan read 1683.55 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:17.60.2.1": {rate: 1975.15, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.71; scan read 1558.35 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:17.68.1": {rate: 11847.65, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.72; scan read 1847.65 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:18.9.3": {rate: 355.4, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.78; scan read 438.6 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:18.60.2": {rate: 5468.35, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.87; scan read 8408.8 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:18.72A.6": {rate: 6636.8, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.89; scan read 8279.45 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:18.88.10": {rate: 643.05, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.94; scan read 1572.0 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:18.88.11": {rate: 643.05, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.94; scan read 1636.05 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:18.93A.9": {rate: 2048.6, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.96; scan read 2446.95 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:18.96.10#2": {rate: 1002.95, checked_by: claude-vision, checked_on: '2026-10-28', note: 'HQ clean copy Vol 2 PDF p.98: 1002.95; only row with this code (key 18.96.10 is recoded to 18.95A.11)'}
+  "CPWD-DSR-2023:19.11.1.1": {rate: 24702.75, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.109; scan read 24446.7 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:19.19.3.1": {rate: 1675.7, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.110; scan read 2123.8 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:19.21.1": {rate: 810.45, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.111; scan read 1328.45 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:21.1.2.1": {rate: 598.6, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.122; scan read 634.45 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:21.3.2": {rate: 1505.25, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.123; scan read 1685.4 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:21.19.1": {rate: 148.1, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.125; scan read 200.95 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:26.42.1": {rate: 3580.65, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.162; scan read 3903.35 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:26.90.1": {rate: 1099.35, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.175; scan read 1711.1 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:6.6": {checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 1 PDF p.138 (scan agrees); not an outlier}
+  "CPWD-DSR-2023:7.24": {checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 1 PDF p.146 (scan agrees); not an outlier}
+  "CPWD-DSR-2023:9.123": {rate: 696.0, note: 'clean copy Vol 1 p.174 and the scan both print 696.00 (used, owner''s rule 2026-10-28: the clean copy wins); DAR analysis p.629 builds up to 696.02 (chosen earlier today on DAR vs DSR)', checked_by: claude-vision, checked_on: '2026-10-28'}
+  "CPWD-DSR-2023:9.123A": {rate: 135.8, note: 'clean copy Vol 1 p.174 and the scan both print 135.80 (used, owner''s rule 2026-10-28: the clean copy wins); DAR analysis p.629 builds up to 135.82 (chosen earlier today on DAR vs DSR)', checked_by: claude-vision, checked_on: '2026-10-28'}
+  "CPWD-DSR-2023:9.14.74.3": {exclude: true, checked_by: claude-vision, checked_on: '2026-10-28', note: 'scan duplicate of 9.147.E4.3 (10212.60, clean copy Vol 1 p.185) with digits lost'}
+  "CPWD-DSR-2023:BR:2286": {exclude: true, checked_by: claude-vision, checked_on: '2026-10-28', note: scan misread of carriage code 2266 Surkhi (clean copy Vol 1 p.92)}

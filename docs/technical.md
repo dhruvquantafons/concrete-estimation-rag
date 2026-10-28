@@ -78,11 +78,14 @@ Every call needs an `X-API-Key` header. Each key has scopes; `admin` can do ever
 |---|---|---|
 | `POST /v1/retrieve` | retrieve | search; returns cited chunks, tables as JSON, DSR rates, and a `query_id` |
 | `POST /v1/generate` | generate | cited answer with number check; returns a `query_id` |
-| `POST /v1/mix-design` | calc | IS 10262 mix proportioning |
+| `POST /v1/mix-design` | calc | IS 10262 mix proportioning (with code versions and confidence score) |
+| `POST /v1/concrete-mix` | calc | Mix per grade + element volumes + reinforcement + wastage, IS citations, code versions, confidence |
 | `POST /v1/design/{beam,slab,column,footing}` | calc | IS 456 design with checks and clause references. **Design aid only**: every result has `outputs.label = "Design aid only"` and that warning first |
 | `POST /v1/quantity`, `POST /v1/bbs` | calc | IS 1200 quantities, bar bending schedule |
 | `GET /v1/rates/{code}?location=` | estimate | DSR rate × location index, with citation and OCR check status |
-| `POST /v1/estimate` | estimate | BOQ, cost summary, cement statement |
+| `GET /v1/rates/{code}/analysis` | estimate | CPWD DAR 2023 analysis of a DSR item: rows, build-up, cost-head split, DSR check |
+| `POST /v1/rates/{code}/reprice` | estimate | Same DAR analysis re-priced with other basic rates (e.g. market rates) |
+| `POST /v1/estimate` | estimate | BOQ, cost summary, cement statement, confidence score; unmapped work matched by hybrid search (flagged) |
 | `GET /v1/estimate/{id}/export?format=xlsx\|pdf` | estimate | Excel (with live formulas) or PDF |
 | `GET /v1/code-tables/status` | calc | sign-off status of the code tables |
 | `POST /v1/feedback` | retrieve / generate | rate a result (`kind: chunk`) or an answer (`kind: answer`, optional `correction`), using the `query_id` |

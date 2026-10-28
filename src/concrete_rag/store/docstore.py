@@ -12,7 +12,7 @@ from sqlalchemy import (JSON, Boolean, Column, DateTime, Float, Integer, MetaDat
 from sqlalchemy.engine import Engine
 
 from concrete_rag.config import get_settings
-from concrete_rag.schemas import BasicRate, Chunk, SorItem
+from concrete_rag.schemas import BasicRate, Chunk, DarAnalysis, SorItem
 
 md = MetaData()
 
@@ -54,6 +54,14 @@ cement_coefficients = Table("cement_coefficients", md,
                             Column("sor_name", String(40)), Column("sor_year", Integer),
                             Column("code", String(40), index=True), Column("unit", String(20)),
                             Column("cement_quintal_per_unit", Float), Column("data", JSON))
+
+# CPWD Delhi Analysis of Rates: one row per analysed item (lines, build-up and checks in `data`)
+dar_analyses = Table("dar_analyses", md,
+                     Column("key", String(120), primary_key=True),
+                     Column("sor_name", String(40)), Column("sor_year", Integer, index=True),
+                     Column("code", String(60), index=True), Column("unit", String(20)), Column("rate", Float),
+                     Column("doc_id", String(80), index=True), Column("needs_review", Boolean),
+                     Column("dsr_match", Boolean), Column("data", JSON))
 
 api_keys = Table("api_keys", md,
                  Column("id", Integer, primary_key=True, autoincrement=True),
@@ -105,10 +113,11 @@ def _now():
 
 # ------------------------------------------------------------------ writes
 def replace_document(doc_id: str, doc_data: dict, sha: str | None, stats: dict, doc_chunks: list[Chunk],
-                     items: Iterable[SorItem] = (), basics: Iterable[BasicRate] = (), coeffs: Iterable[dict] = ()):
+                     items: Iterable[SorItem] = (), basics: Iterable[BasicRate] = (), coeffs: Iterable[dict] = (),
+                     analyses: Iterable[DarAnalysis] = ()):
     """Idempotent re-ingest of one document."""
     with engine().begin() as c:
-        for t, col in ((chunks, chunks.c.doc_id), (sor_items, sor_items.c.doc_id)):
+        for t, col in ((chunks, chunks.c.doc_id), (sor_items, sor_items.c.doc_id), (dar_analyses, dar_analyses.c.doc_id)):
             c.execute(delete(t).where(col == doc_id))
         c.execute(delete(basic_rates).where(basic_rates.c.key.in_(
             select(basic_rates.c.key).where(basic_rates.c.data["doc_id"].as_string() == doc_id))))
@@ -143,6 +152,17 @@ def replace_document(doc_id: str, doc_data: dict, sha: str | None, stats: dict, 
                              "code": b.code, "description": b.description, "unit": b.unit, "rate": b.rate,
                              "needs_review": b.needs_review, "data": b.model_dump()})
             c.execute(insert(basic_rates), rows)
+        analyses = list(analyses)
+        if analyses:
+            taken = {r[0] for r in c.execute(select(dar_analyses.c.key))}
+            for a in analyses:                 # the same code printed in both volumes: keep both
+                if a.key in taken:
+                    a.key = f"{a.key}#{doc_id}"
+                taken.add(a.key)
+            c.execute(insert(dar_analyses), [{
+                "key": a.key, "sor_name": a.sor_name, "sor_year": a.sor_year, "code": a.code, "unit": a.unit,
+                "rate": a.rate, "doc_id": doc_id, "needs_review": a.needs_review, "dsr_match": a.dsr_match,
+                "data": a.model_dump()} for a in analyses])
         coeffs = list(coeffs)
         if coeffs:
             c.execute(insert(cement_coefficients), [{
@@ -224,10 +244,44 @@ def search_sor_items(text: str | None = None, prefix: str | None = None, unit: s
         return [dict(r.data) for r in c.execute(q.limit(limit))]
 
 
+# basic rates are read from DAR first: it is a digital PDF, while the DSR copy was OCR'd from a 96-dpi scan
+BASIC_RATE_SOURCES = ("CPWD-DAR", "CPWD-DSR")
+
+
 def get_basic_rate(code: str) -> dict | None:
     with engine().connect() as c:
-        r = c.execute(select(basic_rates).where(basic_rates.c.code == code)).first()
-        return dict(r.data) if r else None
+        rows = [dict(r.data) for r in c.execute(select(basic_rates).where(basic_rates.c.code == code))]
+    rows.sort(key=lambda b: (b.get("rate") is None,
+                             BASIC_RATE_SOURCES.index(b["sor_name"]) if b["sor_name"] in BASIC_RATE_SOURCES else 9))
+    return rows[0] if rows else None
+
+
+def get_dar_analysis(code: str, year: int | None = None) -> dict | None:
+    """The DAR analysis of a DSR item (the first one when DAR prints several variants)."""
+    with engine().connect() as c:
+        q = select(dar_analyses).where(dar_analyses.c.code == code)
+        if year:
+            q = q.where(dar_analyses.c.sor_year == year)
+        rows = [dict(r.data) for r in c.execute(q)]
+    rows = [a for a in rows if not a.get("not_for_dsr")]      # reviewer: not the analysis behind this DSR item
+    rows.sort(key=lambda a: ("#" in a["key"], a["key"]))
+    return rows[0] if rows else None
+
+
+def list_basic_rates(sor_name: str | None = None) -> list[dict]:
+    with engine().connect() as c:
+        q = select(basic_rates)
+        if sor_name:
+            q = q.where(basic_rates.c.sor_name == sor_name)
+        return [dict(r.data) for r in c.execute(q)]
+
+
+def list_dar_analyses(needs_review: bool | None = None, limit: int = 100000) -> list[dict]:
+    with engine().connect() as c:
+        q = select(dar_analyses)
+        if needs_review is not None:
+            q = q.where(dar_analyses.c.needs_review.is_(needs_review))
+        return [dict(r.data) for r in c.execute(q.limit(limit))]
 
 
 def search_basic_rates(text: str, category: str | None = None, limit: int = 20) -> list[dict]:
@@ -250,15 +304,16 @@ def review_queue() -> dict[str, list[dict]]:
     with engine().connect() as c:
         items = [dict(r.data) for r in c.execute(select(sor_items).where(sor_items.c.needs_review.is_(True)))]
         basics = [dict(r.data) for r in c.execute(select(basic_rates).where(basic_rates.c.needs_review.is_(True)))]
+        dar = [dict(r.data) for r in c.execute(select(dar_analyses).where(dar_analyses.c.needs_review.is_(True)))]
         chs = [_chunk_row(r) for r in c.execute(select(chunks).where(chunks.c.needs_review.is_(True),
                                                                     chunks.c.chunk_type.in_(["table", "clause"])))]
-    return {"sor_items": items, "basic_rates": basics, "chunks": chs}
+    return {"sor_items": items, "basic_rates": basics, "chunks": chs, "dar_analyses": dar}
 
 
 def counts() -> dict[str, int]:
     with engine().connect() as c:
         return {t.name: c.execute(select(func.count()).select_from(t)).scalar_one()
-                for t in (documents, chunks, sor_items, basic_rates, cement_coefficients)}
+                for t in (documents, chunks, sor_items, basic_rates, cement_coefficients, dar_analyses)}
 
 
 def list_documents() -> list[dict]:
@@ -298,9 +353,11 @@ def write_audit(key_name: str | None, method: str, path: str, status: int, ms: f
 
 
 def save_estimate(est_id: str, project: str, data: dict):
+    """Insert or replace; re-saving an estimate keeps its original creation time."""
     with engine().begin() as c:
+        prev = c.execute(select(estimates.c.created_at).where(estimates.c.id == est_id)).scalar()
         c.execute(delete(estimates).where(estimates.c.id == est_id))
-        c.execute(insert(estimates).values(id=est_id, created_at=_now(), project=project, data=json.loads(
+        c.execute(insert(estimates).values(id=est_id, created_at=prev or _now(), project=project, data=json.loads(
             json.dumps(data, default=str))))
 
 

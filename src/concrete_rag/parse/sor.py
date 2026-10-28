@@ -6,10 +6,10 @@ Produces:
   * cement consumption coefficients (quintal of cement per unit of item)
 
 Reliability measures (the source scans are 96 dpi):
-  * Hindi pages (alternate pages) are detected by OCR confidence and not used for text, but their
-    rate column is aligned with the English rate sequence as an independent second reading;
-  * every rate cell is re-OCR'd from the native image with a digits-only whitelist (third reading);
-  * readings are combined by majority vote; a rate is `confirmed` only when >= 2 readings agree;
+  * Hindi pages (alternate pages) are detected by OCR confidence and ignored entirely (owner's decision,
+    2026-10-28: their 96-dpi Devanagari OCR misaligned rates by a row);
+  * every rate cell is re-OCR'd from the native image with a digits-only whitelist (second reading);
+  * a rate is `confirmed` only when both readings agree;
   * item codes are decoded as a sequence (normalize.item_codes.decode_sequence);
   * sibling-rate outliers and missing units/rates are flagged.
 Everything doubtful gets needs_review=True and lands in the review CSV; human corrections in
@@ -45,6 +45,11 @@ CODE_TOKEN_RE = re.compile(r"^[(\[{]?[\dOoIl|§$][\dOoIl|SsA-H.,:;'’ ]{0,9}[)\
 
 
 # ------------------------------------------------------------------ helpers
+def _dmy(d) -> str:
+    return ".".join(reversed(str(d).split("-")))
+
+
+
 def load_sor_config(sor_name: str, year: int) -> dict:
     p = get_settings().root / "config" / "sor" / f"{sor_name.lower().replace('-', '_')}_{year}.yaml"
     return yaml.safe_load(p.read_text()) if p.exists() else {"sub_heads": {}}
@@ -123,65 +128,6 @@ def _is_subsequence(short: str, long: str) -> bool:
     return all(ch in it for ch in short)
 
 
-def _similar(a: str, b: str) -> float:
-    if a == b:
-        return 2.0
-    if len(a) == len(b) and sum(x != y for x, y in zip(a, b)) <= 2:
-        return 1.0
-    if difflib.SequenceMatcher(None, a, b).ratio() >= 0.8:
-        return 0.5
-    return -1.0
-
-
-def align(seq_a: list[str], seq_b: list[str], band: int = 120) -> dict[int, int]:
-    """Banded Needleman-Wunsch alignment of two rate sequences. Returns {index_a: index_b}."""
-    n, m = len(seq_a), len(seq_b)
-    if not n or not m:
-        return {}
-    gap = -0.6
-    NEG = -1e9
-    score = [dict() for _ in range(n + 1)]
-    back = [dict() for _ in range(n + 1)]
-    ratio = m / n
-    for i in range(n + 1):
-        center = int(i * ratio)
-        for j in range(max(0, center - band), min(m, center + band) + 1):
-            if i == 0 and j == 0:
-                score[0][0] = 0.0
-                continue
-            best, arg = NEG, None
-            if i > 0 and j > 0 and (j - 1) in score[i - 1]:
-                v = score[i - 1][j - 1] + _similar(seq_a[i - 1], seq_b[j - 1])
-                if v > best:
-                    best, arg = v, "d"
-            if i > 0 and j in score[i - 1]:
-                v = score[i - 1][j] + gap
-                if v > best:
-                    best, arg = v, "u"
-            if j > 0 and (j - 1) in score[i]:
-                v = score[i][j - 1] + gap
-                if v > best:
-                    best, arg = v, "l"
-            if arg:
-                score[i][j], back[i][j] = best, arg
-    # backtrack from the best end cell in the last row
-    i = n
-    j = max(score[n], key=lambda k: score[n][k]) if score[n] else 0
-    out = {}
-    while i > 0 and j >= 0 and j in back[i]:
-        a = back[i][j]
-        if a == "d":
-            if _similar(seq_a[i - 1], seq_b[j - 1]) > 0:
-                out[i - 1] = j - 1
-            i, j = i - 1, j - 1
-        elif a == "u":
-            i -= 1
-        else:
-            j -= 1
-    return out
-
-
-# ------------------------------------------------------------------ alternate rate reading
 def _alt_read_page(pdf_path: str, page_index: int, boxes: list[tuple[float, float, float, float]]) -> list[str]:
     """Digits-only re-OCR of rate cells, from the native image upscaled x2 and binarised."""
     import numpy as np
@@ -221,7 +167,6 @@ class Row:
     remarks: list[str] = field(default_factory=list)
     conf: float = 100.0
     rate_alt: str | None = None
-    rate_hindi: str | None = None
     code: str | None = None
     code_cost: float = 0.0
 
@@ -398,19 +343,6 @@ def parse_pages(doc: SourceDoc, pages: list[PageText], cfg: dict,
     return rows, notes
 
 
-def hindi_rate_sequence(pages: list[PageText], rate_x: float) -> list[str]:
-    seq = []
-    for page in pages:
-        if is_english(page) or len(page.words) < 15:
-            continue
-        for ln in page_lines(page, allow_columns=False):
-            toks = [w.text for w in ln.words if w.x0 >= rate_x - 25]
-            r = norm_rate("".join(toks)) if toks else None
-            if r:
-                seq.append(r)
-    return seq
-
-
 def _parent_chain(code: str, group_desc: dict[str, str]) -> list[str]:
     parents, p = [], parent_code(code)
     while p:
@@ -459,16 +391,6 @@ def parse_sor(doc: SourceDoc, pages: list[PageText], alt_read: bool = True) -> S
                         r.rate_alt = norm_rate(txt)
             cache_file.write_text(json.dumps(cache))
 
-    # ---- Hindi pages as an independent reading, aligned over the whole volume
-    rated = [r for r in rows if r.rate_tokens]
-    eng_seq = [norm_rate("".join(r.rate_tokens)) or "?" for r in rated]
-    rate_x = statistics.median([r.rate_box[0] for r in rated]) if rated else 450
-    hin_seq = hindi_rate_sequence(pages, rate_x)
-    mapping = align(eng_seq, hin_seq)
-    for i, r in enumerate(rated):
-        if i in mapping:
-            r.rate_hindi = hin_seq[mapping[i]]
-
     # ---- decode item codes per sub-head
     seg_start = 0
     item_rows = [r for r in rows if r.section in ("item", "coeff_cement")]
@@ -500,7 +422,7 @@ def parse_sor(doc: SourceDoc, pages: list[PageText], alt_read: bool = True) -> S
     by_code: dict[str, SorItem] = {}
     group_desc: dict[str, str] = {}
     for r in rows:
-        readings = [norm_rate("".join(r.rate_tokens)) if r.rate_tokens else None, r.rate_alt, r.rate_hindi]
+        readings = [norm_rate("".join(r.rate_tokens)) if r.rate_tokens else None, r.rate_alt]
         rate_s, agree = _vote(readings)
         reasons = []
         if r.rate_tokens and agree < 2:
@@ -582,6 +504,16 @@ def parse_sor(doc: SourceDoc, pages: list[PageText], alt_read: bool = True) -> S
         by_code.setdefault(key, item)
         items.append(item)
 
+    # ---- row metadata: location, revision and material for every rate row
+    from concrete_rag.chunking.enrich import tag
+    revision = ", ".join(x for x in (f"w.e.f. {_dmy(cfg['effective_from'])}" if cfg.get("effective_from") else None,
+                                     f"corrections to {_dmy(cfg['corrections_upto'])}" if cfg.get("corrections_upto")
+                                     else None) if x) or None
+    for it in items:
+        it.revision, it.material = revision, tag(it.full_description)["material_type"]
+    for b in basic:
+        b.region, b.revision = doc.region, revision
+
     # ---- sibling outlier check (same parent and unit)
     sib: dict[tuple, list[SorItem]] = {}
     for it in items:
@@ -592,7 +524,7 @@ def parse_sor(doc: SourceDoc, pages: list[PageText], alt_read: bool = True) -> S
             continue
         med = statistics.median(x.rate for x in group_items)
         for x in group_items:
-            if med > 0 and not (0.4 <= x.rate / med <= 2.5) and x.rate_votes < 3 and x.item_key not in corrections:
+            if med > 0 and not (0.4 <= x.rate / med <= 2.5) and x.rate_votes < 2 and x.item_key not in corrections:
                 x.needs_review = True
                 x.review_reasons.append(f"rate {x.rate} is an outlier vs siblings (median {med:.2f})")
 
@@ -604,8 +536,7 @@ def parse_sor(doc: SourceDoc, pages: list[PageText], alt_read: bool = True) -> S
         "basic_rates": len(basic),
         "basic_needing_review": sum(1 for b in basic if b.needs_review),
         "cement_coefficients": len(coeffs),
-        "hindi_aligned": len(mapping),
-        "english_rate_rows": len(rated),
+        "english_rate_rows": sum(1 for r in rows if r.rate_tokens),
         "corrections_applied": sum(1 for it in items if it.item_key in corrections),
     }
     return SorParseResult(items=items, basic_rates=basic, cement_coefficients=coeffs, notes=notes, stats=stats)

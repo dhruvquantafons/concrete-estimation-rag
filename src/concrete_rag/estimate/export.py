@@ -72,12 +72,24 @@ def to_excel(est: dict, path: Path | None = None) -> Path:
             c.append([x["item_code"], x["quantity"], x["unit"], x["coefficient_qtl_per_unit"], None, x["confirmed"]])
             c.cell(c.max_row, 5, f"=B{c.max_row}*D{c.max_row}")
 
-    if est.get("cost_heads") and "detail" in est["cost_heads"]:
+    ch = est.get("cost_heads") or {}
+    if ch.get("heads"):                                   # CPWD DAR split
         h = wb.create_sheet("Cost heads")
-        ch = est["cost_heads"]
+        heads = list(ch["heads"])
+        _header(h, ["DSR item", "Amount", *[k.replace("_", " ").title() for k in heads], "DAR analysis"],
+                [11, 14, *[13] * len(heads), 46])
+        for x in ch["lines"]:
+            h.append([x["item_code"], x["amount"], *[x["split"].get(k, 0) for k in heads], x["citation"]])
+        h.append(["Total", ch["analysed_amount"], *[ch["heads"][k] for k in heads]])
+        h.append(["Share %", None, *[ch["share_percent"][k] for k in heads]])
+        if ch.get("not_analysed_items"):
+            h.append([f"No DAR analysis: {', '.join(ch['not_analysed_items'])} ({ch['not_analysed_amount']})"])
+        h.append([])
+        h.append([ch["basis"]])
+    elif ch.get("detail"):                                # estimates saved before DAR was ingested
+        h = wb.create_sheet("Cost heads")
         h.append(["Materials (basic cost)", ch["materials_basic_cost"]])
         h.append(["Labour + T&P + formwork + overheads + GST (remainder)", ch["labour_equipment_overheads_gst_formwork"]])
-        h.append(["Materials share %", ch["materials_share_percent"]])
         h.append([])
         h.append([ch["basis"]])
         h.column_dimensions["A"].width = 60

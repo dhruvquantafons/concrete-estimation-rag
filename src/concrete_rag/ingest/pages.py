@@ -44,7 +44,7 @@ def text_quality(text: str) -> float:
 def _psm_for(doc: SourceDoc) -> int:
     # SOR pages are ruled tables: treat the page as a single block so each line spans all columns.
     # IS codes are two-column prose: let Tesseract segment columns (psm 3).
-    return 6 if doc.doc_type == "sor" else 3
+    return 6 if doc.doc_type in ("sor", "dar") else 3
 
 
 def page_image(doc: pymupdf.Document, page: pymupdf.Page, dpi: int = 300):

@@ -26,9 +26,43 @@ class Ref(BaseModel):
     value: Any = None
     status: str = "unconfirmed"
     note: str | None = None
+    edition: str | None = None  # "IS 456 : 2000 (incl. Amd 1-3)", filled from config/sources.yaml
+
+    def model_post_init(self, _ctx: Any) -> None:
+        if self.edition is None:
+            self.edition = code_editions().get(self.code)
 
     def label(self) -> str:
-        return f"{self.code}, {self.item}"
+        return f"{self.edition or self.code}, {self.item}"
+
+
+def _amd_text(nos: list[str]) -> str:
+    return "Amd " + (f"{nos[0]}-{nos[-1]}" if len(nos) > 2 else ", ".join(nos))
+
+
+@lru_cache
+def code_editions() -> dict[str, str]:
+    """Code label as calculators write it ("IS 456", "IS 1200 (Part 2)") -> edition in force, with the
+    amendments that are in the corpus (bound in the PDF or as separate slips)."""
+    from concrete_rag.registry import load_sources
+    try:
+        docs = load_sources()
+    except Exception:          # noqa: BLE001 - citations still work without the edition
+        return {}
+    out = {}
+    for d in docs:
+        if d.doc_type != "is_code" or not d.is_current:
+            continue
+        amds = [str(n) for n in d.amendments_bundled]
+        amds += [f"{a.amendment_no} ({a.revision_year})" for a in docs if a.amends == d.doc_id and a.amendment_no]
+        label = d.code_label + (f" (incl. {_amd_text(amds)})" if amds else "")
+        out[f"{d.code_no} (Part {d.part})" if d.part else d.code_no] = label
+    return out
+
+
+def editions_used(refs: list[Ref]) -> list[str]:
+    """Distinct code editions behind a set of refs, for a result's 'code_versions'."""
+    return sorted({r.edition or f"{r.code} (edition not in corpus)" for r in refs})
 
 
 @lru_cache

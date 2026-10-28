@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 
+from concrete_rag.calc.confidence import answer_confidence
 from concrete_rag.llm.base import get_provider
 from concrete_rag.retrieval.hybrid import retrieve
 
@@ -59,12 +60,14 @@ def answer(query: str, top_k: int = 6, filters: dict | None = None) -> dict:
     res = llm.generate(SYSTEM_RAG, user)
     cited = sorted({int(x) for x in re.findall(r"\[S(\d+)\]", res.text)})
     evidence = "\n".join(c.text for c in pack.chunks) + "\n" + "\n".join(c.citation.ref for c in pack.chunks)
+    verification = {**verify_numbers(res.text, evidence), "cites_sources": bool(cited) or res.stop_reason != "end_turn"}
+    citations = [pack.chunks[i - 1].citation.model_dump() for i in cited if 0 < i <= len(pack.chunks)]
     return {
         "query": query, "answer": res.text, "provider": llm.name, "model": res.model, "stop_reason": res.stop_reason,
-        "citations": [pack.chunks[i - 1].citation.model_dump() for i in cited if 0 < i <= len(pack.chunks)],
+        "citations": citations,
         "sources": [{"id": f"S{i}", **c.citation.model_dump()} for i, c in enumerate(pack.chunks, 1)],
-        "verification": {**verify_numbers(res.text, evidence),
-                         "cites_sources": bool(cited) or res.stop_reason != "end_turn"},
+        "verification": verification,
+        "confidence": answer_confidence(verification, citations),
         "warnings": pack.warnings, "usage": res.usage,
         "exemplars_used": [{"feedback_id": e["id"], "similarity": e["similarity"]} for e in examples],
     }

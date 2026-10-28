@@ -109,3 +109,43 @@ def test_ai_check_is_not_human_verification():
     assert signed_status("claude-vision (checked against scanned page)") == "ai_checked"
     assert signed_status("R. Sharma") == "verified"
     assert signed_status(None) is None
+
+
+def test_field_moisture_adjustment_annex_a_and_b():
+    from concrete_rag.calc.mix_design import field_mass
+    # Annex B-11 (wet): CA 1069 kg SSD, free moisture 1.5 % -> 1085; FA 719 kg, 4.0 % -> 748; water 155 - 16 - 29 = 110
+    ca, fa = field_mass(1069, 0.5, 1.5), field_mass(719, 1.0, 4.0)
+    assert round(ca) == 1085 and round(fa) == 748
+    assert round(155 + (1069 - ca) + (719 - fa)) == 110
+    # Annex A-10 (dry): CA 1234 kg SSD, absorption 0.5 % -> 1228; extra water 6 kg
+    assert round(field_mass(1234, 0.5, 0)) == 1228
+
+
+def test_hysd_compression_steel_stress_follows_fig_23a():
+    from concrete_rag.calc.rcc import steel_stress
+    # SP 16 Table A, Fe 415: 0.95 fyd at strain 0.00241, 0.975 fyd at 0.00276; Fe 500: 0.90 fyd at 0.00226
+    assert abs(steel_stress(0.00241, 415) - 342.8) < 0.5 and abs(steel_stress(0.00276, 415) - 351.8) < 0.5
+    assert abs(steel_stress(0.00226, 500) - 391.3) < 0.5
+    assert steel_stress(0.001, 500) == 200.0 and steel_stress(0.01, 500) == 0.87 * 500   # elastic / yield plateau
+
+
+def test_doubly_reinforced_beam_uses_fig_23a_stress():
+    r = design_beam(BeamInput(b_mm=230, D_mm=450, grade="M20", fy=500, Mu_kNm=180, Vu_kN=80))
+    fsc = next(s.value for s in r.steps if s.name.startswith("stress in compression steel"))
+    assert fsc < 0.87 * 500                      # below yield at the compression steel strain (Fig. 23A)
+    assert r.outputs["Asc_required_mm2"] > 0
+
+
+def test_continuous_slab_uses_table_12_and_13():
+    from concrete_rag.calc.rcc import SlabInput, design_slab_one_way
+    r = design_slab_one_way(SlabInput(span_m=3.5, D_mm=150, support="continuous", live_load_kN_m2=3.0,
+                                      floor_finish_kN_m2=1.0))
+    wd, wl = 1.5 * (25 * 0.15 + 1.0), 1.5 * 3.0
+    assert abs(r.outputs["Mu_kNm_per_m"] - round((wd / 10 + wl / 9) * 3.5 ** 2, 3)) < 1e-6
+    vu = next(s.value for s in r.steps if s.name.startswith("Vu per m width"))
+    assert abs(vu - round(0.6 * (wd + wl) * 3.5, 3)) < 1e-6
+
+
+def test_count_units_convert():
+    from concrete_rag.normalize.units import convert_quantity
+    assert convert_quantity(25, "each", "10_nos") == 2.5 and convert_quantity(3, "1000_nos", "each") == 3000

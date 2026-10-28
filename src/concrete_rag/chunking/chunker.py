@@ -13,6 +13,7 @@ import re
 from concrete_rag.chunking import equations
 from concrete_rag.chunking.enrich import grades, tag
 from concrete_rag.parse.is_code import Unit, extract_xrefs
+from concrete_rag.parse.dar import DarParseResult
 from concrete_rag.parse.sor import SorParseResult
 from concrete_rag.schemas import Chunk, ChunkMetadata, SourceDoc
 
@@ -186,6 +187,10 @@ def chunk_sor(doc: SourceDoc, res: SorParseResult) -> list[Chunk]:
                           page_start=it.page, page_end=it.page, heading_path=[x for x in (it.sub_head, it.group_heading) if x],
                           needs_review=it.needs_review, review_reasons=it.review_reasons)
         _enrich(meta, it.full_description)
+        if it.source == "clean":                         # only the clean copy has it: cite that copy's page
+            meta.doc_id = it.clean_doc_id
+        elif it.source == "clean_over_scan":             # the rate comes from the clean copy: cite its page
+            meta.doc_id, meta.page_start, meta.page_end = it.clean_doc_id, it.clean_page, it.clean_page
         g = grades(it.full_description)
         if g:
             meta.applicability = sorted(set(meta.applicability + [f"grade:{x}" for x in g]))
@@ -208,4 +213,29 @@ def chunk_sor(doc: SourceDoc, res: SorParseResult) -> list[Chunk]:
         chunks.append(Chunk(chunk_id=f"{doc.doc_id}:note:{i}", chunk_type="sor_note", text=n["text"],
                             embed_text=f"CPWD DSR {doc.revision_year} sub head {n['head']} note\n{n['text']}",
                             metadata=meta, content_hash=_hash(n["text"])))
+    return _dedupe_ids(chunks)
+
+
+def chunk_dar(doc: SourceDoc, res: DarParseResult) -> list[Chunk]:
+    """One chunk per analysed item: what goes into the rate (materials, labour, hire) and the build-up."""
+    chunks: list[Chunk] = []
+    for a in res.analyses:
+        rows = "\n".join(f"{ln.code or '-'} {ln.description[:90]} | {ln.quantity if ln.quantity is not None else ''} "
+                         f"{ln.unit_raw or ''} @ {ln.rate if ln.rate is not None else ''} = {ln.amount:,.2f}"
+                         for ln in a.lines)
+        steps = "; ".join(f"{s['label']} {s['amount']:,.2f}" for s in a.steps if s.get("amount") is not None)
+        rate = f"₹ {a.rate:,.2f} per {a.unit_raw or a.unit}" if a.rate is not None else "rate not read"
+        text = (f"{a.sor_name} {a.sor_year} analysis of item {a.code} ({a.sub_head or ''})\n{a.full_description}\n"
+                f"Details of cost for {a.per_quantity:g} {a.per_unit or ''}\n{rows}\n{steps}\nRate: {rate}")
+        meta = _base_meta(doc, item_code=a.code, title=a.description[:120], section=a.sub_head, unit=a.unit,
+                          rate=a.rate, currency="INR", region=a.region, sor_year=a.sor_year, page_start=a.page_start,
+                          page_end=a.page_end, needs_review=a.needs_review, review_reasons=a.review_reasons)
+        _enrich(meta, a.full_description + " " + " ".join(ln.description for ln in a.lines))
+        g = grades(a.full_description)
+        if g:
+            meta.applicability = sorted(set(meta.applicability + [f"grade:{x}" for x in g]))
+        embed = f"CPWD DAR {a.sor_year} analysis of rates | {a.sub_head} | item {a.code}\n{a.full_description}\n" \
+                + "; ".join(ln.description[:60] for ln in a.lines)
+        chunks.append(Chunk(chunk_id=f"{doc.doc_id}:dar:{a.key.split(':', 1)[1]}", chunk_type="dar_analysis", text=text,
+                            embed_text=embed, metadata=meta, content_hash=_hash(text)))
     return _dedupe_ids(chunks)
