@@ -376,9 +376,6 @@ Only you can do or decide these. Most important first.
 
 - [ ] **Estimate defaults:** contingency (now 3 %), any overhead on top of DSR rates, default steel per m³ (or
       always require a BBS), and design mix (now the default) or nominal mix.
-- [ ] **Desktop app:** buy a code-signing certificate (about US$200–500 a year) or accept the "Windows protected
-      your PC" warning. Also say whether you want sign-in back in the desktop app (now whoever uses the PC is
-      admin).
 
 ### 2. Send me data
 
@@ -390,14 +387,6 @@ Only you can do or decide these. Most important first.
 
 ### 3. Check
 
-- [ ] **Test the Windows app on a Windows 10/11 PC:** install it, see "Downloading Resources" and then the home
-      page; try Search, Ask, a calculator and an Excel/PDF export; close and reopen; then try it with Wi-Fi off.
-      Ask runs on the CPU, so expect about 20–60 seconds per answer on an office laptop.
-- [ ] **Licensing before sharing the .exe:** it contains the IS PDFs and text taken from them. BIS licenses these
-      per purchaser, so confirm everyone you give it to is entitled to them. Send the file by Google Drive or
-      WeTransfer (it is too big for email).
-- [ ] **Refresh search after the code-table sign-offs** (all 13 signed off 2026-10-28): stop `crag serve`, run
-      `crag ingest --doc IS456_2000 --doc IS10262_2019 && crag index`, then commit `config/code_tables/`.
 - [ ] **Wastage:** ask a site engineer or QS to look over `config/cost/wastage.yaml` and write their name in
       `approved_by`.
 - [ ] **Searched BOQ lines:** when an estimate shows a line marked *searched*, check the item in the DSR and add
