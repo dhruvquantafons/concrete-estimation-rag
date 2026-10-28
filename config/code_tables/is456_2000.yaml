@@ -82,15 +82,15 @@ bond_stress_26_2_1_1:
 flexure_38_1:
   source: {code: IS 456, clause: "38.1", chunk: "IS456_2000:cl:38.1"}
   title: Limiting depth of neutral axis xu,max/d
-  verified_by: "claude-vision (checked against scanned page)"
-  verified_on: "2026-10-22"
+  verified_by: "admin"
+  verified_on: "2026-10-28"
   xu_max_by_fy: {250: 0.53, 415: 0.48, 500: 0.46}
 
 detailing_limits:
   source: {code: IS 456, clauses: ["26.5.1.1", "26.5.1.5", "26.5.2.1", "26.5.3.1", "23.2.1", "25.4", "39.3", "36.4.2"]}
   title: Reinforcement and geometry limits used by the RCC calculators
-  verified_by: "claude-vision (checked against scanned page)"
-  verified_on: "2026-10-22"
+  verified_by: "admin"
+  verified_on: "2026-10-28"
   beam_min_tension_steel: "As/(b d) >= 0.85/fy  (26.5.1.1 a)"
   beam_max_tension_steel_fraction_bD: 0.04            # 26.5.1.1 b
   stirrup_max_spacing: {fraction_of_d: 0.75, max_mm: 300}   # 26.5.1.5

@@ -54,8 +54,8 @@ fig_1_wc_vs_strength:
   # 0.350 / 0.425 - the examples are rounded eyeball readings, this follows the drawn curve (slightly lower w/c).
   # Outside a curve's strength range the calculator clamps to the end point and warns.
   # Re-measured 2026-10-22 by an independent digitizer: all 51 points within 0.28 N/mm2 (mean 0.10).
-  verified_by: "claude-vision (pixel-digitized, +/-0.3 N/mm2)"
-  verified_on: "2026-10-21"
+  verified_by: "admin"
+  verified_on: "2026-10-28"
   curves:
     curve_1_opc33: [[14.5, 0.650], [15.9, 0.625], [17.4, 0.600], [19.1, 0.575], [20.9, 0.550], [22.9, 0.525], [25.1, 0.500], [27.4, 0.475], [30.0, 0.450], [32.8, 0.425], [35.8, 0.400], [39.1, 0.375], [42.6, 0.350], [46.5, 0.325], [50.6, 0.300], [55.2, 0.275], [60.1, 0.250]]
     curve_2_opc43: [[18.7, 0.650], [20.3, 0.625], [22.0, 0.600], [23.8, 0.575], [25.8, 0.550], [27.9, 0.525], [30.2, 0.500], [32.6, 0.475], [35.3, 0.450], [38.2, 0.425], [41.3, 0.400], [44.7, 0.375], [48.3, 0.350], [52.2, 0.325], [56.4, 0.300], [60.9, 0.275], [65.7, 0.250]]

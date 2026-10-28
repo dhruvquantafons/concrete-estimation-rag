@@ -43,8 +43,10 @@ State PWD SORs, market rate feeds, historical project costs.
 
 ## Known limitations (by design, surfaced to users)
 
-* IS 10262 Fig. 1 (w/c vs strength curves) cannot be extracted from text; w/c is an input until the curves are digitized.
-* Curated code tables are `ai_checked` (compared with the page by AI vision) until a person signs them off.
+* IS 10262 Fig. 1 (w/c vs strength curves) cannot be extracted from text; its curves were digitized from the figure
+  image (51 points, ±0.3 N/mm²).
+* Curated code tables are typed in from the standards; all 13 were compared with the pages and signed off by a
+  person (2026-10-28). A table edited later shows as unsigned until signed again.
 * Cost heads come from DAR 2023 (Delhi). At other locations the cost index scales every head alike until local
   basic / market rates are supplied for re-pricing. Delhi PWD works on the CPWD DSR, so there is no separate
   Delhi State PWD SOR.

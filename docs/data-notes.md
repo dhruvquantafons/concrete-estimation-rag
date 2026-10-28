@@ -36,6 +36,12 @@ they disagree; fixes dated 2026-10-28 or later win over it.
 
 ## Fix history
 
+### 2026-10-28 (code-table sign-off)
+
+The last three AI-checked code tables were compared with the standards and signed off by a person: IS 456
+cl. 38.1 xu,max/d (PDF p.83), the IS 456 detailing limits (PDF pp.50–84) and IS 10262 Fig. 1 (stored points
+checked on `data/processed/fig1_overlay.png`). All 13 code tables are now **verified**.
+
 ### 2026-10-28 (audit)
 
 A full cross-check found no misread rate or unit:
@@ -49,8 +55,11 @@ A full cross-check found no misread rate or unit:
 - Basic rate 8994 (G.I. binding wire) is printed "per sqm" by CPWD itself; its analyses use kg. Kept as printed.
 - 13.67.1 was set to 236.10 (DAR and the corrected-edition scan) by admin.
 
-Still open: four rates a correction slip probably changed (9.147.A3.1, 26.42.1, 26.42.1 A, 6.44; see the README's
-next steps), and description misreads in the clean copy's OCR (60 × "zone-lll", 13 × "½" read as "%" or "7",
+Four rates a correction slip probably changed (9.147.A3.1 9873.05, 26.42.1 3580.65, 26.42.1 A 2821.65, 6.44 59.45):
+the HQ clean copy and the DAR analysis print the same rate for each; the corrected-edition scan prints 9933.40,
+3903.35, 2901.80 and 60.85. Owner's decision (2026-10-28): keep the HQ / DAR rates.
+
+Still open: description misreads in the clean copy's OCR (60 × "zone-lll", 13 × "½" read as "%" or "7",
 116 basic rates starting with "_—").
 
 ### 2026-10-28 (formula check)

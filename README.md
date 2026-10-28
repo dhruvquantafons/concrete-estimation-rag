@@ -374,17 +374,6 @@ Only you can do or decide these. Most important first.
 
 ### 1. Decide
 
-- [ ] **4 rates a CPWD correction slip probably changed** (none is a concrete item). The database uses the
-      original Aug 2023 printing. The corrected edition prints a higher rate, and the DAR analysis still uses
-      older basic rates:
-  - **9.147.A3.1**: now 9873.05, corrected edition 9933.40 (re-pricing with today's fastener rate gives exactly
-    9933.40)
-  - **26.42.1**: now 3580.65, corrected edition 3903.35
-  - **26.42.1 A**: now 2821.65, corrected edition 2901.80
-  - **6.44**: now 59.45, corrected edition 60.85
-
-  To use the corrected rate, change `rate:` on the item's line in `config/corrections/cpwd_dsr_2023.yaml`, then
-  run `crag ingest --doc CPWD_DSR_2023_V1 --doc CPWD_DSR_2023_V2` (about 20 seconds).
 - [ ] **Estimate defaults:** contingency (now 3 %), any overhead on top of DSR rates, default steel per m³ (or
       always require a BBS), and design mix (now the default) or nominal mix.
 - [ ] **Desktop app:** buy a code-signing certificate (about US$200–500 a year) or accept the "Windows protected
@@ -407,13 +396,8 @@ Only you can do or decide these. Most important first.
 - [ ] **Licensing before sharing the .exe:** it contains the IS PDFs and text taken from them. BIS licenses these
       per purchaser, so confirm everyone you give it to is entitled to them. Send the file by Google Drive or
       WeTransfer (it is too big for email).
-- [ ] **Sign off the last 3 code tables** on the Code tables screen:
-  - IS 456 cl. 38.1 (limiting xu,max/d)
-  - IS 456 detailing limits (check each line against the clause it lists)
-  - IS 10262 Fig. 1: open `data/processed/fig1_overlay.png`; each coloured ring should sit on its curve
-
-  Then commit `config/code_tables/` (the sign-offs are saved there), and refresh search with
-  `crag ingest --doc IS456_2000 --doc IS10262_2019` and `crag index`.
+- [ ] **Refresh search after the code-table sign-offs** (all 13 signed off 2026-10-28): stop `crag serve`, run
+      `crag ingest --doc IS456_2000 --doc IS10262_2019 && crag index`, then commit `config/code_tables/`.
 - [ ] **Wastage:** ask a site engineer or QS to look over `config/cost/wastage.yaml` and write their name in
       `approved_by`.
 - [ ] **Searched BOQ lines:** when an estimate shows a line marked *searched*, check the item in the DSR and add
