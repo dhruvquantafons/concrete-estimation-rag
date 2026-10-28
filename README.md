@@ -286,9 +286,6 @@ library (same versions as `.venv`), llama.cpp's `llama-server` (it answers *Ask*
 the app code, `config/`, `storage/` and `data/`. NSIS then packs it into one installer. The models it downloads
 are pinned and checked in `src/concrete_rag/desktop/resources.py`.
 
-To try the desktop flow on a Mac without building: `pip install pywebview`, put `llama-server` on your `PATH`,
-then run `CRAG_HOME=/tmp/bm python -m concrete_rag.desktop.launcher`.
-
 ---
 
 ## Project layout and tech stack
@@ -318,7 +315,7 @@ A full folder map is in [docs/technical.md](docs/technical.md).
 | Language | Python 3.12 |
 | API and web server | FastAPI + Uvicorn, API keys with scopes, rate limits, audit log |
 | Web app | Plain HTML, CSS and JavaScript (no framework), blue and white |
-| Database | SQLite (Postgres also works; see `docker-compose.yml`) |
+| Database | SQLite |
 | Reading PDFs | PyMuPDF for digital PDFs, Tesseract OCR for scans |
 | Search | bge-m3 meaning search + BM25 keyword search in Qdrant, bge-reranker-v2-m3 to re-order |
 | Answers | Local Qwen2.5-3B-Instruct through Ollama (llama.cpp in the desktop app) |
@@ -401,12 +398,6 @@ Only you can do or decide these. Most important first.
 - [ ] **Actual costs of finished projects:** copy `eval/datasets/actual_costs_template.csv` to `actual_costs.csv`,
       one row per BOQ item. This lets us measure estimate accuracy (`crag evaluate`) and learn steel figures
       (`crag learn calibrate`).
-- [ ] *Only if you need real current prices* (a bid, or items not in the DSR): a sheet with `basic_rate_code,
-      description, unit, rate, location, date, source`, using the DSR basic-rate codes (for example 0367 OPC-43
-      cement per tonne, 0982 coarse sand per m³, 0295 20 mm aggregate per m³, 1005 TMT Fe-500D per quintal,
-      0114 Beldar per day).
-- [ ] *Optional:* CPWD's DSR 2023 correction slips issued between Aug and 10.11.2023, or a clean copy of the
-      corrected edition. Put it in `data/` and tell me.
 
 ### 3. Check
 
@@ -427,10 +418,6 @@ Only you can do or decide these. Most important first.
       `approved_by`.
 - [ ] **Searched BOQ lines:** when an estimate shows a line marked *searched*, check the item in the DSR and add
       the right code to `config/cost/boq_mapping.yaml`.
-- [ ] *Optional:* the 170 flagged DAR analyses (`needs_review` in `data/processed/dar_analyses.csv`). Only 5 are
-      concrete items (5.1.3A, 5.9.15, 5.13A, 5.26, 5.27); most are the scanned sanitary pages.
-- [ ] *Optional:* spot-check a few equations in `config/equations/is456_2000.yaml` and a few DSR fixes in
-      `config/corrections/cpwd_dsr_2023.yaml` against your printed copies.
 - [ ] Click through the web app (hard-refresh with Cmd+Shift+R first) and tell me if anything looks wrong,
       including the footer contact details.
 - [ ] Re-run saved estimates that use items 11.1.2, 8.2.3.2, 8.3.2, 8.14.5.2 or basic rate 7773, and RCC designs
