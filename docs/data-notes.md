@@ -11,8 +11,9 @@ For the overview, see the [README](../README.md).
 | IS 10262 : 2019 (digital PDF) | 81 clauses, 94 annex clauses (worked examples A–F), 15 tables |
 | IS 1200 Parts 1, 2, 5, 8, 22 | 207 clauses (+ Part 8 Amendment 1) |
 | IS 2386 Parts 1–8 + 2 amendment slips | 447 clauses, 15 tables, 29 amendment entries |
-| CPWD DSR 2023 Volumes 1 and 2: clean copy of the Aug 2023 printing (used) + 96-dpi scan of the corrected edition (cross-check, English pages only) | 3,200 items, 2,478 basic rates (labour, materials, hire, carriage codes), 360 cement-consumption coefficients |
-| Search index | 6,927 chunks |
+| CPWD DSR 2023 Volumes 1 and 2: clean copy of the Aug 2023 printing (used) + 96-dpi scan of the corrected edition (cross-check, English pages only) | 3,200 items, 2,478 basic rates (labour, materials, hire, carriage codes), 421 cement-consumption coefficients |
+| CPWD DAR 2023 Volumes I and II (digital, except Vol II sub-head 17, which is OCR'd) | 2,993 rate analyses, 2,472 basic rates |
+| Search index | 10,204 chunks |
 
 The review queue is empty. `config/corrections/cpwd_dsr_2023.yaml` holds the checked fixes, re-applied every time
 the DSR is ingested. Fixes checked before 2026-10-28 were read off the scan and give way to the clean copy where
@@ -34,6 +35,63 @@ they disagree; fixes dated 2026-10-28 or later win over it.
   from OCR. `crag verify-tables` cross-checks them against the OCR text, and each one has a sign-off.
 
 ## Fix history
+
+### 2026-10-28 (audit)
+
+A full cross-check found no misread rate or unit:
+
+- All 2,967 DSR items that have a DAR analysis equal it. Basic rates and their units equal the DAR basic-rate
+  list for all 2,472 shared codes (0155, 0156 and 0166–0169 are only in the DSR).
+- The 73 hand-typed carriage items are consistent: every lead column scales the same way across rows, and each
+  5 km rate that has a basic carriage code equals that code's rate × 1.2127 (GST) × 1.15 (CPOH) × 1.01 (cess).
+- The 51 unit differences between DSR and DAR are only how the unit is stated ("per 10 joints" against "each",
+  "per 100 m" against "metre").
+- Basic rate 8994 (G.I. binding wire) is printed "per sqm" by CPWD itself; its analyses use kg. Kept as printed.
+- 13.67.1 was set to 236.10 (DAR and the corrected-edition scan) by admin.
+
+Still open: four rates a correction slip probably changed (9.147.A3.1, 26.42.1, 26.42.1 A, 6.44; see the README's
+next steps), and description misreads in the clean copy's OCR (60 × "zone-lll", 13 × "½" read as "%" or "7",
+116 basic rates starting with "_—").
+
+### 2026-10-28 (formula check)
+
+Every formula and code value was checked against IS 10262, IS 456, IS 1200, IS 2386 and CPWD DAR. Fixed:
+wet-aggregate field adjustment now as IS 10262 Annex B (SSD × (1 + free moisture)); compression-steel stress in
+doubly reinforced beams from IS 456 Fig. 23A (was elastic-plastic, slightly unsafe); continuous one-way slabs use
+Table 12 / 13 (support next to end support, 0.6 wL shear; was wL²/10, 0.5 wL); the DSR "extra above floor V" item
+counts each storey above floor V once per four floors (was all above-plinth concrete × ceil(n/4)); counted units
+convert (25 each = 2.5 × 10 Nos).
+
+### 2026-10-27 / 28 (DSR clean copy and DAR review)
+
+**The DSR is now read from the clean copy.** `data/CPWD SOR HQ` is a clean copy of the *original* DSR 2023
+printing (Aug 2023); `data/CPWD SOR` is a 96-dpi scan of the corrected edition. By the owner's decision,
+**whatever the clean copy prints is used** (code, description, unit, rate), for items and basic rates; the scan's
+Hindi pages are no longer read. Compared on every ingest; per-row list in `data/processed/dsr_scan_vs_clean.csv`.
+
+- **Items (3,200):** 2,905 agree with the scan; 278 only the clean copy has (the scan's OCR missed them or
+  misread their codes); 17 differ because the scan misread them. 315 scan codes were misread and renamed
+  (for example "13.10.0.1" is 13.100.1); 31 duplicate scan rows were dropped.
+- **Basic rates (2,478):** 2,334 agree with the scan, 92 the scan missed, 52 the scan misread (DAR confirms the
+  clean copy every time). Carriage codes 2200–2399 are 0.00, as the clean copy and DAR print them; their 5 km
+  carriage rate is in the description.
+- **Carriage (sub-head 1):** the rotated lead tables are typed in from the clean copy in
+  `config/sor/cpwd_dsr_2023_carriage.yaml` (73 items; rate = first lead column, all leads in the description).
+- Reader fixes found by the comparison: codes printed "4.9 A" / "26.42.1 A" / "2.25(a)" / 5th level
+  (9.27.2.1.1), rates at the end of a "Note:-" inside an item (24.2, 25.2, 26.52), units printed on several
+  lines ("per cm depth per cm width per metre length").
+- Corrections checked before 2026-10-28 were read off the scan: where they disagree with the clean copy, the clean
+  copy wins (listed in `data/processed/ingest_report.json`). Corrections dated 2026-10-28 or later win.
+
+**DAR against DSR.** The 27 differences other than 13.67.1 were DAR reading errors, now fixed: an analysis with
+no "Say" line is the cost rounded to 0.05, as the DSR prints it (9.123: 696.02 → 696.00); codes printed
+"9.147.A1.2", "2.25(a)", "4.9 A", "17.75,", "Sub A/R - 2"; a heading wrapped onto a line starting "7.5"; OCR marks
+after scanned numbers ("81.70]"). DAR 9.134.1.2.2 prints Say 3764.55 against its own cost 3964.53 (a DAR misprint,
+recorded in `config/corrections/cpwd_dar_2023.yaml`). 10.3 / 10.4 match again and are re-attached.
+
+Backups: `storage/docstore.backup-2026-10-28-before-dar-review.db`, `storage/docstore.backup-2026-10-28.db`,
+`storage/docstore.backup-2026-10-28-before-clean-priority.db`,
+`storage/docstore.backup-2026-10-27-before-clean-copy.db`.
 
 ### 2026-10-22
 
@@ -163,11 +221,11 @@ Items without their heading text went from 314 to 209.
 
 ## Known issues
 
-- **DSR rows that are still missing** (OCR merged or dropped them, so they are not in the database and never
-  reach the review queue): 1.2.4–1.2.15, 1.2.16.3/.4, 3.1, 3.11, 4.9A (₹900.15), 5.4 (₹8821.65), 6.11 (₹608.15
-  sqm), 8.21, 9.147.F1.1 (₹12496.05), 11.41A.2.1, 11.41A.2.3, 11.54.1, 15.15.1 (₹589.55 cum per metre span),
-  15.16.1, 17.59.1, 18.95A.10, 19.2.2, 19.10.2, 19.15.1, 19.17.1, 19.22.1, 21.16.3, 24.4, and basic rates 2226
-  (₹824.64) and 2228 (₹1413.67). The notes on the neighbouring rows in the corrections file give the printed rates.
+- **DSR rows once missing are now in** (read from the clean copy since 2026-10-28). Of the old list only 3.1 has
+  no DSR item; DAR has an analysis for it.
+- **12 DAR analyses are not read** (4.3.2, 5.9.2, 5.9.5, 5.9.11, 11.46A, 12.13.1, 12.50, 12.51.2, 12.51.6, 12.66.2,
+  12.66.6, 14.23): they start with "Details for …" or "Consider …" instead of "Details of cost for …". About 140
+  other DSR items (outside the carriage sub-head) have no analysis in DAR at all.
 - **209 sub-items lack their heading text,** so search only sees their short tail (for example "1:6 (1 cement :
   6 coarse sand)"). Rates are correct. To fix one, add a `description` to its correction.
 - **Item codes on unflagged rows** have not been checked systematically. `18.5.0.1` (p.142, probably 18.50.1) is
