@@ -34,7 +34,9 @@ NUM = re.compile(r"^-?\d[\d,]*(?:\.\d{1,4})?$")
 STEP = re.compile(r"^(TOTAL|Total|Add|Deduct|Less|Cost|Say)\b")
 # a step whose amount may sit on the next row; other amount-less "Add wastage 5% = 0.4 sqm" rows are workings
 COST_STEP = re.compile(r"^(TOTAL|Total)\s*[A-Z]?$|^Say$|^Cost\b.*\b(of|per|for)\b|^Add\b.*\bon\s*[“\"']")
-DETAILS = re.compile(r"^Details?\s+of\s+cost\s+for\s+(.*)$", re.I)
+# "Details of cost for 1.00 cum"; 12 analyses start differently: "Details for 7.5 m long ... wall" (4.3.2, 5.9.2),
+# "Consider 10 beam of 6 m clear span ..." (5.9.5), "Detail(s) of cost of 10 metre" (12.50, 12.51.6, 12.66.6)
+DETAILS = re.compile(r"^(?:Details?\s+of\s+cost\s+(?:for|of)|Details\s+for|Consider)\s+(.*)$", re.I)
 WORD_NUM = {"one": 1, "ten": 10, "hundred": 100}
 BASIC_CATS = (("hire", "hire_charges"), ("labour", "labour"), ("material", "materials"))
 # observed column positions (points, 581 pt wide pages) - used when a page's header row was not read
@@ -438,6 +440,8 @@ class _State:
                 self.finish(page)
             return
         dm = DETAILS.match(text)
+        if dm and c.amount is not None and self.cur["steps"]:   # after the build-up it is the cost total (11.46A:
+            text = f"Cost of {dm.group(1)}"                      # "Details of cost for 133.33 metre 28826.55")
         if dm and not c.has_numbers and self.cur["lines"] and self.last_heading == self.cur["code"] \
                 and not (self.pending and self.is_heading_code(self.pending["code"])):
             self.loose.append(text)                      # a working inside the analysis (16.15.1: "Details of cost
@@ -529,7 +533,7 @@ def parse_analyses(doc: SourceDoc, pages: list[PageText]) -> list[DarAnalysis]:
             cols = {k: h[1][k] for k in DEFAULT_COLS}
         # rows above the table header matter too: an item heading often starts a page
         for r in _join_sub_ar(rows, cols):
-            if r.y > p.height * 0.925 or r.y < 35:           # an item heading can start at y 39.5 (26.46)
+            if r.y > p.height * 0.935 or r.y < 35:           # heading can start at y 39.5 (26.46); Say at 716.5 of 774 (18.41.2)
                 continue
             t = r.text
             if (t.startswith("Code") and "Description" in t) or ("Quantity" in t and "Amount" in t) \

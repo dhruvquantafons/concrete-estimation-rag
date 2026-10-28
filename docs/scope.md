@@ -9,7 +9,7 @@
 | IS 1200 Method of measurement, Parts 1, 2, 5, 8, 22 | 2026 / 2025 / 2025 / 1993 (reaff. 2022, Amd 1) / 2025 | digital (+ a few OCR pages) | quantity take-off |
 | IS 2386 Methods of test for aggregates, Parts 1–8 | 1963 + amendment slips (P3 Amd 1 2018, P7 Amd 3 2015, bound slips) | legacy scan, re-OCR'd | material testing |
 | CPWD Delhi Schedule of Rates (Civil) Vol 1 & 2 | 2023 (w.e.f. 16.10.2023, corrections to 10.11.2023) | 96-dpi bilingual scan | item rates, basic rates, cement coefficients |
-| CPWD Delhi Analysis of Rates (Civil) Vol I & II | 2023 (14.09.2023, all correction slips) | digital; Vol II sub-head 17 image-only (OCR'd) | 2,989 item analyses (material / labour / hire rows, build-up), 2,472 basic rates; cross-check of DSR rates |
+| CPWD Delhi Analysis of Rates (Civil) Vol I & II | 2023 (14.09.2023, all correction slips) | digital; Vol II sub-head 17 image-only (OCR'd) | 3,070 item analyses (material / labour / hire rows, build-up), 2,472 basic rates; cross-check of DSR rates |
 
 **Not yet in the corpus but referenced by the system:** IS 383 (aggregates), IS 1786 (bars), IS 269 (OPC),
 SP 16 / SP 34 (design aids / detailing), IS 875 (loads),

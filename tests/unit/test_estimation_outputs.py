@@ -78,3 +78,17 @@ def test_estimate_lines_mapped_with_confidence(monkeypatch):
     assert all(l["matched_by"] == "mapping" for l in e["boq"])
     assert e["confidence"]["score"] > 0.8
     assert e["sor_edition"].startswith("CPWD-DSR 2023 (w.e.f. 16.10.2023")
+
+
+def test_design_mix_grades_without_dsr_item():
+    from concrete_rag.calc.quantities import Element
+    from concrete_rag.estimate.boq import _concrete_item
+    el = lambda g, lvl="above_plinth": Element(id="B1", type="beam", length_m=4, width_m=0.23, depth_m=0.45,  # noqa: E731
+                                               grade=g, level=lvl)
+    assert _concrete_item(el("M25"), "design_mix", None)[0] == "5.33.2.1"
+    assert _concrete_item(el("M20"), "design_mix", None)[0] == "5.3"                  # nominal 1:1.5:3, not 5.33A
+    assert _concrete_item(el("M 20", "below_plinth"), "design_mix", None)[0] == "5.1.2"
+    with pytest.raises(ValueError, match="at least M20"):
+        _concrete_item(el("M15"), "design_mix", None)
+    with pytest.raises(ValueError, match="M25 to M50 only"):
+        _concrete_item(el("M60"), "design_mix", None)

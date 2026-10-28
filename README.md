@@ -334,8 +334,8 @@ Nothing is sent to an outside service: documents, questions and answers stay on 
 **Data**
 
 - In the database: IS 456, IS 10262, IS 1200 (Parts 1, 2, 5, 8, 22), IS 2386, the DSR 2023 (3,200 items and
-  2,478 basic rates) and the DAR 2023 (2,993 analyses). The search index has 10,204 chunks.
-- **Every DSR rate that has a DAR analysis (2,967 items) equals it.** Basic rates and their units equal the DAR
+  2,478 basic rates) and the DAR 2023 (3,070 analyses). The search index has 10,281 chunks.
+- **Every DSR rate that has a DAR analysis (3,045 items) equals it.** Basic rates and their units equal the DAR
   basic-rate list. The 73 carriage items, typed in by hand, were checked against the basic carriage rates.
 - The DSR and basic-rate review queues are empty.
 - The history of how the data was read and fixed is in [docs/data-notes.md](docs/data-notes.md).
@@ -344,16 +344,11 @@ Nothing is sent to an outside service: documents, questions and answers stay on 
 
 - Search: the right source is in the top 8 results for 49 of 50 test questions.
 - Calculators reproduce the IS 10262 worked examples exactly. IS 456 values were checked against the scans.
-- Tests: 72 pass.
+- Tests: 74 pass.
 - Not measured yet: how close estimates are to real costs (needs data from finished projects).
 
 **Known gaps (for developers)**
 
-- **12 DAR analyses are not read**, including wall and beam formwork (5.9.2, 5.9.5). The parser only starts an
-  analysis at a "Details of cost for …" line; these start with "Details for …" or "Consider …". So BOQ lines for
-  these items show no cost-head split. A wider start pattern recovers all 12, each equal to its DSR rate.
-- **M20 design mix** has no DSR item, and the search picks 5.33A.2.1 (M25 with recycled aggregate). It is flagged
-  for checking, but an explicit rule in `boq_mapping.yaml` would be better.
 - **Mix design is not linked to the BOQ.** When a mix needs more cement than the DSR item's minimum, the DSR pays
   the extra under item 5.35; the estimate does not add it yet.
 - **The API outputs are not formal schemas.** `/v1/concrete-mix` and `/v1/estimate` return plain JSON without a
@@ -387,6 +382,8 @@ Only you can do or decide these. Most important first.
 
 ### 3. Check
 
+- [ ] **Restart after the DAR / M20 fix (2026-10-28):** stop `crag serve`, run `crag index` (the DAR is already
+      re-ingested), start `crag serve` again, then commit.
 - [ ] **Wastage:** ask a site engineer or QS to look over `config/cost/wastage.yaml` and write their name in
       `approved_by`.
 - [ ] **Searched BOQ lines:** when an estimate shows a line marked *searched*, check the item in the DSR and add

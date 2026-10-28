@@ -80,6 +80,10 @@ class EstimateRequest(BaseModel):
 LEVEL_TEXT = {"below_plinth": "all work up to plinth level", "above_plinth": "above plinth level up to floor V level"}
 
 
+def _grade(e: Element) -> str:
+    return e.grade.replace(" ", "").upper()
+
+
 def _concrete_item(e: Element, mix_type: str, pcc_mix: str | None) -> tuple[str | None, str, str]:
     """(mapped DSR code or None, retrieval query for unmapped work, preferred sub-head)."""
     m = _cfg("boq_mapping")["concrete"]
@@ -88,10 +92,19 @@ def _concrete_item(e: Element, mix_type: str, pcc_mix: str | None) -> tuple[str 
         return m["pcc"].get(mix), f"Providing and laying in position cement concrete of specified grade {mix} " \
                                   f"excluding the cost of centering and shuttering {LEVEL_TEXT['below_plinth']}", "4"
     lvl = e.level
+    g = _grade(e)
+    if mix_type == "design_mix" and g not in m["design_mix"][lvl]:
+        # DSR design-mix RCC (5.33) runs M25-M50; search would only find a wrong item (e.g. the RCA variant 5.33A)
+        if g != "M20":
+            n = int(g[1:]) if g[1:].isdigit() else None
+            why = "IS 456 Table 5 needs at least M20 for RCC" if n and n < 20 else \
+                "price it with a rate analysis (/v1/rate-analysis) or the nearest item plus 5.35 (extra cement)"
+            raise ValueError(f"{e.id}: CPWD DSR has design-mix RCC items for M25 to M50 only (item 5.33), "
+                             f"none for {e.grade}; {why}.")
+        mix_type = "nominal_mix"            # M20 is nominal mix 1:1.5:3 (IS 456 Table 9), DSR 5.1.2 / 5.2.2 / 5.3
     if mix_type == "design_mix":
-        g = e.grade.replace(" ", "").upper()
-        return m["design_mix"][lvl].get(g), f"Providing and laying in position design mix cement concrete of grade " \
-                                            f"{g} for reinforced cement concrete work {LEVEL_TEXT[lvl]}", "5"
+        return m["design_mix"][lvl][g], f"Providing and laying in position design mix cement concrete of grade " \
+                                        f"{g} for reinforced cement concrete work {LEVEL_TEXT[lvl]}", "5"
     nm = m["nominal_mix"][lvl]
     code = nm.get(e.type, nm["default"]) if isinstance(nm, dict) else nm
     return code, f"Providing and laying in position specified grade of reinforced cement concrete 1:1.5:3 " \
@@ -118,6 +131,10 @@ def build_estimate(req: EstimateRequest) -> dict:
 
     assumptions, steel_src = fill_steel_defaults(req.elements)
     qt = takeoff(req.elements)
+    m20 = [e.id for e in req.elements if req.mix_type == "design_mix" and e.type != "pcc_bed" and _grade(e) == "M20"]
+    if m20:
+        warnings.append(f"{', '.join(m20)}: M20 priced as nominal mix 1:1.5:3 (IS 456 Table 9; DSR 5.1.2 / 5.2.2 / "
+                        "5.3) because the DSR's design-mix items (5.33) start at M25. Use M25 for a design-mix rate.")
 
     # --- aggregate quantities per SOR item, in the item's own unit
     agg: dict[str, dict] = {}

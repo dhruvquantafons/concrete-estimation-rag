@@ -36,6 +36,20 @@ they disagree; fixes dated 2026-10-28 or later win over it.
 
 ## Fix history
 
+### 2026-10-28 (DAR analyses, M20 design mix)
+
+**78 more DAR analyses read (2,993 → 3,070), each equal to its DSR rate.** The parser started an analysis only at
+"Details of cost for …". It now also starts at "Details for …" (4.3.2, 5.9.2, 5.9.11, sheds 12.13.1 / 12.51.2 /
+12.66.2), "Consider …" (5.9.5 beam formwork) and "Detail(s) of cost of …" (12.50, 12.51.6, 12.66.6, 18.41.x and
+others). A "Details of cost for 133.33 metre <amount>" row after the build-up is the cost total, not a line (11.46A).
+Rows lower than 92.5 % of the page height were dropped as footer; a few "Say" rows and last lines sit there (18.41.2
+at y 716.5 of 774), so the cut-off is now 93.5 %. That cleared 22 review flags with no rate changed, and 16.8 is now
+read under its DSR code 16.8.1. DSR rates confirmed by their DAR analysis: 2,967 → 3,045; differences still 0.
+
+**M20 design mix.** The DSR's design-mix RCC items (5.33) run M25 to M50. Hybrid search picked 5.33A.2.1 (M25 with
+recycled aggregate) for M20. M20 is now priced as nominal mix 1:1.5:3 (IS 456 Table 9; DSR 5.1.2 / 5.2.2 / 5.3) with
+a warning. Grades with no DSR item (below M20, above M50) stop the estimate with a message saying what to do.
+
 ### 2026-10-28 (code-table sign-off)
 
 The last three AI-checked code tables were compared with the standards and signed off by a person: IS 456
@@ -232,9 +246,8 @@ Items without their heading text went from 314 to 209.
 
 - **DSR rows once missing are now in** (read from the clean copy since 2026-10-28). Of the old list only 3.1 has
   no DSR item; DAR has an analysis for it.
-- **12 DAR analyses are not read** (4.3.2, 5.9.2, 5.9.5, 5.9.11, 11.46A, 12.13.1, 12.50, 12.51.2, 12.51.6, 12.66.2,
-  12.66.6, 14.23): they start with "Details for …" or "Consider …" instead of "Details of cost for …". About 140
-  other DSR items (outside the carriage sub-head) have no analysis in DAR at all.
+- **78 DSR items** (outside the carriage sub-head) have no analysis in DAR, so their BOQ lines show no cost-head
+  split.
 - **209 sub-items lack their heading text,** so search only sees their short tail (for example "1:6 (1 cement :
   6 coarse sand)"). Rates are correct. To fix one, add a `description` to its correction.
 - **Item codes on unflagged rows** have not been checked systematically. `18.5.0.1` (p.142, probably 18.50.1) is
