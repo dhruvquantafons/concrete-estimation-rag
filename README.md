@@ -269,6 +269,53 @@ The search index can be used by **one program at a time.** Stop `crag serve` bef
 
 ---
 
+## Windows desktop app (.exe)
+
+A one-click Windows app for people who will never open a terminal. It contains the same web app, already
+signed in (no API key), in its own window.
+
+**What the user sees:**
+1. They run `BuildMoreAI-Setup.exe`. No admin rights are needed.
+2. The first time the app opens, a **"Downloading Resources"** screen downloads about 6.5 GB once, with a progress
+   bar, speed and time left. If the connection drops, **Try again** resumes from where it stopped.
+3. Then the normal BuildMore AI home page opens. Every later start goes straight to it and works offline.
+
+**What it downloads** (pinned versions, checked with SHA-256; set in `src/concrete_rag/desktop/resources.py`):
+- the answer model `hf.co/bartowski/Qwen2.5-3B-Instruct-GGUF:Q4_K_M`, the same file Ollama uses today (1.9 GB)
+- the search models `BAAI/bge-m3` and `BAAI/bge-reranker-v2-m3` (4.5 GB)
+
+The download screen never names them. Ask is answered by llama.cpp's `llama-server`, which ships inside the app
+and runs hidden. Ollama is not needed.
+
+**Where things live on the user's PC:**
+- **The app:** `%LOCALAPPDATA%\Programs\BuildMoreAI`
+- **Data and downloads:** `%LOCALAPPDATA%\BuildMoreAI`
+  - `resources\`: the downloads
+  - `storage\`, `config\` and `data\`: the same folders as in this repo
+  - `logs\`: log files
+- Uninstalling keeps the data folder, so a reinstall doesn't download again. Delete the folder to reset fully.
+
+**Building it, on this Mac (no Windows PC needed).** It needs `data/` and `storage/` with a finished `crag index`:
+
+```bash
+brew install uv makensis                  # once
+packaging/windows/build_on_mac.sh         # -> build/win/BuildMoreAI-Setup.exe
+```
+
+The script assembles a Windows app instead of compiling one. It takes:
+- Python's official Windows embeddable package
+- the Windows versions of every library, pinned to the exact versions in `.venv` (the tested set)
+- llama.cpp's Windows CPU `llama-server` (pinned `b11534`) and the VC++ runtime DLLs
+- the app code, plus `config/`, `storage/` (without backups and `models/`) and `data/` (without `interim/`)
+
+NSIS then packs it into an installer, which also installs WebView2 if the PC lacks it. The installed app runs
+`python\pythonw.exe -m concrete_rag.desktop.launcher` through its shortcuts.
+
+On a Mac you can try the same flow without building: `pip install pywebview`, put `llama-server` on your `PATH`,
+then run `CRAG_HOME=/tmp/bm python -m concrete_rag.desktop.launcher`.
+
+---
+
 ## Tech stack
 
 Everything runs on your own computer. No document, question or answer is sent to an outside service.
@@ -366,9 +413,33 @@ More detail: [docs/data-notes.md](docs/data-notes.md) (what was read, fixed and 
 
 In order of priority. Only you can do or decide these.
 
+### 0. Windows desktop app (.exe), added 2026-10-28
+- [ ] **Licensing first.** The installer contains the IS PDFs (for the scanned-page view) and text extracted from
+      them. BIS licenses these per purchaser (see step 5). Confirm that everyone you give the .exe to is entitled
+      to them before sharing it outside the company.
+- [ ] **Send `build/win/BuildMoreAI-Setup.exe`** with a Google Drive or WeTransfer link (it is too big for email).
+      Rebuild it after data changes with `packaging/windows/build_on_mac.sh`
+      (see [Windows desktop app](#windows-desktop-app-exe)).
+- [ ] **Tell the user:** they need about 10 GB of free disk space and a good internet connection for the first
+      start. On the "Windows protected your PC" warning, they click *More info, then Run anyway*.
+- [ ] **Test on a Windows 10/11 PC** (it was built on a Mac and has not yet run on Windows):
+  - [ ] Install. The first run shows "Downloading Resources", then the home page.
+  - [ ] Try Search, Ask, a calculator, and an Excel/PDF export.
+  - [ ] Close and reopen: it should open straight to the home page.
+  - [ ] Turn Wi-Fi off and open it again: it should still work.
+- [ ] **Speed check:** Ask runs on the CPU. On a typical office laptop, expect roughly 20-60 seconds per answer (it took 10 s on this Mac, which has a GPU).
+      If that is too slow, tell me and I can add a GPU build.
+- [ ] **Decide on code signing.** Without a code-signing certificate, Windows shows "Windows protected your PC";
+      users must click *More info, then Run anyway*. A certificate costs roughly US$200-500 a year.
+- [ ] **No sign-in for now:** whoever uses the PC is admin (Review queue, Learning). Tell me if you want sign-in
+      back in the desktop app.
+
 ### 1. Right now
 - [ ] **Start `crag serve`** in your own terminal (the server run from the Claude session was stopped on
       2026-10-27), then hard-refresh `/ui`.
+- [ ] **Check the BuildMore AI rebrand** (2026-10-28) after the hard-refresh: header, sign-in screen and footer
+      (BluMargins Technologies credit and contact details). If the company wants a phone number or a different
+      address in the footer, send it to me.
 - [ ] **Wastage (optional):** cement 2 % and steel 5 % come from CPWD; sand, aggregate, admixture and binding wire
       are site practice (table under [Wastage](#wastage-where-each-value-comes-from)). When convenient, ask a site
       engineer / QS to look over `config/cost/wastage.yaml` and write their name in `approved_by`.

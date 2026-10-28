@@ -239,14 +239,24 @@ class SlabInput(BaseModel):
 
 
 def design_slab_one_way(inp: SlabInput) -> CalcResult:
+    basic = ct.tables()["detailing_limits"]["span_depth_basic"][inp.support]
+    if inp.D_mm is None:
+        # trial depth from basic span/d with a modification factor of 1.4, then deepened in 5 mm steps until the
+        # span/depth check (cl. 23.2.1, with the actual Fig. 4 factor) passes
+        d_trial = inp.span_m * 1000 / (basic * 1.4)
+        D0 = D = math.ceil((d_trial + inp.clear_cover_mm + inp.bar_dia_mm / 2) / 5) * 5
+        for _ in range(60):
+            res = design_slab_one_way(inp.model_copy(update={"D_mm": D}))
+            if all(c.passed for c in res.checks if c.name.startswith("span/d")):
+                break
+            D += 5
+        res.inputs["D_mm"] = None
+        res.warnings.append(f"D not given: D = {D} mm, the least depth (from a trial {D0} mm = span/(basic x 1.4), "
+                            "in 5 mm steps) that passes the span/depth check")
+        return res
     res = CalcResult(calculator="rcc_one_way_slab_is456", inputs=inp.model_dump())
     fck, fy = ct.grade_num(inp.grade), inp.fy
-    basic = ct.tables()["detailing_limits"]["span_depth_basic"][inp.support]
     D = inp.D_mm
-    if D is None:   # trial depth from basic span/d with an assumed modification factor of 1.4 (HYSD, low pt)
-        d_trial = inp.span_m * 1000 / (basic * 1.4)
-        D = math.ceil((d_trial + inp.clear_cover_mm + inp.bar_dia_mm / 2) / 5) * 5
-        res.warnings.append(f"D not given: trial D = {D} mm from span/(basic x 1.4); verify deflection with Fig. 4")
     d = res.step("effective depth d", D - inp.clear_cover_mm - inp.bar_dia_mm / 2, "mm")
     w_dead = 1.5 * (inp.concrete_unit_weight_kN_m3 * D / 1000 + inp.floor_finish_kN_m2)
     w_live = 1.5 * inp.live_load_kN_m2

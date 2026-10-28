@@ -149,3 +149,9 @@ def test_continuous_slab_uses_table_12_and_13():
 def test_count_units_convert():
     from concrete_rag.normalize.units import convert_quantity
     assert convert_quantity(25, "each", "10_nos") == 2.5 and convert_quantity(3, "1000_nos", "each") == 3000
+
+
+def test_slab_without_depth_is_deepened_until_deflection_passes():
+    from concrete_rag.calc.rcc import SlabInput, design_slab_one_way
+    r = design_slab_one_way(SlabInput(span_m=3.5))
+    assert r.ok and r.outputs["D_mm"] == 160        # trial 150 mm fails span/d with the actual Fig. 4 factor

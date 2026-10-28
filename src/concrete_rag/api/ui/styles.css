@@ -48,6 +48,8 @@ svg.i { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-widt
 .brand:hover { text-decoration: none; }
 .brand .logo { width: 30px; height: 30px; display: inline-flex; }
 .brand b { color: var(--accent); font-weight: 700; }
+.brand-txt { display: flex; flex-direction: column; line-height: 1.1; }
+.brand-txt small { font-size: 10.5px; font-weight: 500; color: var(--muted); letter-spacing: .02em; margin-top: 2px; }
 .hsearch { flex: 1; display: flex; align-items: stretch; border: 1px solid var(--border); border-radius: 12px; background: var(--panel-2); height: 40px; padding: 3px; min-width: 0; max-width: 560px;
   transition: border-color .15s, box-shadow .15s, background .15s; }
 .hsearch:focus-within { border-color: var(--accent); background: var(--panel); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 14%, transparent); }

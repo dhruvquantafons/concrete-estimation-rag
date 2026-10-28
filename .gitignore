@@ -228,3 +228,4 @@ data/**
 storage/
 outputs/
 eval/reports/
+# Windows desktop build output: build/win/ (already covered by build/)

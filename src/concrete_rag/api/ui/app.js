@@ -1,4 +1,4 @@
-/* Concrete Estimator UI - plain JS, no build step. Talks to the same-origin REST API with an API key. */
+/* BuildMore AI UI - plain JS, no build step. Talks to the same-origin REST API with an API key. */
 "use strict";
 
 // ------------------------------------------------------------------ state & helpers
@@ -300,6 +300,8 @@ function icon(name, cls = "i") {
   s.innerHTML = ICONS[name] || ""; return s;
 }
 const LOGO = () => { const d = h("span", { class: "logo" }); d.innerHTML = '<svg viewBox="0 0 32 32" width="30" height="30"><rect width="32" height="32" rx="8" fill="var(--accent)"/><path d="M8 23V12l8-4 8 4v11M12 23v-6h8v6" stroke="white" stroke-width="2.4" fill="none" stroke-linejoin="round"/></svg>'; return d; };
+const BRAND_TXT = () => h("span", { class: "brand-txt" }, h("span", {}, "BuildMore", h("b", {}, " AI")), h("small", {}, "Concrete and Costs"));
+const BLUMARGINS = "https://www.blumargins.com/";
 
 // ------------------------------------------------------------------ pages & chrome
 const PAGES = [
@@ -333,15 +335,15 @@ function renderChrome() {
     can("admin") ? h("a", { href: "#/learning" }, icon("layers"), "Learning (feedback)") : null,
     h("a", { href: "#/tables" }, icon("shield"), "Verification (code tables)"),
     h("a", { href: "/docs", target: "_blank" }, icon("code"), "API documentation"),
-    h("hr"),
-    h("button", { onclick: logout }, icon("out"), "Sign out"));
+    S.me.desktop ? null : h("hr"),
+    S.me.desktop ? null : h("button", { onclick: logout }, icon("out"), "Sign out"));
   const acct = h("div", { style: { position: "relative" } },
     h("button", { class: "hact", "aria-label": "Account", onclick: (e) => { e.stopPropagation(); menu.classList.toggle("open"); } }, avatar(),
       h("span", { class: "two" }, h("small", {}, "Signed in"), h("b", {}, S.me.name, icon("chev")))), menu);
   document.onclick = () => menu.classList.remove("open");
   const rc = reviewCount();
   $("#site-header").replaceChildren(h("div", { class: "wrap" },
-    h("a", { class: "brand", href: "#/" }, LOGO(), h("span", {}, "Concrete", h("b", {}, "Estimator"))),
+    h("a", { class: "brand", href: "#/" }, LOGO(), BRAND_TXT()),
     h("form", { class: "hsearch", onsubmit: go }, scope, q, h("button", { type: "submit", "aria-label": "Search" }, icon("search"))),
     h("div", { class: "hacts" },
       h("label", { class: "hloc", title: "CPWD DSR 2023 rates are priced for this location" }, icon("pin"), h("span", { class: "lbl" }, "Rates for"), locSel),
@@ -360,10 +362,11 @@ function renderChrome() {
   const col = (title, links) => h("div", {}, h("h4", {}, title), h("ul", {}, links.map(([t, href]) => h("li", {}, h("a", { href, target: href.startsWith("/") ? "_blank" : null }, t)))));
   $("#site-footer").replaceChildren(
     h("div", { class: "wrap top" },
-      h("div", {}, h("a", { class: "brand", href: "#/" }, LOGO(), h("span", {}, "Concrete", h("b", {}, "Estimator"))),
+      h("div", {}, h("a", { class: "brand", href: "#/" }, LOGO(), BRAND_TXT()),
         h("p", { class: "blurb" }, "Code-compliant mix design, RCC design and cost estimates for concrete works — every number cited to IS codes and the CPWD Delhi Schedule of Rates."),
-        h("div", { class: "boxed" }, h("b", {}, "LLM: ", S.overview ? S.overview.llm_provider : "—"), h("br"),
-          S.overview && S.overview.llm_provider === "fake" ? "Running offline. Answers are extractive until an LLM is configured in .env." : "Answers are generated with citations and number checks.")),
+        h("div", { class: "boxed" }, h("b", {}, h("a", { href: BLUMARGINS, target: "_blank", rel: "noopener" }, "BluMargins Technologies")), h("br"),
+          "AI & End-to-End IT Services", h("br"), "Red Cross Road, Srinagar, Kashmir - 190001, India", h("br"),
+          h("a", { href: "mailto:info@blumargins.com" }, "info@blumargins.com"))),
       col("Tools", [["Search codes", "#/search"], ["Mix design", "#/mix"], ["RCC design (aid)", "#/design"], ["Estimate / BOQ", "#/estimate"]]),
       col("Standards", [["IS 456 : 2000", "#/search?code=IS%20456&q=scope"], ["IS 10262 : 2019", "#/search?code=IS%2010262&q=mix%20proportioning"], ["IS 1200 (Parts 1–22)", "#/search?code=IS%201200&q=method%20of%20measurement"], ["IS 2386 (Parts 1–8)", "#/search?code=IS%202386&q=methods%20of%20test"], ["CPWD DSR 2023", "#/rates"]]),
       col("Data quality", [["Review queue", "#/review"], ["Code tables", "#/tables"], ["DSR rates", "#/rates"]]),
@@ -374,7 +377,7 @@ function renderChrome() {
       h("div", {}, h("b", {}, icon("lock"), "Runs on your machine"), "Documents, indexes and models stay local. Licensed standards are never published."))),
     h("div", { class: "bottom" }, h("div", { class: "wrap" }, h("span", {}, "Corpus"),
       ["IS 456", "IS 10262", "IS 1200", "IS 2386", "CPWD DSR 2023"].map((c) => h("span", { class: "chip-n" }, c)),
-      h("span", { class: "copy" }, `Signed in as ${S.me.name}`))));
+      h("span", { class: "copy" }, "Developed and designed by ", h("a", { href: BLUMARGINS, target: "_blank", rel: "noopener" }, "BluMargins Technologies"), ` · Signed in as ${S.me.name}`))));
 }
 
 async function route() {
@@ -537,7 +540,7 @@ async function pageSearch(main) {
   };
   q.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
   fill(main, 
-    pageHead("Standards & DSR", "Search & Ask", "Hybrid search (keyword + semantic + reranking) over IS 456, IS 10262, IS 1200, IS 2386 and CPWD DSR 2023. Every result links to the original scanned page."),
+    pageHead("Standards & DSR", "Search & Ask", "Hybrid search (keyword + semantic + reranking) over IS 456, IS 10262, IS 1200, IS 2386, CPWD DSR 2023 and CPWD DAR 2023. Every result links to the original page."),
     h("div", { class: "card" }, h("div", { class: "row" }, h("div", { class: "seg" }, segBtns), h("div", { style: { flex: "1 1 320px" } }, q),
       h("div", { style: { width: "150px" } }, code), h("div", { style: { width: "120px" } }, k), h("button", { class: "primary", onclick: go }, "Go"))),
     h("div", { style: { marginTop: "16px" } }, out));
@@ -612,7 +615,6 @@ function renderAnswer(r) {
   return h("div", { class: "stack" },
     h("div", { class: "card" },
       h("div", { class: "row", style: { marginBottom: "10px" } }, h("h2", { style: { margin: 0 } }, "Answer"),
-        h("span", { class: "badge" }, `${r.provider} · ${r.model || ""}`),
         (r.exemplars_used || []).length ? h("span", { class: "badge info", title: "Engineer-approved answers to similar questions were shown to the model as style examples" }, `${r.exemplars_used.length} approved example(s) used`) : null,
         v.faithful_numbers ? h("span", { class: "badge ok", title: "every number in the answer appears in the sources" }, `✓ ${v.grounded}/${v.numbers_in_answer} numbers grounded`)
           : h("span", { class: "badge bad", title: "numbers not found in any source" }, `✗ ungrounded: ${(v.ungrounded_numbers || []).join(", ")}`),
@@ -633,8 +635,8 @@ async function pageMix(main) {
   };
   fill(main, 
     pageHead("IS 10262 : 2019", "Concrete mix design", "IS 10262 : 2019 (Section 2) with IS 456 Table 5 durability limits. Output is TRIAL MIX No. 1 — confirm by trial batches."),
-    h("div", { class: "alert info", style: { marginBottom: "16px" } }, h("b", {}, "w/c ratio is required "),
-      "until the IS 10262 Fig. 1 strength-vs-w/c curves are digitized (Code tables page). Use your trial data or read it from Fig. 1 for your cement."),
+    h("div", { class: "alert info", style: { marginBottom: "16px" } }, h("b", {}, "w/c ratio: "),
+      "leave it blank to read it from IS 10262 Fig. 1 for your cement type, or enter the value from your own trial mixes."),
     h("div", { class: "card" }, form.el, h("div", { class: "row end", style: { marginTop: "14px" } },
       h("button", { onclick: () => { pageMix(main); } }, "Reset"), h("button", { class: "primary", onclick: run }, "Design mix"))),
     out);
@@ -649,7 +651,7 @@ function renderMix(res) {
       stat(num(o.w_c_ratio, 3), "Free w/c (w/cm)", ""), stat(num(o.cement_bags_per_m3), "Cement bags / m³", "50 kg bags"),
       stat(o.ratio_by_mass ? o.ratio_by_mass.split(" (")[0] : "—", "Ratio by mass", "cement : FA : CA")),
     h("div", { class: "card" }, h("h2", {}, "Quantities per m³ of concrete"),
-      h("table", { class: "t" }, h("thead", {}, h("tr", {}, h("th", {}, "Material"), h("th", { class: "num" }, "SSD condition (kg)"), h("th", { class: "num" }, "Field, dry aggregates (kg)"))),
+      h("table", { class: "t" }, h("thead", {}, h("tr", {}, h("th", {}, "Material"), h("th", { class: "num" }, "SSD condition (kg)"), h("th", { class: "num", title: "dry aggregates (Annex A), or wet if surface moisture is entered (Annex B)" }, "Field, as batched (kg)"))),
         h("tbody", {}, rows.filter(([, a]) => ssd[a] || field[a]).map(([n, a, b]) => h("tr", {}, h("td", {}, n), h("td", { class: "num" }, num(ssd[a], 1)), h("td", { class: "num" }, num(field[b || a], 1))))))),
     confidenceCard(o.confidence, o.code_versions),
     renderCalc({ ...res, outputs: {} }));
@@ -658,9 +660,9 @@ function renderMix(res) {
 // ---------- RCC design
 async function pageDesign(main) {
   const kinds = {
-    beam: { schema: "BeamInput", ep: "/v1/design/beam", label: "Beam", values: { b_mm: 230, D_mm: 450, span_m: 5, dead_load_kN_m: 15, live_load_kN_m: 10 } },
+    beam: { schema: "BeamInput", ep: "/v1/design/beam", label: "Beam", values: { b_mm: 230, D_mm: 500, span_m: 5, dead_load_kN_m: 15, live_load_kN_m: 10 } },
     slab: { schema: "SlabInput", ep: "/v1/design/slab", label: "One-way slab", values: { span_m: 3.5 } },
-    column: { schema: "ColumnInput", ep: "/v1/design/column", label: "Short column (axial)", values: { b_mm: 300, D_mm: 450, Pu_kN: 1500 } },
+    column: { schema: "ColumnInput", ep: "/v1/design/column", label: "Short column (axial)", values: { b_mm: 400, D_mm: 450, Pu_kN: 1500 } },
     footing: { schema: "FootingInput", ep: "/v1/design/footing", label: "Isolated footing", values: { column_b_mm: 300, column_D_mm: 450, service_load_kN: 1200, sbc_kN_m2: 200 } },
   };
   let cur = new URLSearchParams(location.hash.split("?")[1] || "").get("k") || "beam";
@@ -845,7 +847,7 @@ async function pageRates(main) {
     } catch (e) { out.replaceChildren(errorBox(e)); }
   };
   q.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
-  fill(main, pageHead("Schedule of rates", "CPWD DSR 2023 rates", "2,955 items parsed from the scanned Delhi Schedule of Rates (w.e.f. 16.10.2023). Item rates include materials, labour, T&P, water, CP&OH and GST @18%."),
+  fill(main, pageHead("Schedule of rates", "CPWD DSR 2023 rates", "3,200 items of the Delhi Schedule of Rates 2023, read from the clean copy and cross-checked with the scan and CPWD DAR 2023. Item rates include materials, labour, T&P, water, CP&OH and GST @18%."),
     h("div", { class: "card" }, h("div", { class: "row" }, h("div", { style: { flex: "1 1 300px" } }, q), h("div", { style: { width: "130px" } }, unit),
       h("span", { class: "muted" }, "Location"), loc, h("button", { class: "primary", onclick: go }, "Search"))), out);
   go();
@@ -1155,7 +1157,7 @@ function showLogin(msg) {
   };
   key.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
   login = h("div", { class: "login", id: "login" }, h("div", { class: "card stack" },
-    h("div", { class: "brand" }, LOGO(), h("span", {}, "Concrete", h("b", {}, "Estimator"))),
+    h("div", { class: "brand" }, LOGO(), BRAND_TXT()),
     h("div", {}, h("h1", { style: { fontSize: "26px", marginTop: "14px" } }, "Welcome back"),
       h("p", { class: "tagline" }, "Mix design, RCC design aids and DSR-priced estimates, every number cited to the code.")),
     h("p", { class: "muted", style: { margin: "18px 0 0", fontSize: "13px" } }, "Sign in with your API key. Create one in the terminal:"),
@@ -1175,4 +1177,5 @@ async function boot() {
 }
 
 window.addEventListener("hashchange", route);
-if (S.key) boot().catch(() => showLogin("Saved key is no longer valid.")); else showLogin();
+// The desktop build answers /v1/whoami without a key, so try that first and only then ask for one.
+boot().catch(() => showLogin(S.key ? "Saved key is no longer valid." : undefined));
