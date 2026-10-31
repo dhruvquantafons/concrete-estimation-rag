@@ -9,7 +9,7 @@
 | IS 1200 Method of measurement, Parts 1, 2, 5, 8, 22 | 2026 / 2025 / 2025 / 1993 (reaff. 2022, Amd 1) / 2025 | digital (+ a few OCR pages) | quantity take-off |
 | IS 2386 Methods of test for aggregates, Parts 1–8 | 1963 + amendment slips (P3 Amd 1 2018, P7 Amd 3 2015, bound slips) | legacy scan, re-OCR'd | material testing |
 | CPWD Delhi Schedule of Rates (Civil) Vol 1 & 2 | 2023 (w.e.f. 16.10.2023, corrections to 10.11.2023) | 96-dpi bilingual scan | item rates, basic rates, cement coefficients |
-| CPWD Delhi Analysis of Rates (Civil) Vol I & II | 2023 (14.09.2023, all correction slips) | digital; Vol II sub-head 17 image-only (OCR'd) | 2,989 item analyses (material / labour / hire rows, build-up), 2,472 basic rates; cross-check of DSR rates |
+| CPWD Delhi Analysis of Rates (Civil) Vol I & II | 2023 (14.09.2023, all correction slips) | digital; Vol II sub-head 17 image-only (OCR'd) | 3,070 item analyses (material / labour / hire rows, build-up), 2,472 basic rates; cross-check of DSR rates |
 
 **Not yet in the corpus but referenced by the system:** IS 383 (aggregates), IS 1786 (bars), IS 269 (OPC),
 SP 16 / SP 34 (design aids / detailing), IS 875 (loads),
@@ -43,8 +43,10 @@ State PWD SORs, market rate feeds, historical project costs.
 
 ## Known limitations (by design, surfaced to users)
 
-* IS 10262 Fig. 1 (w/c vs strength curves) cannot be extracted from text; w/c is an input until the curves are digitized.
-* Curated code tables are `ai_checked` (compared with the page by AI vision) until a person signs them off.
+* IS 10262 Fig. 1 (w/c vs strength curves) cannot be extracted from text; its curves were digitized from the figure
+  image (51 points, ±0.3 N/mm²).
+* Curated code tables are typed in from the standards; all 13 were compared with the pages and signed off by a
+  person (2026-10-28). A table edited later shows as unsigned until signed again.
 * Cost heads come from DAR 2023 (Delhi). At other locations the cost index scales every head alike until local
   basic / market rates are supplied for re-pricing. Delhi PWD works on the CPWD DSR, so there is no separate
   Delhi State PWD SOR.

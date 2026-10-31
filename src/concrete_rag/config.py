@@ -1,12 +1,14 @@
 """Central settings. Every model / store / provider choice is an env var (prefix CRAG_)."""
 from __future__ import annotations
 
+import os
 from functools import lru_cache
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-ROOT = Path(__file__).resolve().parents[2]
+# CRAG_HOME relocates every data path (the Windows desktop build points it at %LOCALAPPDATA%\BuildMoreAI)
+ROOT = Path(os.environ["CRAG_HOME"]) if os.environ.get("CRAG_HOME") else Path(__file__).resolve().parents[2]
 
 
 class Settings(BaseSettings):
@@ -56,6 +58,7 @@ class Settings(BaseSettings):
     # API
     api_rate_limit: str = "60/minute"
     api_bootstrap_admin_key: str = ""      # if set, accepted as an admin key (dev only)
+    desktop_mode: bool = False             # single-user desktop build: no sign-in, every request is local admin
     api_cors_origins: str = ""             # comma separated
 
     @property

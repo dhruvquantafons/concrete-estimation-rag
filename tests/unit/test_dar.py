@@ -64,6 +64,18 @@ def test_parse_dar_flags_arithmetic_errors():
     assert a.needs_review and any("2.0 x 736.0" in r for r in a.review_reasons)
 
 
+def test_parse_dar_other_openings_and_cost_total_row():
+    """5.9.5 opens with "Consider ...", 11.46A ends its build-up with "Details of cost for 133.33 metre <amount>"."""
+    rows = [[(57, "5.9.5"), (105, "Shuttering")], [(106, "Consider"), (150, "10"), (165, "beams")],
+            [(58, "0114"), (106, "Beldar"), (313, "day"), (366, "2.00"), (413, "736.00"), (472, "1472.00")],
+            [(106, "TOTAL"), (472, "1472.00"), (516, "W")],
+            [(106, "Details"), (138, "of"), (149, "cost"), (169, "for"), (182, "10"), (196, "metre"), (472, "1472.00")],
+            [(106, "Cost"), (129, "per"), (145, "metre"), (477, "147.20")], [(106, "Say"), (477, "147.20")]]
+    [a] = parse_analyses(DOC, [_page(rows)])
+    assert a.code == "5.9.5" and a.rate == 147.2 and a.unit == "m" and len(a.lines) == 1
+    assert not a.needs_review, a.review_reasons
+
+
 def test_excluded_markers_and_categories():
     assert excluded_markers("Add GST on “X-A-P-R” (multiplying factor 0.2127)") == ["A", "P", "R"]
     assert excluded_markers("Add 1 % Water charges on “W”") == []

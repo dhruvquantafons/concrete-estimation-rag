@@ -36,7 +36,7 @@ def _key_or_ip(request: Request) -> str:
 
 
 limiter = Limiter(key_func=_key_or_ip, default_limits=[get_settings().api_rate_limit])
-app = FastAPI(title="Concrete Works RAG & Estimation API", version="0.1.0",
+app = FastAPI(title="BuildMore AI API", version="0.1.0",
               description="Citation-backed retrieval over IS 456 / 10262 / 1200 / 2386 and CPWD DSR 2023, "
                           "plus deterministic IS-compliant calculators and BOQ estimation.")
 app.state.limiter = limiter

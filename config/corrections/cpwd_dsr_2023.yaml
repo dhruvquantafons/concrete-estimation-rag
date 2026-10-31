@@ -162,7 +162,7 @@ items:
   "CPWD-DSR-2023:9.147.A1.3": {rate: 9628.6, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:9.147.421": {rate: 7860.35, unit: m2, code: 9.147.A2.1, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:9.147.42.2": {rate: 8579.55, unit: m2, code: 9.147.A2.2, checked_by: claude-vision, checked_on: '2026-10-20'}
-  "CPWD-DSR-2023:9.147.431": {rate: 9873.05, unit: m2, code: 9.147.A3.1, checked_by: claude-vision, checked_on: '2026-10-28', note: clean copy Vol 1 p.181 prints 9873.05 (used); the scan reads 9933.40}
+  "CPWD-DSR-2023:9.147.431": {rate: 9873.05, unit: m2, code: 9.147.A3.1, checked_by: claude-vision, checked_on: '2026-10-28', note: 'clean copy Vol 1 p.181 and DAR Vol I p.669 print 9873.05 (used); the corrected-edition scan prints 9933.40. Owner kept the HQ / DAR rate (2026-10-28)'}
   "CPWD-DSR-2023:9.147.832": {rate: 9968.7, unit: m2, code: 9.147.A3.2, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:9.147.441": {rate: 10993.55, unit: m2, code: 9.147.A4.1, checked_by: claude-vision, checked_on: '2026-10-20', note: was 1093.55 (OCR dropped a digit); printed 10993.55}
   "CPWD-DSR-2023:9.147.A42": {rate: 10874.2, unit: m2, code: 9.147.A4.2, checked_by: claude-vision, checked_on: '2026-10-20'}
@@ -557,7 +557,7 @@ items:
   "CPWD-DSR-2023:26.35.3": {rate: 553.4, unit: kg, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:26.37": {rate: 382.4, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:26.41": {rate: 285.9, unit: kg, checked_by: claude-vision, checked_on: '2026-10-20', note: rate printed on DSR p.330}
-  "CPWD-DSR-2023:26.42.1A": {rate: 2821.65, unit: m2, checked_by: claude-vision, checked_on: '2026-10-28', note: 'clean copy Vol 2 p.162 prints 2821.65 (used); the scan of the corrected edition prints 2901.80 (and 3903.35 for 26.42.1 vs 3580.65): likely a correction slip'}
+  "CPWD-DSR-2023:26.42.1A": {rate: 2821.65, unit: m2, checked_by: claude-vision, checked_on: '2026-10-28', note: 'clean copy Vol 2 p.162 prints 2821.65 (used); DAR Vol II p.1056 gives 2821.65 too; the scan of the corrected edition prints 2901.80: likely a correction slip. Owner kept the HQ / DAR rate (2026-10-28)'}
   "CPWD-DSR-2023:26.44": {rate: 298.75, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:26.46": {rate: 4347.15, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
   "CPWD-DSR-2023:26.47": {rate: 4701.6, unit: m2, checked_by: claude-vision, checked_on: '2026-10-20'}
@@ -786,7 +786,7 @@ items:
   "CPWD-DSR-2023:4.16": {rate: 467.55, checked_by: admin, checked_on: '2026-10-27', note: rate taken from CPWD DAR 2023 analysis (CPWD_DAR_2023_V1 p.204)}
   "CPWD-DSR-2023:5.16A": {rate: 20185.0, checked_by: admin, checked_on: '2026-10-27', note: rate taken from CPWD DAR 2023 analysis (CPWD_DAR_2023_V1 p.275)}
   "CPWD-DSR-2023:5.6A": {rate: 10954.4, checked_by: admin, checked_on: '2026-10-27', note: rate taken from CPWD DAR 2023 analysis (CPWD_DAR_2023_V1 p.235)}
-  "CPWD-DSR-2023:6.44": {rate: 59.45, checked_by: admin, checked_on: '2026-10-27', note: rate taken from CPWD DAR 2023 analysis (CPWD_DAR_2023_V1 p.367)}
+  "CPWD-DSR-2023:6.44": {rate: 59.45, checked_by: admin, checked_on: '2026-10-27', note: 'CPWD DAR 2023 analysis (CPWD_DAR_2023_V1 p.367) and HQ clean copy Vol 1 p.141 print 59.45 (used); the corrected-edition scan prints 60.85. Owner kept the HQ / DAR rate (2026-10-28)'}
   "CPWD-DSR-2023:7.10.2": {rate: 2874.2, checked_by: admin, checked_on: '2026-10-27', note: rate taken from CPWD DAR 2023 analysis (CPWD_DAR_2023_V1 p.378)}
   "CPWD-DSR-2023:6.40": {rate: 1023.6, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 1 PDF p.141; scan read 181.15 (a neighbouring row's rate)}
   "CPWD-DSR-2023:7.16": {rate: 169.45, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 1 PDF p.145; scan read 2896.0 (a neighbouring row's rate)}
@@ -820,7 +820,7 @@ items:
   "CPWD-DSR-2023:21.1.2.1": {rate: 598.6, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.122; scan read 634.45 (a neighbouring row's rate)}
   "CPWD-DSR-2023:21.3.2": {rate: 1505.25, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.123; scan read 1685.4 (a neighbouring row's rate)}
   "CPWD-DSR-2023:21.19.1": {rate: 148.1, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.125; scan read 200.95 (a neighbouring row's rate)}
-  "CPWD-DSR-2023:26.42.1": {rate: 3580.65, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.162; scan read 3903.35 (a neighbouring row's rate)}
+  "CPWD-DSR-2023:26.42.1": {rate: 3580.65, checked_by: claude-vision, checked_on: '2026-10-28', note: 'HQ clean copy Vol 2 p.162 and DAR Vol II p.1055 print 3580.65 (used); the corrected-edition scan prints 3903.35. Owner kept the HQ / DAR rate (2026-10-28)'}
   "CPWD-DSR-2023:26.90.1": {rate: 1099.35, checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 2 PDF p.175; scan read 1711.1 (a neighbouring row's rate)}
   "CPWD-DSR-2023:6.6": {checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 1 PDF p.138 (scan agrees); not an outlier}
   "CPWD-DSR-2023:7.24": {checked_by: claude-vision, checked_on: '2026-10-28', note: confirmed in HQ clean copy Vol 1 PDF p.146 (scan agrees); not an outlier}

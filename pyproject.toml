@@ -31,15 +31,18 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+# desktop window (the Windows installer is built by packaging/windows/build_on_mac.sh)
+desktop = ["pywebview>=5.3"]
 
 [project.scripts]
 crag = "concrete_rag.cli:app"
+buildmore-desktop = "concrete_rag.desktop.launcher:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-concrete_rag = ["api/ui/*"]
+concrete_rag = ["api/ui/*", "desktop/setup.html"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

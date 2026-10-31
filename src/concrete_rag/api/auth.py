@@ -29,6 +29,9 @@ def create_key(name: str, scopes: list[str]) -> str:
 
 
 def principal(request: Request, key: str | None = Depends(header)) -> dict:
+    if not key and get_settings().desktop_mode:
+        request.state.key_name = "Local user"
+        return {"name": "Local user", "scopes": sorted(SCOPES), "desktop": True}
     if not key:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "missing X-API-Key header")
     boot = get_settings().api_bootstrap_admin_key
